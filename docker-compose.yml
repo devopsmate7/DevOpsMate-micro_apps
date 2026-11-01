@@ -8,12 +8,14 @@ services:
       - "8500:8000"
     volumes:
       - dynamodata:/data
+    restart: unless-stopped
 
   mailhog:
     image: mailhog/mailhog:v1.0.1
     ports:
       - "1025:1025"
       - "8025:8025"
+    restart: unless-stopped
 
   auth:
     build: ./src/services/auth
@@ -35,11 +37,13 @@ services:
     depends_on:
       - dynamodb-local
       - mailhog
+    restart: unless-stopped
 
   catalog:
     build: ./src/services/catalog
     ports:
       - "8001:8001"
+    restart: unless-stopped
 
   commerce:
     build: ./src/services/commerce
@@ -47,13 +51,17 @@ services:
       JWT_SECRET: local-dev-secret-change-later
     volumes:
       - commercedata:/data
+    # A new volume is owned by root. This service must write its database file there.
+    user: "0:0"
     ports:
       - "8002:8002"
+    restart: unless-stopped
 
   notice:
     build: ./src/services/notice
     ports:
       - "8003:8003"
+    restart: unless-stopped
 
   frontend:
     build: ./src/frontend
@@ -64,6 +72,7 @@ services:
       - catalog
       - commerce
       - notice
+    restart: unless-stopped
 
 volumes:
   dynamodata:
