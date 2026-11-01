@@ -1,0 +1,31 @@
+#!/bin/bash
+# First boot: install Docker, clone the repo, write .env, start the containers.
+set -euxo pipefail
+exec > /var/log/devopsmate-user-data.log 2>&1
+
+dnf install -y docker git
+systemctl enable --now docker
+
+mkdir -p /usr/local/lib/docker/cli-plugins
+curl -fsSL "https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-linux-x86_64" \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+if [ ! -d /opt/devopsmate/.git ]; then
+  git clone --branch main "${repo_url}" /opt/devopsmate
+fi
+
+cat > /opt/devopsmate/.env << EOF
+AWS_REGION=${region}
+DYNAMODB_TABLE_USERS=${table_name}
+DYNAMODB_ENDPOINT_URL=
+JWT_SECRET=${jwt_secret}
+CORS_ORIGINS=http://${domain_name}
+SMTP_HOST=127.0.0.1
+SMTP_PORT=1025
+SMTP_TLS=false
+SMTP_FROM=DevOpsMate <devopsmate7@gmail.com>
+EOF
+chmod 600 /opt/devopsmate/.env
+
+bash /opt/devopsmate/scripts/ec2-deploy.sh
