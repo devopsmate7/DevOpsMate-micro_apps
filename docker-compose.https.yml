@@ -1,0 +1,21 @@
+# Used on the EC2 host only. Caddy owns ports 80 and 443 and gets a free
+# Let's Encrypt certificate for devopsmate7.duckdns.org.
+# The frontend container is not published on port 80 when this file is included
+# together with a compose command that does not also map that port.
+services:
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

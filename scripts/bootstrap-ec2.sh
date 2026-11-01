@@ -37,24 +37,19 @@ if ! sudo docker compose version >/dev/null 2>&1; then
 fi
 sudo docker compose version
 
-# Keep the repo's port 3000 for laptop use, and also publish port 80 on this server.
-cat > docker-compose.public.yml << 'EOF'
-services:
-  frontend:
-    ports:
-      - "80:80"
-EOF
+# An older setup published the frontend itself on port 80. Caddy needs that port.
+rm -f docker-compose.public.yml
+COMPOSE=(sudo docker compose -f docker-compose.yml -f docker-compose.https.yml)
 
 echo "== Building and starting containers (this takes several minutes) =="
-sudo docker compose -f docker-compose.yml -f docker-compose.public.yml up -d --build
+"${COMPOSE[@]}" up -d --build
 
-echo "== Waiting for the site =="
+echo "== Waiting for HTTPS =="
 ok=0
 for _ in $(seq 1 36); do
-  if curl -fsS http://127.0.0.1/ >/dev/null \
-    && curl -fsS http://127.0.0.1/api/auth/health >/dev/null \
-    && curl -fsS http://127.0.0.1/api/catalog/courses >/dev/null \
-    && curl -fsS http://127.0.0.1/api/notice/active >/dev/null; then
+  if curl -fsS --resolve devopsmate7.duckdns.org:443:127.0.0.1 https://devopsmate7.duckdns.org/api/auth/health >/dev/null \
+    && curl -fsS --resolve devopsmate7.duckdns.org:443:127.0.0.1 https://devopsmate7.duckdns.org/api/catalog/courses >/dev/null \
+    && curl -fsS --resolve devopsmate7.duckdns.org:443:127.0.0.1 https://devopsmate7.duckdns.org/api/notice/active >/dev/null; then
     ok=1
     break
   fi
@@ -63,8 +58,8 @@ done
 
 if [ "$ok" -ne 1 ]; then
   echo "The site did not become healthy. Recent container logs:"
-  sudo docker compose -f docker-compose.yml -f docker-compose.public.yml ps
-  sudo docker compose -f docker-compose.yml -f docker-compose.public.yml logs --tail 60
+  "${COMPOSE[@]}" ps
+  "${COMPOSE[@]}" logs --tail 60
   exit 1
 fi
 
@@ -75,11 +70,11 @@ if [ -n "${TOKEN}" ]; then
 fi
 
 echo
-sudo docker compose -f docker-compose.yml -f docker-compose.public.yml ps
+"${COMPOSE[@]}" ps
 echo
-echo "Site on this machine: http://127.0.0.1/"
+echo "Site by name: https://devopsmate7.duckdns.org/"
 if [ -n "${PUBLIC_IP}" ]; then
-  echo "Site by IP:           http://${PUBLIC_IP}/"
+  echo "Server IP:    ${PUBLIC_IP}"
 fi
-echo "Site by name:         http://devopsmate7.duckdns.org/"
+echo "Security group must allow ports 80 and 443 from anywhere."
 echo "Put the Elastic IP in DuckDNS and click update ip, if you have not already."

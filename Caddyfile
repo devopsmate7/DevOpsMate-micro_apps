@@ -1,0 +1,7 @@
+{
+	email devopsmate7@gmail.com
+}
+
+devopsmate7.duckdns.org {
+	reverse_proxy frontend:80
+}
