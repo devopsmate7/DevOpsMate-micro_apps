@@ -1,0 +1,88 @@
+# Commerce keeps carts/orders in SQLite on an EBS volume, so it must run as a single
+# replica and use Recreate (an EBS volume can only attach to one node at a time).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: commerce-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp3
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commerce
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: commerce
+  template:
+    metadata:
+      labels:
+        app: commerce
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: commerce
+          image: devopsmate-commerce
+          ports:
+            - name: http
+              containerPort: 8002
+          env:
+            - name: COMMERCE_DB_PATH
+              value: /data/commerce.db
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: devopsmate-secrets
+                  key: JWT_SECRET
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 192Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: commerce-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: commerce
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+spec:
+  selector:
+    app: commerce
+  ports:
+    - name: http
+      port: 8002
+      targetPort: http

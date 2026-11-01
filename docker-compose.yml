@@ -1,0 +1,70 @@
+services:
+  dynamodb-local:
+    image: public.ecr.aws/aws-dynamodb-local/aws-dynamodb-local:latest
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "/data"]
+    working_dir: /home/dynamodblocal
+    user: root
+    ports:
+      - "8500:8000"
+    volumes:
+      - dynamodata:/data
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  auth:
+    build: ./src/services/auth
+    environment:
+      AWS_REGION: ap-south-1
+      DYNAMODB_TABLE_USERS: devopsmate_users
+      DYNAMODB_ENDPOINT_URL: http://dynamodb-local:8000
+      # DynamoDB Local ignores these, but boto3 requires something to be set.
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      JWT_SECRET: local-dev-secret-change-later
+      SMTP_HOST: mailhog
+      SMTP_PORT: "1025"
+      SMTP_FROM: "DevOpsMate <devopsmate7@gmail.com>"
+      SMTP_TLS: "false"
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - dynamodb-local
+      - mailhog
+
+  catalog:
+    build: ./src/services/catalog
+    ports:
+      - "8001:8001"
+
+  commerce:
+    build: ./src/services/commerce
+    environment:
+      JWT_SECRET: local-dev-secret-change-later
+    volumes:
+      - commercedata:/data
+    ports:
+      - "8002:8002"
+
+  notice:
+    build: ./src/services/notice
+    ports:
+      - "8003:8003"
+
+  frontend:
+    build: ./src/frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - auth
+      - catalog
+      - commerce
+      - notice
+
+volumes:
+  dynamodata:
+  commercedata:

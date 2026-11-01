@@ -1,0 +1,27 @@
+# OS / editors
+.DS_Store
+
+# Env and secrets
+.env
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pydeps/
+*.db
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+backend.hcl

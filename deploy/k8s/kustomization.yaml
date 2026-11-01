@@ -1,0 +1,37 @@
+# Synced to the cluster by ArgoCD (Application created in infra/modules/argocd).
+# The namespace, "auth" service account, devopsmate-config and devopsmate-secrets
+# are created by Terraform, so they are intentionally not defined here.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: devopsmate
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: devopsmate
+
+resources:
+  - frontend.yaml
+  - auth.yaml
+  - catalog.yaml
+  - commerce.yaml
+  - notice.yaml
+  - ingress.yaml
+
+# The app pipeline (.github/workflows/app.yml) rewrites newName/newTag on every release.
+images:
+  - name: devopsmate-frontend
+    newName: devopsmate-frontend
+    newTag: latest
+  - name: devopsmate-auth
+    newName: devopsmate-auth
+    newTag: latest
+  - name: devopsmate-catalog
+    newName: devopsmate-catalog
+    newTag: latest
+  - name: devopsmate-commerce
+    newName: devopsmate-commerce
+    newTag: latest
+  - name: devopsmate-notice
+    newName: devopsmate-notice
+    newTag: latest

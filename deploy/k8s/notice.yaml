@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notice
+  template:
+    metadata:
+      labels:
+        app: notice
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: notice
+          image: devopsmate-notice
+          ports:
+            - name: http
+              containerPort: 8003
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notice
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+spec:
+  selector:
+    app: notice
+  ports:
+    - name: http
+      port: 8003
+      targetPort: http
