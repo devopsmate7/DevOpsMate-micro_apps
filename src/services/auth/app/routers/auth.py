@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app import user_repo
+from app import dynamo, user_repo
 from app.email_service import send_welcome_email
 from app.schemas import (
     LoginRequest,
@@ -136,4 +136,6 @@ def update_me(
 
 @router.get("/health", response_model=MessageResponse)
 def health():
+    if not dynamo.db_status["ready"]:
+        raise HTTPException(status_code=503, detail=dynamo.db_status["error"] or "DynamoDB is not ready")
     return MessageResponse(message="ok")

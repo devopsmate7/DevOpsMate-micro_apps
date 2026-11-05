@@ -1,9 +1,10 @@
 import logging
-import time
+import threading
 
 from botocore.exceptions import BotoCoreError, ClientError
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app import dynamo
 from app.config import settings
@@ -24,17 +25,22 @@ app.add_middleware(
 app.include_router(auth.router)
 
 
+@app.exception_handler(BotoCoreError)
+@app.exception_handler(ClientError)
+async def dynamodb_unavailable(request: Request, exc: Exception):
+    # Any DynamoDB failure becomes a clear 503 JSON error (never a bare 500).
+    logging.error("DynamoDB error on %s: %s", request.url.path, dynamo.explain_error(exc))
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "Our database is not reachable right now. Please try again in a minute."},
+    )
+
+
 @app.on_event("startup")
 def on_startup():
-    for attempt in range(30):
-        try:
-            dynamo.ensure_table()
-            logging.info("DynamoDB ready (table=%s)", settings.dynamodb_table_users)
-            return
-        except (BotoCoreError, ClientError):
-            logging.warning("DynamoDB not ready, retry %s/30", attempt + 1)
-            time.sleep(2)
-    raise RuntimeError("Could not connect to DynamoDB")
+    # Do not crash if DynamoDB is unreachable: keep serving and keep retrying,
+    # so /api/auth/health can report the exact reason.
+    threading.Thread(target=dynamo.connect_with_retry, daemon=True).start()
 
 
 @app.get("/health")

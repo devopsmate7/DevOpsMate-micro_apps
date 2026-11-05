@@ -14,9 +14,11 @@ direct GetItem lookups on the base table's own key.
 from __future__ import annotations
 
 import logging
+import time
 from functools import lru_cache
 
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError, NoCredentialsError
 
 from app.config import settings
 
@@ -46,6 +48,36 @@ def get_table():
     return get_resource().Table(settings.dynamodb_table_users)
 
 
+# Shared status so the API can explain *why* DynamoDB is not usable instead of
+# crashing the container (which shows up to users as a bare 502 from nginx).
+db_status: dict = {"ready": False, "error": "DynamoDB connection has not been checked yet"}
+
+
+def explain_error(exc: Exception) -> str:
+    if isinstance(exc, NoCredentialsError):
+        return (
+            "No AWS credentials found. Attach an IAM role with DynamoDB access to the EC2 "
+            "instance and set the instance metadata hop limit to 2 (containers need it)."
+        )
+    return f"{type(exc).__name__}: {exc}"
+
+
+def connect_with_retry() -> None:
+    """Keep trying until the users table is ready. Runs in a background thread."""
+    attempt = 0
+    while True:
+        try:
+            ensure_table()
+            db_status.update(ready=True, error=None)
+            logger.info("DynamoDB ready (table=%s)", settings.dynamodb_table_users)
+            return
+        except (BotoCoreError, ClientError) as exc:
+            attempt += 1
+            db_status.update(ready=False, error=explain_error(exc))
+            logger.warning("DynamoDB not ready (attempt %s): %s", attempt, db_status["error"])
+            time.sleep(min(2 * attempt, 30))
+
+
 def ensure_table() -> None:
     """Create the users table (+ email GSI) if it does not already exist.
 
@@ -54,9 +86,12 @@ def ensure_table() -> None:
     table exists and is mainly here so local dev / DynamoDB Local "just works".
     """
     client = get_client()
-    existing = client.list_tables().get("TableNames", [])
-    if settings.dynamodb_table_users in existing:
+    try:
+        client.describe_table(TableName=settings.dynamodb_table_users)
         return
+    except ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") != "ResourceNotFoundException":
+            raise
 
     logger.info("Creating DynamoDB table %s", settings.dynamodb_table_users)
     client.create_table(

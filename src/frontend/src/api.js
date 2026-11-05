@@ -13,7 +13,11 @@ export async function apiFetch(path, { token, method = "GET", body } = {}) {
     let message = data.message || "Request failed";
     if (typeof detail === "string") message = detail;
     else if (Array.isArray(detail)) {
-      message = detail.map((d) => d.msg || JSON.stringify(d)).join(", ");
+      message = detail
+        .map((d) => (d.msg ? d.msg.replace(/^Value error, /, "") : JSON.stringify(d)))
+        .join(", ");
+    } else if (res.status >= 500) {
+      message = "The server is not reachable right now. Please try again in a minute.";
     }
     throw new Error(message);
   }
