@@ -93,6 +93,7 @@ class TokenResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+    mail: Optional[str] = None
 
 
 class ProfileUpdateRequest(BaseModel):

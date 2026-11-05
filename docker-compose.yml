@@ -32,7 +32,7 @@ services:
       SMTP_PORT: ${SMTP_PORT:-1025}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-DevOpsMate <devopsmate7@gmail.com>}
+      SMTP_FROM: "${SMTP_FROM:-DevOpsMate <devopsmate7@gmail.com>}"
       SMTP_TLS: ${SMTP_TLS:-false}
       CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
     ports:

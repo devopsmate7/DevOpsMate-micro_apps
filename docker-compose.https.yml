@@ -3,6 +3,17 @@
 # The frontend container is not published on port 80 when this file is included
 # together with a compose command that does not also map that port.
 services:
+  # This file is only used on the server. Mail goes to Gmail, not MailHog.
+  # The app password stays in .env on the server (SMTP_PASSWORD). Never commit it.
+  auth:
+    environment:
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-devopsmate7@gmail.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: "${SMTP_FROM:-DevOpsMate <devopsmate7@gmail.com>}"
+      SMTP_TLS: ${SMTP_TLS:-true}
+
   caddy:
     image: caddy:2
     ports:

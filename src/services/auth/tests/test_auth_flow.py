@@ -106,7 +106,9 @@ def test_signup_sends_welcome_mail(client, monkeypatch):
 
 
 def test_health_ok_when_ready(client):
-    assert client.get("/api/auth/health").status_code == 200
+    health = client.get("/api/auth/health")
+    assert health.status_code == 200
+    assert health.json()["mail"] == "mailhog"
     assert client.get("/health").status_code == 200
 
 

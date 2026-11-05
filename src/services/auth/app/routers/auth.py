@@ -8,6 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app import dynamo, user_repo
+from app.config import settings
 from app.email_service import send_welcome_email
 from app.schemas import (
     LoginRequest,
@@ -138,4 +139,10 @@ def update_me(
 def health():
     if not dynamo.db_status["ready"]:
         raise HTTPException(status_code=503, detail=dynamo.db_status["error"] or "DynamoDB is not ready")
-    return MessageResponse(message="ok")
+    if settings.smtp_password and settings.smtp_host == "smtp.gmail.com":
+        mail = "gmail"
+    elif settings.smtp_host in ("mailhog", "127.0.0.1", "localhost"):
+        mail = "mailhog"
+    else:
+        mail = "not-configured"
+    return MessageResponse(message="ok", mail=mail)

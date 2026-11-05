@@ -82,6 +82,11 @@ async def send_welcome_email(name: str, email: str, mobile: str, city: str) -> N
     msg.attach(MIMEText(welcome_email_text(name), "plain", "utf-8"))
     msg.attach(MIMEText(welcome_email_html(name), "html", "utf-8"))
 
+    if settings.smtp_host in ("mailhog", "127.0.0.1", "localhost"):
+        logger.warning("Welcome mail for %s is going to MailHog, not to a real inbox", email)
+    if settings.smtp_host == "smtp.gmail.com" and not settings.smtp_password:
+        raise RuntimeError("SMTP_PASSWORD is empty. Set it in the server .env file.")
+
     try:
         await aiosmtplib.send(
             msg,

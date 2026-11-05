@@ -40,6 +40,14 @@ async def dynamodb_unavailable(request: Request, exc: Exception):
 def on_startup():
     # Do not crash if DynamoDB is unreachable: keep serving and keep retrying,
     # so /api/auth/health can report the exact reason.
+    logging.info(
+        "Mail via %s:%s as %s (tls=%s, password=%s)",
+        settings.smtp_host,
+        settings.smtp_port,
+        settings.smtp_user or "(none)",
+        settings.smtp_tls,
+        "set" if settings.smtp_password else "MISSING",
+    )
     threading.Thread(target=dynamo.connect_with_retry, daemon=True).start()
 
 
