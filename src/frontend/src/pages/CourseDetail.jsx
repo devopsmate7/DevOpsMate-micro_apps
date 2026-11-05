@@ -92,6 +92,49 @@ export default function CourseDetail() {
               <span className="chip">{course.mode}</span>
             </div>
 
+            {course.interview_plan ? (
+              <div className="detail-block">
+                <h2>30-day interview plan</h2>
+                {course.interview_plan.intro.map((line) => (
+                  <p key={line} className="plan-intro">{line}</p>
+                ))}
+                <div className="plan-table-wrap">
+                  <table className="plan-table">
+                    <thead>
+                      <tr>
+                        <th>Days</th>
+                        <th>Topic</th>
+                        <th>Day 1 — Learn</th>
+                        <th>Day 2 — Practice</th>
+                        <th>Day 3 — Mock</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {course.interview_plan.rows.map((row) => (
+                        <tr key={row.days}>
+                          <td>{row.days}</td>
+                          <td>{row.topic}</td>
+                          <td>{row.learn}</td>
+                          <td>{row.practice}</td>
+                          <td>{row.mock}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="plan-note">{course.interview_plan.note}</p>
+                <h3 className="plan-rules-title">Daily rule</h3>
+                <ul className="check-list">
+                  {course.interview_plan.rules.map((rule) => (
+                    <li key={rule}>
+                      <Icon name="check" size={16} stroke={2.5} />
+                      {rule}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
             {course.syllabus?.length ? (
               <div className="detail-block">
                 <h2>Course Content</h2>

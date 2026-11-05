@@ -560,6 +560,13 @@ ul, ol { list-style: none; }
 .topic-project span {
   flex: 0 0 auto; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: var(--gold, #8a5a12);
 }
+.plan-intro { color: var(--text-2); font-size: 15px; line-height: 1.6; margin-bottom: 12px; }
+.plan-table-wrap { overflow-x: auto; margin-top: 8px; }
+.plan-table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.45; }
+.plan-table th, .plan-table td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.plan-table th { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; color: var(--text-2); }
+.plan-note { margin-top: 14px; color: var(--text-2); font-size: 15px; line-height: 1.6; }
+.plan-rules-title { font-family: var(--display); font-size: 17px; font-weight: 650; margin: 22px 0 14px; }
 .include-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .include-item {
   display: flex; align-items: center; gap: 10px;

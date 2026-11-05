@@ -28,6 +28,21 @@ class SyllabusSection(BaseModel):
     topics: List[SyllabusTopic]
 
 
+class PlanRow(BaseModel):
+    days: str
+    topic: str
+    learn: str
+    practice: str
+    mock: str
+
+
+class InterviewPlan(BaseModel):
+    intro: List[str]
+    rows: List[PlanRow]
+    note: str
+    rules: List[str]
+
+
 class Course(BaseModel):
     id: str
     slug: str
@@ -43,6 +58,7 @@ class Course(BaseModel):
     includes: List[str]
     category: str
     syllabus: List[SyllabusSection] = []
+    interview_plan: Optional[InterviewPlan] = None
 
 
 COURSES: List[Course] = [
@@ -190,17 +206,40 @@ COURSES: List[Course] = [
         subtitle="Interview preparation for DevOps and cloud roles, including mock interviews, resume review, and scenario practice.",
         price_inr=0,
         level="Career support",
-        duration="Ongoing",
+        duration="30 days",
         mode="1:1 + mocks",
         badge="Interview",
         category="Career",
         highlights=[
-            "Structured mock interviews",
-            "Resume and LinkedIn review",
-            "Scenario and troubleshooting practice",
-            "Guidance on offers and negotiation",
+            "A question set for every topic, studied the same day it is shared",
+            "Real-time and deep interview questions, past the usual set",
+            "A timed mock every third day, with feedback",
         ],
-        includes=["Mocks", "Feedback notes", "Question bank", "Career calls"],
+        includes=["Question sets", "Practice labs", "Mock drills", "Feedback"],
+        interview_plan=InterviewPlan(
+            intro=[
+                "Every topic takes three days. On day 1 the questions are shared and you learn them the same day. Day 2 is practice. Day 3 is a timed mock.",
+                "Real-time project questions and deeper questions, past the usual interview set, are included for every topic.",
+            ],
+            rows=[
+                PlanRow(days="1–3", topic="Linux and shell", learn="Questions shared. Study them the same day.", practice="Answer them out loud and do the lab.", mock="Mock 1"),
+                PlanRow(days="4–6", topic="Git and GitHub", learn="Questions shared. Study them the same day.", practice="Practice the commands and explain a pull request.", mock="Mock 2"),
+                PlanRow(days="7–9", topic="AWS: IAM, EC2, S3", learn="Questions shared. Study them the same day.", practice="Walk through each service on a scenario.", mock="Mock 3"),
+                PlanRow(days="10–12", topic="VPC, subnets, security groups, load balancer", learn="Questions shared. Study them the same day.", practice="Draw the network and explain the traffic path.", mock="Mock 4"),
+                PlanRow(days="13–15", topic="RDS, Lambda, CloudWatch", learn="Questions shared. Study them the same day.", practice="Explain a 2-tier failure and how you would find it.", mock="Mock 5"),
+                PlanRow(days="16–18", topic="Terraform", learn="Questions shared. Study them the same day.", practice="Explain state, plan, and apply on a real change.", mock="Mock 6"),
+                PlanRow(days="19–21", topic="Ansible and GitHub Actions", learn="Questions shared. Study them the same day.", practice="Walk a pipeline from commit to deploy.", mock="Mock 7"),
+                PlanRow(days="22–24", topic="Docker and ECR", learn="Questions shared. Study them the same day.", practice="Explain image, container, and a failed pull.", mock="Mock 8"),
+                PlanRow(days="25–27", topic="Kubernetes, EKS / ECS", learn="Questions shared. Study them the same day.", practice="Explain pod, service, and a deployment rollout.", mock="Mock 9"),
+                PlanRow(days="28–30", topic="Real-time scenarios, troubleshooting, your project", learn="Deep questions shared. Study them the same day.", practice="Tell your project the way you would in an interview.", mock="Final mock"),
+            ],
+            note="Any topic, tool, or service that is missing from this plan is added based on your personal interest and the role you are preparing for.",
+            rules=[
+                "Study 2–3 hours. Finish that day's work the same day.",
+                "In the evening, send what you learned, what you practiced, and your doubts. A day with no update is incomplete.",
+                "A missed mock means that topic is repeated before the next one starts.",
+            ],
+        ),
     ),
 ]
 
