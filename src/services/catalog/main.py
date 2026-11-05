@@ -16,6 +16,18 @@ app.add_middleware(
 )
 
 
+class SyllabusTopic(BaseModel):
+    number: str
+    title: str
+    projects: List[str] = []
+
+
+class SyllabusSection(BaseModel):
+    number: str
+    title: str
+    topics: List[SyllabusTopic]
+
+
 class Course(BaseModel):
     id: str
     slug: str
@@ -30,6 +42,7 @@ class Course(BaseModel):
     highlights: List[str]
     includes: List[str]
     category: str
+    syllabus: List[SyllabusSection] = []
 
 
 COURSES: List[Course] = [
@@ -51,6 +64,105 @@ COURSES: List[Course] = [
             "Project work carried through from design to delivery",
         ],
         includes=["Live sessions", "Labs", "Projects", "Mentorship"],
+        syllabus=[
+            SyllabusSection(
+                number="01",
+                title="AWS",
+                topics=[
+                    SyllabusTopic(number="01", title="AWS DevOps Overview"),
+                    SyllabusTopic(number="02", title="What is Cloud (types: AWS, Azure, GCP)"),
+                    SyllabusTopic(number="03", title="AWS Account creation"),
+                    SyllabusTopic(
+                        number="04",
+                        title="VPC",
+                        projects=["VPC project — complete networking"],
+                    ),
+                    SyllabusTopic(
+                        number="05",
+                        title="EC2",
+                        projects=["Application deployment on EC2"],
+                    ),
+                    SyllabusTopic(number="06", title="Linux"),
+                    SyllabusTopic(
+                        number="07",
+                        title="Load Balancer (ALB / NLB)",
+                        projects=["Using ELB"],
+                    ),
+                    SyllabusTopic(
+                        number="08",
+                        title="RDS",
+                        projects=["2-Tier infra — EC2 (public) + RDS (private) · VPC"],
+                    ),
+                    SyllabusTopic(number="09", title="IAM"),
+                    SyllabusTopic(
+                        number="10",
+                        title="S3",
+                        projects=["Static website hosting on S3"],
+                    ),
+                    SyllabusTopic(number="11", title="Lambda"),
+                ],
+            ),
+            SyllabusSection(
+                number="02",
+                title="DevOps",
+                topics=[
+                    SyllabusTopic(
+                        number="01",
+                        title="Jira / ADO — Learning and tasks are tracked live in Jira or Azure DevOps. A ticket is assigned to you, so the class feels like real project work.",
+                    ),
+                    SyllabusTopic(number="02", title="Git"),
+                    SyllabusTopic(number="03", title="GitHub"),
+                    SyllabusTopic(
+                        number="04",
+                        title="Ansible",
+                        projects=["Ansible project one", "Ansible project two"],
+                    ),
+                    SyllabusTopic(
+                        number="05",
+                        title="Terraform",
+                        projects=[
+                            "VPC project (complete networking) — using Terraform",
+                            "2-Tier infra (EC2 + VPC + ALB) — using Terraform",
+                        ],
+                    ),
+                    SyllabusTopic(
+                        number="06",
+                        title="CI/CD (GitHub Actions)",
+                        projects=["Complete CI/CD pipeline — Dev → QA → Prod setup"],
+                    ),
+                    SyllabusTopic(number="07", title="Docker"),
+                    SyllabusTopic(number="08", title="ECR"),
+                    SyllabusTopic(
+                        number="09",
+                        title="Kubernetes — EKS / ECS",
+                        projects=[
+                            "Application deployment end-to-end on EC2",
+                            "Application deployment end-to-end on Docker",
+                            "Application deployment end-to-end on Kubernetes — EKS / ECS",
+                        ],
+                    ),
+                ],
+            ),
+            SyllabusSection(
+                number="03",
+                title="Career help",
+                topics=[
+                    SyllabusTopic(number="01", title="Resume building"),
+                    SyllabusTopic(number="02", title="Mock interviews"),
+                    SyllabusTopic(number="03", title="Naukri profile handling"),
+                    SyllabusTopic(number="04", title="LinkedIn optimization"),
+                    SyllabusTopic(number="05", title="1:1 doubt clearance"),
+                    SyllabusTopic(
+                        number="06",
+                        title="Beyond Interview Question and Answers will be shared. You can expect 80–90% in the interviews",
+                    ),
+                    SyllabusTopic(
+                        number="07",
+                        title="Class Recording will be shared (Lifetime Access)",
+                    ),
+                ],
+            ),
+        ],
     ),
     Course(
         id="c-job-support",

@@ -92,17 +92,49 @@ export default function CourseDetail() {
               <span className="chip">{course.mode}</span>
             </div>
 
-            <div className="detail-block">
-              <h2>Program outline</h2>
-              <ul className="check-list">
-                {course.highlights.map((h) => (
-                  <li key={h}>
-                    <Icon name="check" size={16} stroke={2.5} />
-                    {h}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {course.syllabus?.length ? (
+              <div className="detail-block">
+                <h2>Course Content</h2>
+                <div className="syllabus">
+                  {course.syllabus.map((section) => (
+                    <section key={section.number} className="syllabus-section">
+                      <h3>
+                        <span>SECTION {section.number}</span>
+                        {section.title}
+                      </h3>
+                      <ol>
+                        {section.topics.map((topic) => (
+                          <li key={topic.number}>
+                            <span className="topic-no">{topic.number}</span>
+                            <div>
+                              <p>{topic.title}</p>
+                              {topic.projects?.map((project) => (
+                                <p key={project} className="topic-project">
+                                  <span>PROJECT</span>
+                                  {project}
+                                </p>
+                              ))}
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                    </section>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="detail-block">
+                <h2>Program outline</h2>
+                <ul className="check-list">
+                  {course.highlights.map((h) => (
+                    <li key={h}>
+                      <Icon name="check" size={16} stroke={2.5} />
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="detail-block">
               <h2>Included with this program</h2>
