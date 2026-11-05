@@ -1,122 +1,66 @@
 # DevOpsMate
 
-Course platform: React frontend + four FastAPI microservices, deployed to AWS EKS with
-Terraform, GitHub Actions and ArgoCD (GitOps). Everything lives in this one repo.
+Website: https://devopsmate7.duckdns.org
 
-## Repository layout
+Students sign up, log in, pick a course, and get a welcome email from devopsmate7@gmail.com.
+Users are stored in DynamoDB. Orders are stored on the server.
 
-```
-.
-├── src/                        Application code
-│   ├── frontend/               React (Vite) app served by nginx          :80
-│   └── services/
-│       ├── auth/               Signup/login/profile, users in DynamoDB   :8000
-│       ├── catalog/            Courses                                   :8001
-│       ├── commerce/           Cart + orders (SQLite on a volume)        :8002
-│       └── notice/             Notice bar / announcements                :8003
-├── infra/                      Terraform
-│   ├── bootstrap/              One-time: state bucket + GitHub OIDC roles (run locally)
-│   ├── modules/                vpc, eks, ecr, dynamodb, irsa-role, alb-controller, argocd
-│   ├── main.tf                 Wires the modules together
-│   ├── variables.tf
-│   └── terraform.tfvars        Environment values (edit these)
-├── deploy/k8s/                 Kustomize manifests ArgoCD syncs to the cluster
-├── .github/workflows/
-│   ├── infra.yml               Pipeline 1: terraform plan/apply/destroy
-│   └── app.yml                 Pipeline 2: build images -> ECR -> bump tags in deploy/k8s
-├── docker-compose.yml          Full local stack
-└── scripts/run-local.sh        Run services directly on the host
-```
+## New AWS account
 
-## How a deployment flows
+Have these ready:
 
-1. `infra.yml` creates the VPC, EKS cluster, ECR repos, DynamoDB users table, the AWS
-   Load Balancer Controller and ArgoCD. ArgoCD is configured to watch `deploy/k8s` on `main`.
-2. `app.yml` builds the 5 images, pushes them to ECR tagged with the commit SHA and commits
-   the new tags to `deploy/k8s/kustomization.yaml`.
-3. ArgoCD sees the commit and syncs the cluster. The Ingress becomes an internet-facing ALB:
-   `/api/auth|catalog|commerce|notice` go to each service, everything else to the frontend.
+1. A GitHub token that can read this private repo.
+2. The Gmail app password for devopsmate7@gmail.com.
+3. The DuckDNS token from duckdns.org.
 
-The auth pod reaches DynamoDB through IRSA (no AWS keys in the cluster). The namespace,
-service account, `devopsmate-config` and `devopsmate-secrets` (JWT secret) are created by
-Terraform because they contain account-specific values.
+Then:
 
-## First-time setup
+1. Log in to the new AWS account and set the region to Mumbai.
+2. Open CloudShell (the `>_` icon).
+3. Upload `scripts/create-aws-stack.sh` (Actions, Upload file).
+4. Run `bash create-aws-stack.sh` and paste the three values. Typing stays hidden.
+5. Wait about 10 minutes, then open https://devopsmate7.duckdns.org
 
-### 1. Bootstrap (once, from your machine, with admin AWS credentials)
+The script creates the server, its permissions, a fixed IP, and starts every container.
+The users table is created on first signup and starts empty. Signup, login, welcome email, courses, cart, and orders all work.
 
-Edit `infra/bootstrap/terraform.tfvars` and set `github_repo = "<owner>/<repo>"`, then:
+To watch it install, open the instance, choose Connect, then Session Manager:
 
 ```bash
-cd infra/bootstrap
-terraform init
-terraform apply
-terraform output
+sudo tail -f /var/log/devopsmate-setup.log
 ```
 
-If the account already has the GitHub OIDC provider, set `create_github_oidc_provider = false`.
+It is finished when the log shows `DEVOPSMATE SETUP FINISHED`.
 
-### 2. GitHub repository settings
+## Update the live site
 
-| Type     | Name                 | Value                                        |
-|----------|----------------------|----------------------------------------------|
-| Secret   | `AWS_INFRA_ROLE_ARN` | bootstrap output `infra_role_arn`            |
-| Secret   | `AWS_APP_ROLE_ARN`   | bootstrap output `app_role_arn`              |
-| Variable | `TF_STATE_BUCKET`    | bootstrap output `state_bucket`              |
-| Variable | `AWS_REGION`         | optional, defaults to `ap-south-1`           |
-| Secret   | `ARGOCD_REPO_TOKEN`  | only if the repo is private (read-only PAT)  |
-
-Also create an Environment named **`infra`** (Settings → Environments). Add required
-reviewers there if you want a manual approval before apply/destroy.
-
-If the repo is private, set `argocd_repo_private = true` in `infra/terraform.tfvars`.
-
-### 3. Review `infra/terraform.tfvars`
-
-Region, cluster version, node sizes, and `cluster_admin_arns` (IAM users/roles that should
-get kubectl admin access, e.g. your SSO role).
-
-### 4. Run the pipelines
-
-1. Actions → **infra** → Run workflow → `apply` (later, pushes to `infra/**` apply automatically).
-2. Actions → **app** → Run workflow (later, pushes to `src/**` deploy automatically).
-
-### 5. Access
+Connect the same way, then:
 
 ```bash
-cd infra
-terraform init -backend-config=backend.hcl   # copy backend.hcl.example first
-terraform output configure_kubectl            # run the printed command
-terraform output app_url                      # prints the command to get the ALB hostname
-terraform output argocd_admin_password
-kubectl -n argocd port-forward svc/argocd-server 8080:443   # ArgoCD UI on https://localhost:8080
+cd /home/ubuntu/DevOpsMate-micro_apps
+git pull
+sudo docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --build
 ```
 
-## Tear down
-
-Actions → **infra** → Run workflow → `destroy`. The job first removes the ArgoCD
-application, Ingress and volumes so the ALB and EBS volume are not orphaned.
-Then destroy `infra/bootstrap` locally if you no longer need the state bucket and roles.
-
-## Local development
+## Run on a laptop
 
 ```bash
-cp .env.example .env
 docker compose up --build
 ```
 
-- App: http://localhost:3000
-- Auth API docs: http://localhost:8000/docs
-- DynamoDB Local: http://localhost:8500
-- Mail (welcome emails): http://localhost:8025
+- Site: http://localhost:3000
+- Welcome emails stay on this laptop: http://localhost:8025
 
-Without Docker for the services: `docker compose up -d dynamodb-local mailhog` then
-`./scripts/run-local.sh`.
+## Files
 
-## Notes
-
-- The ALB listens on HTTP only. Add an ACM certificate and the
-  `alb.ingress.kubernetes.io/certificate-arn` annotation for HTTPS.
-- SMTP is not configured on EKS; welcome emails are skipped until SMTP settings are added.
-- Commerce stores data in SQLite on an EBS volume, so it runs as one replica.
-- The infra GitHub role has AdministratorAccess for simplicity; scope it down for production.
+| Path | What it is |
+| --- | --- |
+| `src/frontend` | The website |
+| `src/services/auth` | Signup, login, welcome email |
+| `src/services/catalog` | Courses |
+| `src/services/commerce` | Cart and orders |
+| `src/services/notice` | The notice at the top |
+| `scripts/create-aws-stack.sh` | Creates everything on a new AWS account |
+| `scripts/bootstrap-ec2.sh` | Installs Docker and starts the site on a server |
+| `scripts/setup-gmail.sh` | Turns on real email on a server that is already running |
+| `scripts/setup-aws-role.sh` | Gives an existing server access to DynamoDB |

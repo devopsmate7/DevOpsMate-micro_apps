@@ -17,11 +17,5 @@ node_modules/
 dist/
 .vite/
 
-# Terraform
+# Leftover local Terraform downloads
 .terraform/
-*.tfstate
-*.tfstate.*
-*.tfplan
-tfplan
-crash.log
-backend.hcl
