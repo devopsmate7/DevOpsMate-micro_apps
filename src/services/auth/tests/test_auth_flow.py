@@ -87,6 +87,24 @@ def test_signup_validation_and_duplicates(client):
     assert client.post("/api/auth/signup", json={**USER, "email": "b@gmail.com", "mobile": "9000000002", "password": "short"}).status_code == 422
 
 
+def test_signup_sends_welcome_mail(client, monkeypatch):
+    sent = []
+
+    async def fake_send(msg, **kwargs):
+        sent.append(msg)
+
+    monkeypatch.setattr("app.email_service.aiosmtplib.send", fake_send)
+    assert client.post("/api/auth/signup", json=USER).status_code == 201
+    assert len(sent) == 1
+    msg = sent[0]
+    assert msg["To"] == "test.user@gmail.com"
+    assert msg["Subject"] == "Welcome to DevOpsMate"
+    text = msg.get_payload()[0].get_payload(decode=True).decode()
+    for expected in ("Dear Test User", "AWS + DevOps + AI", "Job Support", "Interview Support (30 days)",
+                     "non-refundable", "/privacy", "/refund", "/terms", "+91 80889 29670"):
+        assert expected in text
+
+
 def test_health_ok_when_ready(client):
     assert client.get("/api/auth/health").status_code == 200
     assert client.get("/health").status_code == 200

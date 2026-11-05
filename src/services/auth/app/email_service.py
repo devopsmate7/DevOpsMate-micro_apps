@@ -1,6 +1,7 @@
 import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from html import escape
 
 import aiosmtplib
 
@@ -8,8 +9,42 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+SITE_URL = "https://devopsmate7.duckdns.org"
+WHATSAPP = "+91 80889 29670"
+SERVICES = ["AWS + DevOps + AI", "Job Support — 1:1", "Interview Support (30 days)"]
 
-def welcome_email_html(name: str, email: str, mobile: str, city: str) -> str:
+
+def welcome_email_text(name: str) -> str:
+    services = "\n".join(f"{i}. {s}" for i, s in enumerate(SERVICES, 1))
+    return f"""Dear {name},
+
+Welcome. Your account is ready, and this is a strong start. Sign in with this email or your mobile number, and keep going one day at a time. Consistent effort is what gets you the role.
+
+Pick your course by visiting {SITE_URL}
+
+Our services:
+{services}
+
+We are with you on this journey. Show up, practice, and you will grow.
+
+Fees are non-refundable after the order is confirmed. We store your name, email, and mobile only to run your account, and we do not sell your data.
+
+Terms: {SITE_URL}/terms
+Privacy: {SITE_URL}/privacy
+Refund: {SITE_URL}/refund
+
+By creating this account you agree to these policies.
+
+Good luck. You can do this.
+Team DevOpsMate
+WhatsApp: {WHATSAPP}
+"""
+
+
+def welcome_email_html(name: str) -> str:
+    name = escape(name)
+    services = "".join(f'<li style="margin:4px 0;font-weight:600;">{escape(s)}</li>' for s in SERVICES)
+    link = "color:#0b3d91;"
     return f"""<!DOCTYPE html>
 <html><body style="font-family:Arial,sans-serif;color:#1d1d1f;line-height:1.6;max-width:560px;margin:auto;padding:0;">
   <div style="background:#0b3d91;padding:28px;text-align:center;border-radius:12px 12px 0 0;">
@@ -17,16 +52,24 @@ def welcome_email_html(name: str, email: str, mobile: str, city: str) -> str:
     <p style="color:#c9dbff;margin:8px 0 0;font-size:13px;">Learn | Grow | Succeed</p>
   </div>
   <div style="padding:28px;background:#f7fafc;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;">
-    <p style="color:#12805c;font-size:18px;font-weight:700;margin:0 0 12px;">Welcome to DevOpsMate</p>
     <p>Dear <strong>{name}</strong>,</p>
-    <p>Your account was created successfully. We are excited to have you on this journey.</p>
-    <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:#fff;border-radius:8px;">
-      <tr><td style="padding:10px;color:#6b7280;">Email</td><td style="padding:10px;font-weight:600;">{email}</td></tr>
-      <tr><td style="padding:10px;color:#6b7280;">Mobile</td><td style="padding:10px;font-weight:600;">{mobile}</td></tr>
-      <tr><td style="padding:10px;color:#6b7280;">City</td><td style="padding:10px;font-weight:600;">{city}</td></tr>
-    </table>
-    <p>Next step: choose AWS + DevOps + AI, Job Support, or Interview Support and enroll.</p>
-    <p><strong>Good luck!</strong><br/>- Team DevOpsMate</p>
+    <p>Welcome. Your account is ready, and this is a strong start. Sign in with this email or your mobile number,
+    and keep going one day at a time. Consistent effort is what gets you the role.</p>
+    <p style="text-align:center;margin:24px 0;">
+      <a href="{SITE_URL}" style="background:#12805c;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">Pick your course</a>
+    </p>
+    <p style="margin-bottom:4px;"><strong>Our services:</strong></p>
+    <ol style="margin-top:0;">{services}</ol>
+    <p>We are with you on this journey. Show up, practice, and you will grow.</p>
+    <p style="font-size:13px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:16px;">
+      Fees are non-refundable after the order is confirmed. We store your name, email, and mobile only to run your
+      account, and we do not sell your data.<br/>
+      <a href="{SITE_URL}/terms" style="{link}">Terms</a> ·
+      <a href="{SITE_URL}/privacy" style="{link}">Privacy</a> ·
+      <a href="{SITE_URL}/refund" style="{link}">Refund</a><br/>
+      By creating this account you agree to these policies.
+    </p>
+    <p><strong>Good luck. You can do this.</strong><br/>Team DevOpsMate<br/>WhatsApp: {WHATSAPP}</p>
   </div>
 </body></html>"""
 
@@ -36,7 +79,8 @@ async def send_welcome_email(name: str, email: str, mobile: str, city: str) -> N
     msg["Subject"] = "Welcome to DevOpsMate"
     msg["From"] = settings.smtp_from
     msg["To"] = email
-    msg.attach(MIMEText(welcome_email_html(name, email, mobile, city), "html", "utf-8"))
+    msg.attach(MIMEText(welcome_email_text(name), "plain", "utf-8"))
+    msg.attach(MIMEText(welcome_email_html(name), "html", "utf-8"))
 
     try:
         await aiosmtplib.send(
