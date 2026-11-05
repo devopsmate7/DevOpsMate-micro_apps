@@ -99,7 +99,8 @@ echo "== Building and starting (several minutes) =="
 echo "== Waiting for the site =="
 ok=0
 for _ in $(seq 1 36); do
-  if curl -fsS --resolve devopsmate7.duckdns.org:443:127.0.0.1 https://devopsmate7.duckdns.org/api/auth/health >/dev/null \
+  health=$(curl -fsS --resolve devopsmate7.duckdns.org:443:127.0.0.1 https://devopsmate7.duckdns.org/api/auth/health || true)
+  if echo "$health" | grep -q '"mail":"gmail"' \
     && curl -fsS --resolve devopsmate7.duckdns.org:443:127.0.0.1 https://devopsmate7.duckdns.org/api/catalog/courses >/dev/null; then
     ok=1
     break
@@ -107,7 +108,8 @@ for _ in $(seq 1 36); do
   sleep 5
 done
 if [ "$ok" -ne 1 ]; then
-  echo "The site did not become healthy. If the auth log says no AWS credentials, set the metadata hop limit to 2."
+  echo "The site did not become healthy. Health was: ${health:-none}"
+  echo "If mail is not gmail, the app password was not saved. If auth says no AWS credentials, set the metadata hop limit to 2."
   "${COMPOSE[@]}" ps
   "${COMPOSE[@]}" logs --tail 40 auth
   exit 1
