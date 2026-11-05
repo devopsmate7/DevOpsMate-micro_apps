@@ -5,62 +5,63 @@ Website: https://devopsmate7.duckdns.org
 Students sign up, log in, pick a course, and get a welcome email from devopsmate7@gmail.com.
 Users are stored in DynamoDB. Orders are stored on the server.
 
-## New AWS account
+## 1. Create the server (you do this)
 
-Have these ready:
+In the new AWS account, region **Mumbai**:
 
-1. A GitHub token that can read this private repo.
-2. The Gmail app password for devopsmate7@gmail.com.
-3. The DuckDNS token from duckdns.org.
+1. Launch **Ubuntu**, size **t3.medium**. Allow ports **22**, **80**, and **443**. Turn on termination protection.
+2. Attach an **Elastic IP**.
+3. In DuckDNS, set `devopsmate7` to that IP.
+4. Create a role named `DevOpsMateEC2DynamoDB` (trusted service: EC2) with this policy. Replace `ACCOUNT_ID`.
 
-Then:
-
-1. Log in to the new AWS account and set the region to Mumbai.
-2. Open CloudShell (the `>_` icon).
-3. Upload `scripts/create-aws-stack.sh` (Actions, Upload file).
-4. Run `bash create-aws-stack.sh` and paste the three values. Typing stays hidden.
-5. Wait about 10 minutes, then open https://devopsmate7.duckdns.org
-
-The script creates the server, its permissions, a fixed IP, and starts every container.
-The users table is created on first signup and starts empty. Signup, login, welcome email, courses, cart, and orders all work.
-
-To watch it install, open the instance, choose Connect, then Session Manager:
-
-```bash
-sudo tail -f /var/log/devopsmate-setup.log
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["dynamodb:DescribeTable", "dynamodb:CreateTable", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Query"],
+    "Resource": [
+      "arn:aws:dynamodb:ap-south-1:ACCOUNT_ID:table/devopsmate_users",
+      "arn:aws:dynamodb:ap-south-1:ACCOUNT_ID:table/devopsmate_users/index/*"
+    ]
+  }]
+}
 ```
 
-It is finished when the log shows `DEVOPSMATE SETUP FINISHED`.
+5. Attach that role to the instance.
+6. Instance settings, Metadata options: set the **hop limit to 2**.
 
-## Update the live site
+## 2. Start the site (one script)
 
-Connect the same way, then:
+SSH in as `ubuntu` and run:
 
 ```bash
-cd /home/ubuntu/DevOpsMate-micro_apps
+bash start.sh
+```
+
+Upload `scripts/start.sh` first, or, if you already cloned the repo:
+
+```bash
+cd DevOpsMate-micro_apps
+bash scripts/start.sh
+```
+
+It asks for the GitHub token and the Gmail app password, installs Docker, starts every container, and sends a test mail to devopsmate7@gmail.com. Then open https://devopsmate7.duckdns.org
+
+The users table is created on first signup and starts empty.
+
+## Update later
+
+```bash
+cd ~/DevOpsMate-micro_apps
 git pull
 sudo docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --build
 ```
 
-## Run on a laptop
+## Laptop
 
 ```bash
 docker compose up --build
 ```
 
-- Site: http://localhost:3000
-- Welcome emails stay on this laptop: http://localhost:8025
-
-## Files
-
-| Path | What it is |
-| --- | --- |
-| `src/frontend` | The website |
-| `src/services/auth` | Signup, login, welcome email |
-| `src/services/catalog` | Courses |
-| `src/services/commerce` | Cart and orders |
-| `src/services/notice` | The notice at the top |
-| `scripts/create-aws-stack.sh` | Creates everything on a new AWS account |
-| `scripts/bootstrap-ec2.sh` | Installs Docker and starts the site on a server |
-| `scripts/setup-gmail.sh` | Turns on real email on a server that is already running |
-| `scripts/setup-aws-role.sh` | Gives an existing server access to DynamoDB |
+Site: http://localhost:3000. Test mail stays on the laptop: http://localhost:8025

@@ -26,8 +26,8 @@ services:
       # and stores users in real DynamoDB. For laptop DynamoDB Local, set
       # DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000 and dummy AWS keys.
       JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-later}
-      # Defaults send mail to MailHog (laptop). On EC2, .env sets Gmail SMTP;
-      # run scripts/setup-gmail.sh there. Never commit .env.
+      # Defaults send mail to MailHog (laptop). On EC2, scripts/start.sh
+      # writes Gmail settings into .env. Never commit .env.
       SMTP_HOST: ${SMTP_HOST:-mailhog}
       SMTP_PORT: ${SMTP_PORT:-1025}
       SMTP_USER: ${SMTP_USER:-}
