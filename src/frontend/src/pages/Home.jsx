@@ -39,6 +39,29 @@ const FEATURES = [
   },
 ];
 
+const PATHS = [
+  {
+    label: "Train",
+    title: "AWS + DevOps + AI",
+    copy: "Production-shaped training across cloud, delivery, and AI practice.",
+  },
+  {
+    label: "Build",
+    title: "Website Building",
+    copy: "Design and ship a site you can maintain after launch.",
+  },
+  {
+    label: "Support",
+    title: "Job Support",
+    copy: "Hands-on help for real work tasks and delivery blockers.",
+  },
+  {
+    label: "Interview",
+    title: "45-days interview plan",
+    copy: "A hard drill to prepare answers, systems, and confidence.",
+  },
+];
+
 export default function Home() {
   const { token } = useAuth();
 
@@ -70,7 +93,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section home-approach">
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">The approach</p>
@@ -80,7 +103,7 @@ export default function Home() {
             {FEATURES.map((f) => (
               <div key={f.title} className="feature">
                 <div className="feature-icon">
-                  <Icon name={f.icon} size={24} />
+                  <Icon name={f.icon} size={22} />
                 </div>
                 <h3>{f.title}</h3>
                 <p>{f.text}</p>
@@ -90,7 +113,26 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section home-programs">
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">Programs</p>
+            <h2 className="section-title">Four paths. One clear next step.</h2>
+            <p className="section-sub">Pick the track that matches your goal — full details live on Services.</p>
+          </div>
+          <div className="home-paths">
+            {PATHS.map((p) => (
+              <Link key={p.title} to="/courses" className="home-path panel">
+                <span className="home-path-label">{p.label}</span>
+                <span className="home-path-title">{p.title}</span>
+                <span className="home-path-copy">{p.copy}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section home-platforms">
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">The platforms</p>
