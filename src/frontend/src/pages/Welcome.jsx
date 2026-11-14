@@ -9,7 +9,7 @@ export default function Welcome() {
   const fromLogin = params.get("from") === "login";
 
   useEffect(() => {
-    const t = setTimeout(() => navigate("/courses", { replace: true }), 2800);
+    const t = setTimeout(() => navigate("/courses", { replace: true }), 1500);
     return () => clearTimeout(t);
   }, [navigate]);
 
