@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Optional
 
 from botocore.exceptions import ClientError
@@ -64,6 +65,10 @@ def signup(payload: SignupRequest, background_tasks: BackgroundTasks):
         item["mobile"],
         item["city"],
     )
+
+    delay = max(0, int(settings.signup_delay_seconds or 0))
+    if delay:
+        time.sleep(delay)
 
     token = create_access_token(item["mobile"])
     return TokenResponse(access_token=token, user=_to_user_out(item))

@@ -9,6 +9,7 @@ os.environ.setdefault("AWS_ACCESS_KEY_ID", "testing")
 os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "testing")
 os.environ.setdefault("AWS_DEFAULT_REGION", "ap-south-1")
 os.environ["DYNAMODB_ENDPOINT_URL"] = ""
+os.environ["SIGNUP_DELAY_SECONDS"] = "0"
 
 import boto3  # noqa: E402
 import pytest  # noqa: E402

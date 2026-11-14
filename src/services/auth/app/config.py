@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-production-use-long-random-string"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
+    # Minimum pause after successful signup before the token is returned.
+    signup_delay_seconds: int = 20
 
     smtp_host: str = "127.0.0.1"
     smtp_port: int = 1025
