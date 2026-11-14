@@ -43,7 +43,7 @@ export default function SiteLayout() {
       <NoticeBar />
 
       <header className="site-header">
-        <div className="container header-inner">
+        <div className="header-inner">
           <Link to="/" className="brand">
             <Logo size={56} className="brand-logo" />
             <span className="brand-text">

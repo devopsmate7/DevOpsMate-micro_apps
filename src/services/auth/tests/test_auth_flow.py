@@ -105,7 +105,7 @@ def test_signup_sends_welcome_mail(client, monkeypatch):
         "AWS + DevOps + AI",
         "Job Support",
         "Website Building + Maintenance",
-        "Interview Support (45-day hard drill)",
+        "Interview Support (45-days interview plan)",
         "non-refundable",
         "/privacy",
         "/refund",

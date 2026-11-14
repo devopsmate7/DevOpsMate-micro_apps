@@ -15,7 +15,7 @@ SERVICES = [
     "AWS + DevOps + AI",
     "Job Support — 1:1",
     "Website Building + Maintenance",
-    "Interview Support (45-day hard drill)",
+    "Interview Support (45-days interview plan)",
 ]
 
 

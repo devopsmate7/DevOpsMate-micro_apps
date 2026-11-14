@@ -94,44 +94,26 @@ export default function CourseDetail() {
 
             {course.interview_plan ? (
               <div className="detail-block">
-                <h2>{course.interview_plan.title || "Interview plan"}</h2>
+                <h2>{course.interview_plan.title || "45-days interview plan"}</h2>
                 {course.interview_plan.intro.map((line) => (
                   <p key={line} className="plan-intro">{line}</p>
                 ))}
-                <div className="plan-table-wrap">
-                  <table className="plan-table">
-                    <thead>
-                      <tr>
-                        <th>Days</th>
-                        <th>Topic / Module</th>
-                        <th>Learn</th>
-                        <th>Practice</th>
-                        <th>Mock drive</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {course.interview_plan.rows.map((row) => (
-                        <tr key={row.days}>
-                          <td>{row.days}</td>
-                          <td>{row.topic}</td>
-                          <td>{row.learn}</td>
-                          <td>{row.practice}</td>
-                          <td>{row.mock}</td>
-                        </tr>
+                {course.interview_plan.note ? (
+                  <p className="plan-note">{course.interview_plan.note}</p>
+                ) : null}
+                {course.interview_plan.rules?.length ? (
+                  <>
+                    <h3 className="plan-rules-title">Daily rule</h3>
+                    <ul className="check-list">
+                      {course.interview_plan.rules.map((rule) => (
+                        <li key={rule}>
+                          <Icon name="check" size={16} stroke={2.5} />
+                          {rule}
+                        </li>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="plan-note">{course.interview_plan.note}</p>
-                <h3 className="plan-rules-title">Daily rule</h3>
-                <ul className="check-list">
-                  {course.interview_plan.rules.map((rule) => (
-                    <li key={rule}>
-                      <Icon name="check" size={16} stroke={2.5} />
-                      {rule}
-                    </li>
-                  ))}
-                </ul>
+                    </ul>
+                  </>
+                ) : null}
               </div>
             ) : null}
 
