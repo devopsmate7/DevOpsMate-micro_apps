@@ -94,35 +94,37 @@ export default function CourseDetail() {
 
             {course.interview_plan ? (
               <div className="detail-block">
-                <h2>{course.interview_plan.title || "45-days interview plan"}</h2>
-                {course.interview_plan.intro.map((line) => (
-                  <p key={line} className="plan-intro">{line}</p>
-                ))}
-                {course.interview_plan.note ? (
-                  <p className="plan-note">{course.interview_plan.note}</p>
-                ) : null}
-                {course.interview_plan.rules?.length ? (
-                  <>
-                    <h3 className="plan-rules-title">Daily rule</h3>
-                    <ul className="check-list">
-                      {course.interview_plan.rules.map((rule) => (
-                        <li key={rule}>
-                          <Icon name="check" size={16} stroke={2.5} />
-                          {rule}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                ) : null}
+                <div className="content-glass">
+                  <h2>{course.interview_plan.title || "45-days interview plan"}</h2>
+                  {course.interview_plan.intro.map((line) => (
+                    <p key={line} className="plan-intro">{line}</p>
+                  ))}
+                  {course.interview_plan.note ? (
+                    <p className="plan-note">{course.interview_plan.note}</p>
+                  ) : null}
+                  {course.interview_plan.rules?.length ? (
+                    <>
+                      <h3 className="plan-rules-title">Daily rule</h3>
+                      <ul className="check-list plan-rules">
+                        {course.interview_plan.rules.map((rule) => (
+                          <li key={rule}>
+                            <Icon name="check" size={16} stroke={2.5} />
+                            {rule}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
+                </div>
               </div>
             ) : null}
 
             {course.syllabus?.length ? (
               <div className="detail-block">
-                <h2>Course Content</h2>
+                <h2 className="content-heading">Course Content</h2>
                 <div className="syllabus">
                   {course.syllabus.map((section) => (
-                    <section key={section.number} className="syllabus-section">
+                    <section key={section.number} className="syllabus-section content-glass">
                       <h3>
                         <span>SECTION {section.number}</span>
                         {section.title}
@@ -131,7 +133,7 @@ export default function CourseDetail() {
                         {section.topics.map((topic) => (
                           <li key={topic.number}>
                             <span className="topic-no">{topic.number}</span>
-                            <div>
+                            <div className="topic-body">
                               <p>{topic.title}</p>
                               {topic.projects?.map((project) => (
                                 <p key={project} className="topic-project">
@@ -149,20 +151,22 @@ export default function CourseDetail() {
               </div>
             ) : (
               <div className="detail-block">
-                <h2>Program outline</h2>
-                <ul className="check-list">
-                  {course.highlights.map((h) => (
-                    <li key={h}>
-                      <Icon name="check" size={16} stroke={2.5} />
-                      {h}
-                    </li>
-                  ))}
-                </ul>
+                <div className="content-glass">
+                  <h2>Program outline</h2>
+                  <ul className="check-list plan-rules">
+                    {course.highlights.map((h) => (
+                      <li key={h}>
+                        <Icon name="check" size={16} stroke={2.5} />
+                        {h}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             )}
 
             <div className="detail-block">
-              <h2>Included with this program</h2>
+              <h2 className="content-heading">Included with this program</h2>
               <div className="include-grid">
                 {course.includes.map((h) => (
                   <div key={h} className="include-item">
