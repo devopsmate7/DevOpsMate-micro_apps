@@ -1,13 +1,9 @@
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth";
 import Backdrop from "./Backdrop";
 import Logo from "./Logo";
 import NoticeBar from "./NoticeBar";
 import { WhatsAppIcon } from "./Icon";
-
-function isLightPage(pathname) {
-  return pathname === "/" || pathname === "/about" || pathname.startsWith("/courses");
-}
 
 const SOCIALS = [
   {
@@ -39,12 +35,10 @@ const SOCIALS = [
 
 export default function SiteLayout() {
   const { token, logout } = useAuth();
-  const { pathname } = useLocation();
-  const light = isLightPage(pathname);
 
   return (
-    <div className={light ? "site site--light" : "site"}>
-      <Backdrop light={light} />
+    <div className="site">
+      <Backdrop />
 
       <div className="site-top">
         <NoticeBar />
