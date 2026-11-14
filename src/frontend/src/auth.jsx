@@ -32,12 +32,14 @@ export function AuthProvider({ children }) {
     () => ({
       token,
       user,
-      async signup(body) {
+      async signup(body, { activate = true } = {}) {
         const data = await apiFetch("/api/auth/signup", { method: "POST", body });
-        localStorage.setItem("dm_token", data.access_token);
-        localStorage.setItem("dm_user", JSON.stringify(data.user));
-        setToken(data.access_token);
-        setUser(data.user);
+        if (activate) {
+          localStorage.setItem("dm_token", data.access_token);
+          localStorage.setItem("dm_user", JSON.stringify(data.user));
+          setToken(data.access_token);
+          setUser(data.user);
+        }
         return data;
       },
       async login(body) {
@@ -47,6 +49,12 @@ export function AuthProvider({ children }) {
         setToken(data.access_token);
         setUser(data.user);
         return data;
+      },
+      activateSession(accessToken, nextUser) {
+        localStorage.setItem("dm_token", accessToken);
+        localStorage.setItem("dm_user", JSON.stringify(nextUser));
+        setToken(accessToken);
+        setUser(nextUser);
       },
       async updateProfile(body) {
         const u = await apiFetch("/api/auth/me", { method: "PATCH", token, body });

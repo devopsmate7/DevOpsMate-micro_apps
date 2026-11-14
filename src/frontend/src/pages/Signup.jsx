@@ -29,7 +29,12 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      await signup({ full_name: fullName, email, password, mobile: phone, city: "India" });
+      const data = await signup(
+        { full_name: fullName, email, password, mobile: phone, city: "India" },
+        { activate: false }
+      );
+      sessionStorage.setItem("dm_pending_token", data.access_token);
+      sessionStorage.setItem("dm_pending_user", JSON.stringify(data.user));
       setDone(true);
     } catch (err) {
       setError(err.message || "Signup failed");

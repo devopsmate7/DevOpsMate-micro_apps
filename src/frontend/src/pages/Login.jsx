@@ -12,8 +12,9 @@ export default function Login() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [entering, setEntering] = useState(false);
 
-  if (token) return <Navigate to="/courses" replace />;
+  if (token && !entering) return <Navigate to="/courses" replace />;
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -38,7 +39,8 @@ export default function Login() {
     setLoading(true);
     try {
       await login(body);
-      navigate("/courses");
+      setEntering(true);
+      navigate("/welcome?from=login", { replace: true });
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
