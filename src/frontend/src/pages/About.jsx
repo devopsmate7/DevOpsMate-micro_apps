@@ -5,19 +5,24 @@ import Icon from "../components/Icon";
 const PILLARS = [
   {
     title: "The curriculum",
-    text: "Cloud, CI/CD, containers, infrastructure as code, and the AI tooling used in day-to-day engineering.",
+    text: "AWS cloud, DevOps delivery, AI tooling, and website building (2-tier / 3-tier / shop apps) used in day-to-day engineering.",
   },
   {
     title: "The support",
-    text: "Individual guidance for interviews, and practical help when delivery work needs a considered review.",
+    text: "1:1 job support for tickets and pipelines, plus a 45-days interview plan with project storytelling and behavioral drills.",
   },
   {
     title: "The enrollment",
-    text: "Create an account, select a program, and confirm on WhatsApp. The process is direct and clear.",
+    text: "Create an account, choose from four services, and confirm on WhatsApp. The process is direct and clear.",
   },
 ];
 
-const VALUES = ["Production-first labs", "Small, focused batches", "Industry mentors", "Support after training"];
+const VALUES = [
+  "AWS + DevOps + AI",
+  "Website Building + Maintenance",
+  "Job Support",
+  "45-days interview plan",
+];
 
 export default function About() {
   const { token } = useAuth();
@@ -33,8 +38,8 @@ export default function About() {
         <p className="about-statement reveal d1">
           We guide engineers from classroom concepts to production work.{" "}
           <em>
-            AWS, DevOps, and AI training, together with job support and interview preparation, delivered the
-            way engineering teams operate.
+            AWS, DevOps, and AI training, website building and maintenance, job support, and a 45-days
+            interview plan — delivered the way engineering teams operate.
           </em>
         </p>
 
@@ -59,7 +64,7 @@ export default function About() {
 
         <div className="cta-band">
           <h2>When you are ready to begin</h2>
-          <p>Review the programs and submit your enrollment at a time that suits you.</p>
+          <p>Review the four programs and submit your enrollment at a time that suits you.</p>
           <div className="hero-actions">
             <Link to="/courses" className="btn btn-primary btn-lg">
               View programs

@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { apiFetch } from "../api";
 import { useAuth } from "../auth";
-import Icon from "../components/Icon";
+import Icon, { SERVICE_ICON } from "../components/Icon";
 
 const TOOLS = [
   { name: "AWS", file: "aws.svg" },
@@ -30,7 +32,7 @@ const FEATURES = [
   {
     icon: "code",
     title: "Applied project work",
-    text: "Cloud, delivery, and AI projects structured the way operating teams build them.",
+    text: "Cloud, delivery, web apps, and AI projects structured the way operating teams build them.",
   },
   {
     icon: "award",
@@ -41,6 +43,13 @@ const FEATURES = [
 
 export default function Home() {
   const { token } = useAuth();
+  const [courses, setCourses] = useState([]);
+
+  useEffect(() => {
+    apiFetch("/api/catalog/courses")
+      .then(setCourses)
+      .catch(() => setCourses([]));
+  }, []);
 
   return (
     <>
@@ -53,8 +62,8 @@ export default function Home() {
           <p className="hero-welcome reveal d1">Welcome to</p>
           <h1 className="hero-title reveal d1">DevOpsMate</h1>
           <p className="hero-lead reveal d2">
-            Structured training in AWS, DevOps, and AI, grounded in production practice so the skills
-            you build are ready for the role.
+            AWS, DevOps, and AI training — plus website building, job support, and a 45-days interview
+            plan — grounded in production practice so the skills you build are ready for the role.
           </p>
           <div className="hero-actions reveal d3">
             <Link to="/courses" className="btn btn-primary btn-lg">
@@ -66,6 +75,49 @@ export default function Home() {
                 Create an account
               </Link>
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">Services</p>
+            <h2 className="section-title">Four offerings for every stage</h2>
+            <p className="section-sub">
+              Training, web delivery, day-to-day job support, and interview hard drills — pick what
+              matches your goal.
+            </p>
+          </div>
+          <div className="service-grid">
+            {courses.map((c, i) => (
+              <article key={c.id} className={`service-card reveal d${Math.min(i + 1, 3)}`}>
+                <div className="service-top">
+                  <span className="service-icon">
+                    <Icon name={SERVICE_ICON[c.slug] || "layers"} size={18} />
+                  </span>
+                  {c.badge ? <span className="badge">{c.badge}</span> : null}
+                </div>
+                <div>
+                  <h2 className="service-title">
+                    <Link to={`/courses/${c.slug}`}>{c.title}</Link>
+                  </h2>
+                  <p className="service-copy">{c.subtitle}</p>
+                </div>
+                <div className="chip-row">
+                  <span className="chip">{c.duration}</span>
+                  <span className="chip">{c.mode}</span>
+                </div>
+                <div className="service-actions">
+                  <Link to={`/courses/${c.slug}`} className="btn btn-secondary">
+                    Details
+                  </Link>
+                  <Link to="/courses" className="btn btn-wa">
+                    Enroll
+                  </Link>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>

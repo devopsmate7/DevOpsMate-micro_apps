@@ -45,7 +45,7 @@ export default function SiteLayout() {
       <header className="site-header">
         <div className="header-inner">
           <Link to="/" className="brand">
-            <Logo size={56} className="brand-logo" />
+            <Logo size={64} className="brand-logo" />
             <span className="brand-text">
               <span className="brand-name">
                 DevOps<span className="wordmark-accent">Mate</span>
@@ -166,7 +166,7 @@ export default function SiteLayout() {
           <div className="footer-bottom">
             <p className="footer-copy">{"\u00A9"} 2026 DevOpsMate. All rights reserved.</p>
             <p className="footer-heart">
-              DevOps Enthusiast <span aria-hidden="true">{"\u2665"}</span>
+              AI DevOps Enthusiast <span aria-hidden="true">{"\u2665"}</span>
             </p>
           </div>
         </div>
