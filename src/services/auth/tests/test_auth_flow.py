@@ -100,8 +100,18 @@ def test_signup_sends_welcome_mail(client, monkeypatch):
     assert msg["To"] == "test.user@gmail.com"
     assert msg["Subject"] == "Welcome to DevOpsMate"
     text = msg.get_payload()[0].get_payload(decode=True).decode()
-    for expected in ("Dear Test User", "AWS + DevOps + AI", "Job Support", "Interview Support (30 days)",
-                     "non-refundable", "/privacy", "/refund", "/terms", "+91 80889 29670"):
+    for expected in (
+        "Dear Test User",
+        "AWS + DevOps + AI",
+        "Job Support",
+        "Website Building + Maintenance",
+        "Interview Support (45-day hard drill)",
+        "non-refundable",
+        "/privacy",
+        "/refund",
+        "/terms",
+        "+91 80889 29670",
+    ):
         assert expected in text
 
 

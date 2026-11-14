@@ -94,7 +94,7 @@ export default function CourseDetail() {
 
             {course.interview_plan ? (
               <div className="detail-block">
-                <h2>30-day interview plan</h2>
+                <h2>{course.interview_plan.title || "Interview plan"}</h2>
                 {course.interview_plan.intro.map((line) => (
                   <p key={line} className="plan-intro">{line}</p>
                 ))}
@@ -103,10 +103,10 @@ export default function CourseDetail() {
                     <thead>
                       <tr>
                         <th>Days</th>
-                        <th>Topic</th>
-                        <th>Day 1 — Learn</th>
-                        <th>Day 2 — Practice</th>
-                        <th>Day 3 — Mock</th>
+                        <th>Topic / Module</th>
+                        <th>Learn</th>
+                        <th>Practice</th>
+                        <th>Mock drive</th>
                       </tr>
                     </thead>
                     <tbody>

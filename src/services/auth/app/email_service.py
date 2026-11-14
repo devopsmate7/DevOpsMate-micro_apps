@@ -11,7 +11,12 @@ logger = logging.getLogger(__name__)
 
 SITE_URL = "https://devopsmate7.duckdns.org"
 WHATSAPP = "+91 80889 29670"
-SERVICES = ["AWS + DevOps + AI", "Job Support — 1:1", "Interview Support (30 days)"]
+SERVICES = [
+    "AWS + DevOps + AI",
+    "Job Support — 1:1",
+    "Website Building + Maintenance",
+    "Interview Support (45-day hard drill)",
+]
 
 
 def welcome_email_text(name: str) -> str:

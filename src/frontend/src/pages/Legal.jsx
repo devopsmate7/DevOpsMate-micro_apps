@@ -34,7 +34,8 @@ export function Terms() {
   return (
     <LegalShell title="Terms and Conditions">
       <p>
-        DevOpsMate provides online services: AWS + DevOps + AI, Job Support, and Interview Support.
+        DevOpsMate provides online services: AWS + DevOps + AI, Job Support, Website Building +
+        Maintenance, and Interview Support.
         By creating an account or purchasing, you confirm your details are accurate and you will use the
         platform for lawful learning only.
       </p>

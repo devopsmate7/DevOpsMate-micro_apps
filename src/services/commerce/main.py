@@ -22,6 +22,11 @@ DB_PATH = Path(os.getenv("COMMERCE_DB_PATH", str(Path(__file__).resolve().parent
 CATALOG: Dict[str, Dict[str, Any]] = {
     "c-aws-devops-ai": {"title": "AWS + DevOps + AI", "price_inr": 0, "slug": "aws-devops-ai"},
     "c-job-support": {"title": "Job Support", "price_inr": 0, "slug": "job-support"},
+    "c-website-building": {
+        "title": "Website Building + Maintenance",
+        "price_inr": 0,
+        "slug": "website-building",
+    },
     "c-interview-support": {"title": "Interview Support", "price_inr": 0, "slug": "interview-support"},
 }
 
