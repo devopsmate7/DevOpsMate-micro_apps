@@ -40,51 +40,53 @@ export default function SiteLayout() {
     <div className="site">
       <Backdrop />
 
-      <NoticeBar />
+      <div className="site-top">
+        <NoticeBar />
 
-      <header className="site-header">
-        <div className="header-inner">
-          <Link to="/" className="brand">
-            <Logo size={64} className="brand-logo" />
-            <span className="brand-text">
-              <span className="brand-name">
-                DevOps<span className="wordmark-accent">Mate</span>
+        <header className="site-header">
+          <div className="header-inner">
+            <Link to="/" className="brand">
+              <Logo size={64} className="brand-logo" />
+              <span className="brand-text">
+                <span className="brand-name">
+                  DevOps<span className="wordmark-accent">Mate</span>
+                </span>
+                <span className="brand-tagline">Learn {"\u00B7"} Grow {"\u00B7"} Succeed</span>
               </span>
-              <span className="brand-tagline">Learn {"\u00B7"} Grow {"\u00B7"} Succeed</span>
-            </span>
-          </Link>
+            </Link>
 
-          <nav className="nav-links" aria-label="Main">
-            <NavLink to="/" end>
-              Home
-            </NavLink>
-            <NavLink to="/courses">Services</NavLink>
-            <NavLink to="/about">About</NavLink>
-          </nav>
+            <nav className="nav-links" aria-label="Main">
+              <NavLink to="/" end>
+                Home
+              </NavLink>
+              <NavLink to="/courses">Services</NavLink>
+              <NavLink to="/about">About</NavLink>
+            </nav>
 
-          <div className="header-actions">
-            {token ? (
-              <>
-                <Link to="/profile" className="btn btn-ghost btn-sm">
-                  Profile
-                </Link>
-                <button type="button" className="btn btn-secondary btn-sm" onClick={logout}>
-                  Log out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="btn btn-ghost btn-sm">
-                  Log in
-                </Link>
-                <Link to="/signup" className="btn btn-primary btn-sm">
-                  Sign up
-                </Link>
-              </>
-            )}
+            <div className="header-actions">
+              {token ? (
+                <>
+                  <Link to="/profile" className="btn btn-ghost btn-sm">
+                    Profile
+                  </Link>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={logout}>
+                    Log out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="btn btn-ghost btn-sm">
+                    Log in
+                  </Link>
+                  <Link to="/signup" className="btn btn-primary btn-sm">
+                    Sign up
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
       <main className="site-main">
         <Outlet />
