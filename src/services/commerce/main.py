@@ -28,6 +28,11 @@ CATALOG: Dict[str, Dict[str, Any]] = {
         "slug": "website-building",
     },
     "c-interview-support": {"title": "Interview Support", "price_inr": 0, "slug": "interview-support"},
+    "c-interview-qa-offline": {
+        "title": "Real DevOps & Cloud Interview Questions",
+        "price_inr": 0,
+        "slug": "interview-qa-offline",
+    },
 }
 
 

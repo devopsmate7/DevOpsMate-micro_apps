@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AWS DevOps Training — DevOpsMate</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#0A0A0A}
+
+@media screen{
+  /* ONE continuous scrolling page — a single fixed background banner spans all 3 sections.
+     Slides are transparent so the user sees ONE seamless dark canvas with no page cuts. */
+  html,body{width:100%;overflow-x:hidden;margin:0;padding:0}
+  body{overflow-y:auto;scroll-behavior:smooth;
+       background:#0D1117;
+       background-image:linear-gradient(160deg,#0D1117 0%,#161B22 50%,#0D1117 100%);
+       background-attachment:fixed;
+       background-size:100% 100vh;
+       background-repeat:no-repeat}
+  /* Each "slide" = a transparent section of the long page (no own background).
+     overflow:hidden contains the ambient orbs INSIDE each section so nothing leaks across the seam. */
+  .slide{width:100vw;min-height:100vh;overflow:hidden;cursor:default;background:transparent;
+         display:flex;flex-direction:column;flex-shrink:0}
+  /* keep nodes & customer interactive */
+  .slide #cust-customer,.slide a,.slide button,.slide [onclick]{cursor:pointer}
+}
+@media print{
+  body{background:#0A0A0A}
+  @page{size:A4 landscape;margin:0}
+  .slide{width:297mm;height:210mm;overflow:hidden;page-break-after:always;break-after:page}
+  *{animation:none!important}
+}
+.slide{position:relative;page-break-after:always;break-after:page}
+@keyframes glow{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes floatUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+/* ── Developer animations: alternating "currently typing" pulse + bouncing typing dots ── */
+@keyframes devPulse{0%,100%{box-shadow:0 0 8px rgba(96,165,250,.35);border-color:rgba(96,165,250,.55);transform:scale(1)}
+                     50%   {box-shadow:0 0 18px rgba(96,165,250,.85);border-color:rgba(96,165,250,1);transform:scale(1.06)}}
+.dev-avatar{animation:devPulse 2.4s ease-in-out infinite}
+.dev-avatar-2{animation-delay:1.2s}
+
+@keyframes typingDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-3px);opacity:1}}
+.typing-dots{display:flex;gap:3px;justify-content:center;margin-top:2px;height:6px}
+.typing-dots span{width:3px;height:3px;border-radius:50%;background:#60A5FA;display:inline-block;animation:typingDot 1.2s ease-in-out infinite}
+.typing-dots span:nth-child(2){animation-delay:.18s}
+.typing-dots span:nth-child(3){animation-delay:.36s}
+@keyframes flowLine{0%{background-position:0 0}100%{background-position:24px 0}}
+
+/* Premium logo — clean Apple/iPhone-style: crisp text, subtle depth, NO color glow */
+.premium-logo{
+  filter:
+    drop-shadow(0 1px 1px rgba(0,0,0,.6))
+    drop-shadow(0 2px 4px rgba(0,0,0,.4))
+    brightness(1.18) contrast(1.35) saturate(1.05);
+}
+.premium-logo-hero{
+  filter:
+    drop-shadow(0 2px 2px rgba(0,0,0,.65))
+    drop-shadow(0 4px 12px rgba(0,0,0,.45))
+    brightness(1.2) contrast(1.4) saturate(1.05);
+  /* logo is stable — no float animation */
+}
+/* DevOpsMate banner logo — wide wordmark fits left header on all 4 slides */
+.logo-slot{
+  width:280px;height:62px;overflow:hidden;
+  display:flex;align-items:center;justify-content:flex-start;flex-shrink:0;
+}
+.logo-slot img{
+  width:100%;height:100%;object-fit:contain;object-position:left center;
+}
+
+/* Static dashed connector (no flow animation — was causing distracting floating lines) */
+.dash{height:2px;background:repeating-linear-gradient(90deg,var(--c) 0,var(--c) 6px,transparent 6px,transparent 12px);background-size:12px 100%;flex-shrink:0;align-self:center}
+.tip{width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--c);flex-shrink:0;align-self:center}
+
+/* Generic node card */
+.nd{position:relative;border-radius:9px;padding:7px 9px;text-align:center;flex-shrink:0;border:1.5px solid;margin-top:10px}
+.nd .ic{font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center}
+.nd .nm{font-size:12px;font-weight:800;margin-top:3px}
+.nd .sb{font-size:10px;margin-top:2px;opacity:.92;color:rgba(255,255,255,.78)}
+.nb{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:19px;height:19px;border-radius:50%;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;color:#fff}
+
+/* Section lane */
+.lane{border-radius:11px;padding:7px 9px;position:relative;border:1px solid}
+.lane-lbl{position:absolute;top:-10px;left:10px;padding:2.5px 10px;border-radius:5px;font-size:9.5px;font-weight:800;letter-spacing:1.2px}
+/* Unified premium look for STEP 1 / STEP 2 / STEP 3 lane labels — same color, same border */
+.step-lbl{background:linear-gradient(135deg,#0EA5E9,#1E40AF);color:#fff;border:1px solid rgba(125,211,252,.85);
+          box-shadow:0 2px 8px rgba(14,165,233,.35);text-shadow:0 1px 1px rgba(0,0,0,.3)}
+
+/* Teams-style chevron hierarchy */
+.hier-arrow{flex:1;height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px 0 14px;color:#fff;text-align:center;
+  clip-path:polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%, 12% 50%);
+  margin-right:-9px;position:relative;
+  box-shadow:inset 0 -1px 0 rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.18);
+  transition:transform .25s ease, filter .25s ease}
+.hier-arrow:first-child{clip-path:polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%, 0% 100%, 0% 0%)}
+.hier-arrow:hover{transform:translateY(-1px) scale(1.04);filter:brightness(1.15);z-index:99}
+.hier-arrow .role{font-size:11px;font-weight:900;line-height:1;letter-spacing:.4px;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.hier-arrow .tag {font-size:8px;font-weight:600;line-height:1;margin-top:2px;color:rgba(255,255,255,.88)}
+
+/* ── Bottom-of-page indicator: clean thin gradient line (no text) ── */
+.page-footer{
+  position:absolute;left:6%;right:6%;bottom:14px;z-index:5;pointer-events:none;
+  height:1.5px;border-radius:1px;
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(56,189,248,.45) 25%,
+    rgba(129,140,248,.55) 50%,
+    rgba(56,189,248,.45) 75%,
+    transparent 100%);
+  box-shadow:0 0 10px rgba(129,140,248,.20);
+}
+/* hide any inner content (back-compat — old footers had text/spans) */
+.page-footer *{display:none}
+
+/* Author badge (cover slide) */
+.author-badge{
+  position:absolute;left:60px;bottom:38px;z-index:6;
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:999px;
+  background:linear-gradient(135deg,rgba(56,189,248,.12),rgba(129,140,248,.10),rgba(212,175,122,.12));
+  border:1px solid rgba(125,211,252,.30);
+  box-shadow:0 4px 14px rgba(0,0,0,.20), inset 0 0 0 1px rgba(212,175,122,.14);
+}
+.author-badge .lbl{
+  font-size:10px;font-weight:800;letter-spacing:1.8px;
+  color:#7DD3FC;text-transform:uppercase;
+}
+.author-badge .name{
+  font-family:'Inter',sans-serif;
+  font-size:12.5px;font-weight:700;letter-spacing:.35px;
+  color:#F8FAFC;
+  text-shadow:
+    0 1px 1px rgba(0,0,0,.50),
+    0 0 8px rgba(255,255,255,.14);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 1 — MINIMAL COVER + COMPACT AGENDA
+═══════════════════════════════════════ -->
+<div class="slide" style="padding:0">
+
+  <!-- bg orbs (matched to slide 2 palette) -->
+  <div style="position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,255,.10) 0%,transparent 70%);top:-200px;right:0;pointer-events:none"></div>
+  <div style="position:absolute;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.08) 0%,transparent 70%);bottom:-120px;left:0;pointer-events:none"></div>
+  <!-- subtle dot grid -->
+  <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.035) 1px,transparent 1px);background-size:22px 22px;pointer-events:none"></div>
+
+  <!-- HEADER: logo + title only -->
+  <div style="display:flex;align-items:center;gap:26px;padding:22px 60px 6px 60px;position:relative;z-index:2;flex-shrink:0">
+
+    <!-- DevOpsMate logo (left) -->
+    <div class="premium-logo-hero logo-slot">
+      <img src="devopsmate_logo.png" alt="DevOpsMate">
+    </div>
+
+    <!-- vertical divider -->
+    <div style="width:1.5px;height:62px;background:linear-gradient(180deg,transparent,rgba(56,189,248,.45),rgba(129,140,248,.45),transparent);flex-shrink:0"></div>
+
+    <!-- Headline — matches DevOpsMate logo: white → violet → gold (same flow as logo wordmark + tagline) -->
+    <div style="flex:1;font-size:40px;font-weight:900;line-height:1.05;letter-spacing:-1px;
+                background:linear-gradient(90deg,
+                  #FFFFFF 0%,
+                  #F5F3FF 22%,
+                  #A78BFA 50%,
+                  #7C3AED 70%,
+                  #D4AF7A 100%);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+                filter:drop-shadow(0 2px 6px rgba(124,58,237,.25))">Aws DevOps Training &nbsp;·&nbsp; Demo</div>
+  </div>
+
+  <!-- BODY — 2 columns: AGENDA (left, starting side) + BIG WhatsApp QR & socials (right) -->
+  <div style="flex:1;display:flex;align-items:center;gap:48px;padding:0 70px 30px 70px;position:relative;z-index:2;min-height:0">
+
+    <!-- ════════ LEFT COLUMN — AGENDA ════════ -->
+    <div style="flex:1.2;max-width:680px">
+
+      <!-- "AGENDA" pill — left-aligned, matches DevOpsMate logo colors -->
+      <div style="margin-bottom:24px">
+        <span style="display:inline-block;font-size:13px;font-weight:800;color:#fff;
+                     background:linear-gradient(135deg,#7C3AED,#8B5CF6,#A78BFA);
+                     padding:6px 20px;border-radius:6px;letter-spacing:3px;
+                     border:1px solid rgba(212,175,122,.5);
+                     box-shadow:0 4px 14px rgba(124,58,237,.45), 0 0 0 1px rgba(212,175,122,.18) inset">AGENDA</span>
+      </div>
+
+      <!-- ── Item 1 ── -->
+      <div style="display:flex;align-items:baseline;gap:18px;padding:18px 0">
+        <span style="font-size:28px;font-weight:900;letter-spacing:.5px;min-width:42px;text-align:right;
+                     background:linear-gradient(135deg,#A78BFA,#7C3AED);
+                     -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">1.</span>
+        <span style="flex:1;font-size:28px;font-weight:700;color:rgba(255,255,255,.96);letter-spacing:.3px;line-height:1.2">How a company works</span>
+      </div>
+      <div style="height:1.5px;border-radius:1px;background:linear-gradient(90deg,
+                  transparent 0%,
+                  rgba(124,58,237,.55) 20%,
+                  rgba(167,139,250,.65) 50%,
+                  rgba(212,175,122,.45) 80%,
+                  transparent 100%);
+                  box-shadow:0 0 12px rgba(124,58,237,.30)"></div>
+
+      <!-- ── Item 2 ── -->
+      <div style="display:flex;align-items:baseline;gap:18px;padding:18px 0">
+        <span style="font-size:28px;font-weight:900;letter-spacing:.5px;min-width:42px;text-align:right;
+                     background:linear-gradient(135deg,#A78BFA,#7C3AED);
+                     -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">2.</span>
+        <span style="flex:1;font-size:28px;font-weight:700;color:rgba(255,255,255,.96);letter-spacing:.3px;line-height:1.2">How Aws DevOps will help</span>
+      </div>
+      <div style="height:1.5px;border-radius:1px;background:linear-gradient(90deg,
+                  transparent 0%,
+                  rgba(124,58,237,.55) 20%,
+                  rgba(167,139,250,.65) 50%,
+                  rgba(212,175,122,.45) 80%,
+                  transparent 100%);
+                  box-shadow:0 0 12px rgba(124,58,237,.30)"></div>
+
+      <!-- ── Item 3 ── -->
+      <div style="display:flex;align-items:baseline;gap:18px;padding:18px 0">
+        <span style="font-size:28px;font-weight:900;letter-spacing:.5px;min-width:42px;text-align:right;
+                     background:linear-gradient(135deg,#A78BFA,#7C3AED);
+                     -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">3.</span>
+        <span style="flex:1;font-size:28px;font-weight:700;color:rgba(255,255,255,.96);letter-spacing:.3px;line-height:1.2">Course content</span>
+      </div>
+      <div style="height:1.5px;border-radius:1px;background:linear-gradient(90deg,
+                  transparent 0%,
+                  rgba(124,58,237,.55) 20%,
+                  rgba(167,139,250,.65) 50%,
+                  rgba(212,175,122,.45) 80%,
+                  transparent 100%);
+                  box-shadow:0 0 12px rgba(124,58,237,.30)"></div>
+
+      <!-- ── Item 4 ── -->
+      <div style="display:flex;align-items:baseline;gap:18px;padding:18px 0">
+        <span style="font-size:28px;font-weight:900;letter-spacing:.5px;min-width:42px;text-align:right;
+                     background:linear-gradient(135deg,#A78BFA,#7C3AED);
+                     -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">4.</span>
+        <span style="flex:1;font-size:28px;font-weight:700;color:rgba(255,255,255,.96);letter-spacing:.3px;line-height:1.2">FAQ &nbsp;|&nbsp; Who is eligible</span>
+      </div>
+      <div style="height:1.5px;border-radius:1px;background:linear-gradient(90deg,
+                  transparent 0%,
+                  rgba(124,58,237,.55) 20%,
+                  rgba(167,139,250,.65) 50%,
+                  rgba(212,175,122,.45) 80%,
+                  transparent 100%);
+                  box-shadow:0 0 12px rgba(124,58,237,.30)"></div>
+
+    </div>
+    <!-- end of LEFT (agenda) column -->
+
+  </div>
+
+  <div class="author-badge">
+  <span class="lbl">Author :</span>
+  <span class="name">Balu</span>
+  </div>
+
+  <!-- ── BOTTOM-RIGHT FOOTER — Social handles strip ── -->
+  <div style="position:absolute;right:60px;bottom:38px;z-index:6;
+              display:flex;align-items:center;gap:12px;
+              padding:8px 14px;border-radius:999px;
+              background:linear-gradient(135deg,rgba(124,58,237,.10),rgba(212,175,122,.06));
+              border:1px solid rgba(167,139,250,.22);
+              box-shadow:0 4px 14px rgba(0,0,0,.20)">
+
+    <span style="font-size:10px;font-weight:800;letter-spacing:2px;color:#A78BFA;padding-right:4px;border-right:1px solid rgba(167,139,250,.30)">FOLLOW</span>
+
+  <a href="https://www.youtube.com/@Devopsmate7" target="_blank" rel="noopener"
+       style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;
+              background:#FF0033;color:#fff;text-decoration:none;
+              box-shadow:0 2px 8px rgba(255,0,51,.45);transition:transform .2s ease"
+       title="YouTube"
+       onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">
+      <img src="https://cdn.simpleicons.org/youtube/ffffff" width="15" height="15" alt="YouTube"
+           onerror="this.outerHTML='<span style=&quot;font-size:13px&quot;>▶</span>'">
+    </a>
+
+  <a href="https://instagram.com/devopsmate7" target="_blank" rel="noopener"
+       style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;
+              background:linear-gradient(135deg,#FEDA77,#F58529,#DD2A7B,#8134AF,#515BD4);color:#fff;text-decoration:none;
+              box-shadow:0 2px 8px rgba(221,42,123,.40);transition:transform .2s ease"
+       title="Instagram"
+       onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">
+      <img src="https://cdn.simpleicons.org/instagram/ffffff" width="14" height="14" alt="Instagram"
+           onerror="this.outerHTML='<span style=&quot;font-size:12px&quot;>📷</span>'">
+    </a>
+
+  <a href="https://github.com/devopsmate7" target="_blank" rel="noopener"
+       style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;
+              background:#0A66C2;color:#fff;text-decoration:none;
+              box-shadow:0 2px 8px rgba(10,102,194,.45);transition:transform .2s ease"
+       title="LinkedIn"
+       onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">
+   <img src="https://cdn.simpleicons.org/github/ffffff" width="14" height="14" alt="GitHub"
+     onerror="this.outerHTML='<span style=&quot;font-size:12px&quot;>🐙</span>'">
+    </a>
+
+  <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.72);padding-left:4px;letter-spacing:.5px">@devopsmate7</span>
+
+  <a href="mailto:devopsmate7@gmail.com"
+       style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;
+              background:#EA4335;color:#fff;text-decoration:none;
+              box-shadow:0 2px 8px rgba(234,67,53,.45);transition:transform .2s ease"
+       title="Gmail"
+       onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">
+      <img src="https://cdn.simpleicons.org/gmail/ffffff" width="14" height="14" alt="Gmail"
+           onerror="this.outerHTML='<span style=&quot;font-size:11px;font-weight:900&quot;>✉</span>'">
+    </a>
+  <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.72);letter-spacing:.5px">devopsmate7@gmail.com</span>
+
+  </div>
+
+  <!-- page footer -->
+  <div class="page-footer">
+    <div class="pf-brand"><span class="pf-dot"></span> DEVOPSMATE · AWS DEVOPS TRAINING</div>
+    <div class="pf-num">COVER &amp; AGENDA &nbsp;·&nbsp; <b>01</b> / 04 <span class="pf-bar"><i style="width:25%"></i></span></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     SLIDE 2 — PRODUCT TO PRODUCTION (REVISED)
+═══════════════════════════════════════ -->
+<div class="slide" id="slide-2" style="padding:4mm 7mm 3mm 7mm;gap:4px">
+
+  <!-- bg orbs -->
+  <div style="position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,255,.1) 0%,transparent 70%);top:-200px;right:0;pointer-events:none"></div>
+  <div style="position:absolute;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.08) 0%,transparent 70%);bottom:-120px;left:0;pointer-events:none"></div>
+  <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.035) 1px,transparent 1px);background-size:22px 22px;pointer-events:none"></div>
+
+  <!-- HEADER — logo on LEFT, headline CENTERED on slide -->
+  <div style="display:flex;align-items:center;flex-shrink:0;margin-top:2mm;position:relative;z-index:5;padding:0 2mm">
+
+    <!-- DevOpsMate logo (LEFT side) — same size across all pages -->
+    <div class="premium-logo-hero logo-slot">
+      <img src="devopsmate_logo.png" alt="DevOpsMate">
+    </div>
+
+    <!-- Headline (centered, takes flex 1, absolute centering relative to slide) -->
+    <div style="flex:1;text-align:center;font-size:15px;font-weight:900;letter-spacing:2.5px;
+                background:linear-gradient(90deg,#38BDF8,#818CF8,#34D399);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+      HOW A COMPANY WORKS &nbsp;·&nbsp; HOW AWS DEVOPS MAKES IT FASTER
+    </div>
+
+    <!-- Invisible spacer (matches logo width) so the headline stays visually centered on the slide -->
+    <div style="width:280px;flex-shrink:0"></div>
+  </div>
+
+  <!-- ═══ STEP 1: BUSINESS CHAIN — bigger images + clear hierarchy ═══ -->
+  <div class="lane" style="background:rgba(251,191,36,.04);border-color:rgba(251,191,36,.22);flex-shrink:0;position:relative;z-index:3;margin-top:6px">
+    <div class="lane-lbl step-lbl">STEP 1 · BUSINESS — Idea → MNC Contract → Hierarchy → Delivery Team</div>
+    <div style="display:flex;align-items:center;gap:0;margin-top:7px;padding-bottom:3px">
+
+      <!-- Ambani — bigger & clearer text -->
+      <div style="flex-shrink:0;text-align:center;min-width:104px">
+        <div style="width:90px;height:90px;border-radius:14px;overflow:hidden;border:2.5px solid rgba(251,191,36,.7);margin:0 auto;background:rgba(251,191,36,.08);box-shadow:0 0 18px rgba(251,191,36,.18)">
+          <img src="amabi.webp" alt="Ambani" style="width:100%;height:100%;object-fit:cover;object-position:center top" onerror="this.parentElement.innerHTML='<div style=font-size:52px;line-height:90px;text-align:center>👔</div>'">
+        </div>
+        <div style="font-size:13px;font-weight:900;color:#FBBF24;margin-top:4px">Ambani</div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,.55);font-weight:600">Client · ₹100 Cr Idea</div>
+      </div>
+
+      <!-- Contract step badge -->
+      <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;background:rgba(251,191,36,.1);border:1.5px solid rgba(251,191,36,.4);border-radius:9px;margin:0 7px;min-width:74px">
+        <div style="font-size:10px;color:#FBBF24;font-weight:800;text-align:center">Reaches Out</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);text-align:center;font-weight:600">for Contract</div>
+      </div>
+      <div class="tip" style="--c:#FBBF24"></div>
+
+      <!-- MNC — show ALL 4 companies (contain, wider+shorter) -->
+      <div style="flex-shrink:0;text-align:center;min-width:124px">
+        <div style="width:116px;height:66px;border-radius:10px;overflow:hidden;border:2px solid rgba(56,189,248,.6);margin:0 auto;background:rgba(255,255,255,.94);padding:4px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(56,189,248,.22)">
+          <img src="TCS_HCL_Wpiro.avif" alt="MNC" style="max-width:100%;max-height:100%;object-fit:contain" onerror="this.parentElement.innerHTML='<div style=font-size:44px;line-height:58px;text-align:center>🏢</div>'">
+        </div>
+        <div style="font-size:11.5px;font-weight:900;color:#38BDF8;margin-top:4px">TCS · HCL · Infosys · Wipro</div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,.55);font-weight:600">MNC wins contract</div>
+      </div>
+
+      <!-- Contract step badge -->
+      <div style="flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding:6px 10px;background:rgba(52,211,153,.08);border:1.5px solid rgba(52,211,153,.38);border-radius:9px;margin:0 7px;min-width:96px">
+        <div style="font-size:9.5px;color:#34D399;font-weight:800">Bids &amp; Proposes</div>
+        <div>
+          <div style="font-size:9.5px;color:#FBBF24;font-weight:800">Contract Signed</div>
+          <div style="font-size:13px;color:#FBBF24;font-weight:900">₹100 Cr</div>
+        </div>
+
+      </div>
+      <div class="dash" style="--c:#94A3B8;width:12px"></div><div class="tip" style="--c:#94A3B8"></div>
+
+      <!-- Company Hierarchy — Teams-style blue chevron arrow chain -->
+      <div style="flex:1;min-width:0;background:linear-gradient(135deg,rgba(56,189,248,.05),rgba(99,102,241,.06));border:1.5px solid rgba(56,189,248,.32);border-radius:9px;padding:7px 9px 9px 9px">
+        <div style="font-size:11px;font-weight:900;color:#38BDF8;margin-bottom:7px;text-align:center;letter-spacing:.6px">🏛 COMPANY HIERARCHY · top-down chain of command</div>
+        <div style="display:flex;align-items:stretch;gap:0;flex-wrap:nowrap">
+
+          <div class="hier-arrow" style="background:linear-gradient(90deg,#38BDF8,#0EA5E9);z-index:7">
+            <span class="role">CEO</span><span class="tag">Vision</span>
+          </div>
+          <div class="hier-arrow" style="background:linear-gradient(90deg,#0EA5E9,#0284C7);z-index:6">
+            <span class="role">VP</span><span class="tag">Strategy</span>
+          </div>
+          <div class="hier-arrow" style="background:linear-gradient(90deg,#0284C7,#0369A1);z-index:5">
+            <span class="role">CTO</span><span class="tag">Tech Head</span>
+          </div>
+          <div class="hier-arrow" style="background:linear-gradient(90deg,#0369A1,#6366F1);z-index:4">
+            <span class="role">Architect</span><span class="tag">Tech Design</span>
+          </div>
+          <div class="hier-arrow" style="background:linear-gradient(90deg,#6366F1,#4F46E5);z-index:3">
+            <span class="role">PM</span><span class="tag">Project Plan</span>
+          </div>
+          <div class="hier-arrow" style="background:linear-gradient(90deg,#4F46E5,#4338CA);z-index:2">
+            <span class="role">Manager</span><span class="tag">People Mgmt</span>
+          </div>
+          <div class="hier-arrow" style="background:linear-gradient(90deg,#4338CA,#3730A3);z-index:1;margin-right:0">
+            <span class="role">Team Lead</span><span class="tag">Day-to-Day</span>
+          </div>
+
+        </div>
+      </div>
+      <div class="dash" style="--c:#38BDF8;width:10px"></div><div class="tip" style="--c:#38BDF8"></div>
+
+      <!-- Team — Teams-style blue/dark-blue gradient cards (matches Company Hierarchy) -->
+      <div style="flex:0 0 152px;background:linear-gradient(135deg,rgba(56,189,248,.06),rgba(99,102,241,.07));border:1.5px solid rgba(56,189,248,.36);border-radius:9px;padding:6px 8px;box-shadow:0 2px 8px rgba(14,165,233,.18)">
+        <div style="font-size:10.5px;font-weight:900;color:#7DD3FC;margin-bottom:5px;letter-spacing:.4px;text-shadow:0 1px 1px rgba(0,0,0,.25)">👥 DELIVERY TEAM</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 7px;background:linear-gradient(90deg,#38BDF8,#0EA5E9);border-radius:5px;border:1px solid rgba(125,211,252,.7);box-shadow:0 1px 4px rgba(14,165,233,.35)">
+            <span style="font-size:10px;color:#fff;font-weight:800;text-shadow:0 1px 1px rgba(0,0,0,.3)">👨‍💻 2 Devs</span><span style="font-size:9.5px;color:#fff;font-weight:900;text-shadow:0 1px 1px rgba(0,0,0,.3)">₹8–15L</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 7px;background:linear-gradient(90deg,#0EA5E9,#0369A1);border-radius:5px;border:1px solid rgba(125,211,252,.6);box-shadow:0 1px 4px rgba(14,165,233,.35)">
+            <span style="font-size:10px;color:#fff;font-weight:800;text-shadow:0 1px 1px rgba(0,0,0,.3)">⚙️ 2 DevOps</span><span style="font-size:9.5px;color:#fff;font-weight:900;text-shadow:0 1px 1px rgba(0,0,0,.3)">₹12–25L</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 7px;background:linear-gradient(90deg,#0369A1,#1E40AF);border-radius:5px;border:1px solid rgba(125,211,252,.55);box-shadow:0 1px 4px rgba(30,64,175,.35)">
+            <span style="font-size:10px;color:#fff;font-weight:800;text-shadow:0 1px 1px rgba(0,0,0,.3)">🧪 2 QA</span><span style="font-size:9.5px;color:#fff;font-weight:900;text-shadow:0 1px 1px rgba(0,0,0,.3)">₹8–12L</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ MAIN BODY: Developer+QA LEFT | DevOps RIGHT — pushed down for clear separation from Step 1 ═══ -->
+  <div style="display:flex;gap:5px;flex:1;min-height:0;position:relative;z-index:2;margin-top:14px">
+
+    <!-- Slide-level overlay: cross-column arrows (GitHub → GH Actions, GitHub → QA Team).
+         Paths are recomputed by JS from real element positions, so they stay aligned at any viewport width. -->
+    <svg id="cross-arrows" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6;overflow:visible">
+      <defs>
+        <marker id="arr-red-small" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#38BDF8"/>
+        </marker>
+        <marker id="arr-yellow-small" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#818CF8"/>
+        </marker>
+      </defs>
+      <!-- GitHub → GH Actions (Step 3 top) — straight line -->
+      <path id="arr-gh-to-actions" d="" fill="none" stroke="#38BDF8" stroke-width="1.6"
+            stroke-dasharray="5 3" stroke-linecap="round" marker-end="url(#arr-red-small)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-16" dur=".7s" repeatCount="indefinite"/>
+      </path>
+      <!-- GitHub → QA Team — clean L-shape (down then left) -->
+      <path id="arr-gh-to-qa" d="" fill="none" stroke="#818CF8" stroke-width="1.6"
+            stroke-dasharray="5 3" stroke-linecap="round" marker-end="url(#arr-yellow-small)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-16" dur=".7s" repeatCount="indefinite"/>
+      </path>
+    </svg>
+
+
+    <!-- ─── LEFT COLUMN: STEP 2 Developer + QA ─── -->
+    <div style="flex:0 0 348px;display:flex;flex-direction:column;gap:0;min-width:0">
+      <div class="lane" style="flex:1;background:rgba(96,165,250,.04);border-color:rgba(96,165,250,.22);display:flex;flex-direction:column;gap:0">
+        <div class="lane-lbl step-lbl">STEP 2 · DEVELOPER — Write Code → Git → GitHub</div>
+
+        <!-- One-liner: short & simple -->
+        <div style="margin-top:8px;padding:7px 13px;background:rgba(56,189,248,.07);border-left:3.5px solid rgba(56,189,248,.6);border-radius:0 6px 6px 0">
+          <span style="font-size:11.5px;color:rgba(255,255,255,.9);line-height:1.5;font-weight:500">
+            Both developers code in <strong style="color:#38BDF8">VS Code</strong>, then use <strong style="color:#38BDF8">Git</strong> to push to <strong style="color:#fff">GitHub</strong> — the team's <strong style="color:#34D399">ONE shared codebase</strong>.
+          </span>
+        </div>
+
+        <!-- ANIMATED FLOW: Dev1+Dev2 → VS Code → Git → GitHub  (compact — fits inside Step 2 lane) -->
+        <div style="display:flex;align-items:center;gap:3px;margin-top:8px;flex-wrap:nowrap">
+
+          <!-- Two stacked dev photos with typing-indicator + alternating pulse glow -->
+          <div style="flex-shrink:0;display:flex;flex-direction:column;gap:9px">
+            <div id="cust-dev1" style="text-align:center;position:relative">
+              <div class="dev-avatar dev-avatar-1" style="width:46px;height:46px;border-radius:50%;overflow:hidden;border:2px solid rgba(96,165,250,.85);background:rgba(30,64,175,.3);display:flex;align-items:center;justify-content:center;margin:0 auto">
+                <img src="dev1.png" alt="Dev 1" style="width:100%;height:100%;object-fit:cover;object-position:center top" onerror="this.outerHTML='<span style=font-size:24px>👨‍💻</span>'">
+              </div>
+              <div style="font-size:9.5px;font-weight:900;color:#60A5FA;margin-top:2px">Developer 1</div>
+              <div class="typing-dots"><span></span><span></span><span></span></div>
+            </div>
+            <div id="cust-dev2" style="text-align:center;position:relative">
+              <div class="dev-avatar dev-avatar-2" style="width:46px;height:46px;border-radius:50%;overflow:hidden;border:2px solid rgba(96,165,250,.85);background:rgba(30,64,175,.3);display:flex;align-items:center;justify-content:center;margin:0 auto">
+                <img src="dev2.png" alt="Dev 2" style="width:100%;height:100%;object-fit:cover;object-position:right top" onerror="this.outerHTML='<span style=font-size:24px>👩‍💻</span>'">
+              </div>
+              <div style="font-size:9.5px;font-weight:900;color:#60A5FA;margin-top:2px">Developer 2</div>
+              <div class="typing-dots"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+
+          <!-- SVG: animated converging arrows + traveling </> code chips from BOTH devs into VS Code -->
+          <div style="flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="38" height="128" viewBox="0 0 38 128" style="display:block;overflow:visible">
+              <defs>
+                <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#60A5FA"/>
+                </marker>
+              </defs>
+              <!-- dev1 → VS Code curve -->
+              <path id="dev1-path" d="M 2 26 C 18 26, 20 64, 36 64" fill="none" stroke="#60A5FA" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arr-blue)">
+                <animate attributeName="stroke-dashoffset" from="0" to="-20" dur=".6s" repeatCount="indefinite"/>
+              </path>
+              <!-- dev2 → VS Code curve -->
+              <path id="dev2-path" d="M 2 102 C 18 102, 20 64, 36 64" fill="none" stroke="#60A5FA" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arr-blue)">
+                <animate attributeName="stroke-dashoffset" from="0" to="-20" dur=".6s" repeatCount="indefinite"/>
+              </path>
+              <!-- Traveling </> code chips from Dev1 & Dev2 toward VS Code -->
+              <g style="font:900 8.5px 'Inter',sans-serif" fill="#93C5FD">
+                <text text-anchor="middle" dominant-baseline="middle" filter="drop-shadow(0 0 3px rgba(96,165,250,.7))">
+                  &lt;/&gt;
+                  <animateMotion dur="2.4s" repeatCount="indefinite" rotate="0">
+                    <mpath xlink:href="#dev1-path" href="#dev1-path"/>
+                  </animateMotion>
+                  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.85;1" dur="2.4s" repeatCount="indefinite"/>
+                </text>
+                <text text-anchor="middle" dominant-baseline="middle" filter="drop-shadow(0 0 3px rgba(96,165,250,.7))">
+                  &lt;/&gt;
+                  <animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite" rotate="0">
+                    <mpath xlink:href="#dev2-path" href="#dev2-path"/>
+                  </animateMotion>
+                  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.85;1" dur="2.4s" begin="1.2s" repeatCount="indefinite"/>
+                </text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- VS Code node (compact) -->
+          <div id="cust-vscode" class="nd" style="background:rgba(0,122,204,.1);border-color:rgba(0,122,204,.5);min-width:50px;padding:5px 6px;margin-top:0">
+            <div class="ic"><img src="https://cdn.simpleicons.org/visualstudiocode/007ACC" style="width:18px;height:18px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:16px>💻</span>'"></div>
+            <div class="nm" style="color:#60A5FA;font-size:10.5px">VS Code</div>
+            <div class="sb" style="color:rgba(255,255,255,.6);font-size:9px">IDE</div>
+          </div>
+
+          <div class="dash" style="--c:#FCA5A5;width:8px"></div>
+          <div class="tip" style="--c:#FCA5A5"></div>
+
+          <!-- Git node (compact) -->
+          <div id="cust-git" class="nd" style="background:rgba(240,80,50,.08);border-color:rgba(240,80,50,.5);min-width:48px;padding:5px 6px;margin-top:0">
+            <div class="ic"><img src="https://cdn.simpleicons.org/git/F05032" style="width:18px;height:18px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:16px>🔧</span>'"></div>
+            <div class="nm" style="color:#FCA5A5;font-size:10.5px">Git</div>
+            <div class="sb" style="color:rgba(255,255,255,.6);font-size:9px">Local VCS</div>
+          </div>
+
+          <div class="dash" style="--c:#E2E8F0;width:8px"></div>
+          <div class="tip" style="--c:#E2E8F0"></div>
+
+          <!-- GitHub node — id used by cross-column arrow & customer journey (compact) -->
+          <div id="gh-node" class="nd" style="background:rgba(226,232,240,.08);border-color:rgba(226,232,240,.5);min-width:54px;padding:5px 6px;margin-top:0;position:relative">
+            <div class="ic"><img src="https://cdn.simpleicons.org/github/ffffff" style="width:18px;height:18px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:16px>🐙</span>'"></div>
+            <div class="nm" style="color:#E2E8F0;font-size:10.5px">GitHub</div>
+            <div class="sb" style="color:rgba(255,255,255,.6);font-size:9px">Cloud Repo</div>
+          </div>
+
+        </div>
+
+        <!-- ROW BELOW FLOW: Features Built (VERTICAL) on LEFT, free space on right for slide-level arrows -->
+        <div style="display:flex;gap:8px;margin-top:8px;flex:1;min-height:0;position:relative">
+
+          <!-- Features Built — VERTICAL stacked column (calm harmony, bigger text) -->
+          <div style="flex:0 0 162px;display:flex;flex-direction:column;gap:5px">
+            <div style="font-size:9.5px;font-weight:900;letter-spacing:.7px;margin-bottom:2px;
+                        background:linear-gradient(135deg,#7DD3FC,#0EA5E9,#1E40AF);
+                        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+                        text-shadow:0 1px 2px rgba(14,165,233,.15)">📋 V1 REQUIREMENTS</div>
+            <div style="display:flex;align-items:center;gap:7px;padding:5px 9px;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.36);border-radius:7px">
+              <span style="font-size:17px;line-height:1">📱</span>
+              <div><div style="font-size:10.5px;font-weight:900;color:#38BDF8">Mobile Recharge</div><div style="font-size:8.5px;color:rgba(255,255,255,.5);font-weight:600">Jio · Airtel · VI</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;padding:5px 9px;background:rgba(129,140,248,.12);border:1px solid rgba(129,140,248,.36);border-radius:7px">
+              <span style="font-size:17px;line-height:1">📡</span>
+              <div><div style="font-size:10.5px;font-weight:900;color:#818CF8">DTH Recharge</div><div style="font-size:8.5px;color:rgba(255,255,255,.5);font-weight:600">Dish · TataSky</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;padding:5px 9px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.36);border-radius:7px">
+              <span style="font-size:17px;line-height:1">⚡</span>
+              <div><div style="font-size:10.5px;font-weight:900;color:#34D399">Electricity Bill</div><div style="font-size:8.5px;color:rgba(255,255,255,.5);font-weight:600">All state boards</div></div>
+            </div>
+          </div>
+
+          <!-- Right side: kept empty so the slide-level SVG arrows pass through cleanly -->
+          <div style="flex:1;position:relative;min-height:130px"></div>
+
+        </div>
+
+        <!-- QA Team — at the BOTTOM with proper arrows back to GitHub (calm indigo theme, bigger text) -->
+        <div id="qa-node" style="background:rgba(129,140,248,.06);border:1.5px solid rgba(129,140,248,.36);border-radius:10px;padding:9px 12px;position:relative">
+          <div style="font-size:10.5px;font-weight:900;color:#818CF8;letter-spacing:.7px;margin-bottom:7px;display:flex;align-items:center;gap:7px">
+            <span style="font-size:14px">🧪</span> QA / TESTING TEAM — independent track from GitHub
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+
+            <!-- QA avatar -->
+            <div style="flex-shrink:0;text-align:center;width:72px">
+              <div style="width:56px;height:56px;border-radius:50%;background:rgba(129,140,248,.15);border:2.5px solid rgba(129,140,248,.55);display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:30px">🧪</div>
+              <div style="font-size:10.5px;font-weight:900;color:#818CF8;margin-top:4px">QA Team</div>
+              <div style="font-size:8.5px;color:rgba(255,255,255,.5);font-weight:600">2 × Testers</div>
+            </div>
+
+            <!-- 3-step arrows -->
+            <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+
+              <!-- step a: pulls from GitHub (slate-blue) -->
+              <div style="display:flex;align-items:center;gap:6px;padding:4px 9px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.36);border-radius:7px">
+                <span style="width:19px;height:19px;border-radius:50%;background:rgba(56,189,248,.25);border:1px solid #38BDF8;color:#38BDF8;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">a</span>
+                <div class="dash" style="--c:#38BDF8;width:18px"></div>
+                <div class="tip" style="--c:#38BDF8"></div>
+                <span style="font-size:10.5px;color:rgba(255,255,255,.85);font-weight:500"><strong style="color:#38BDF8">Pulls code from GitHub</strong> — <code style="color:#34D399;font-family:'Fira Code',monospace;font-size:9.5px">git clone / git pull</code></span>
+              </div>
+
+              <!-- step b: runs tests (indigo) -->
+              <div style="display:flex;align-items:center;gap:6px;padding:4px 9px;background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.36);border-radius:7px">
+                <span style="width:19px;height:19px;border-radius:50%;background:rgba(129,140,248,.25);border:1px solid #818CF8;color:#818CF8;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">b</span>
+                <div class="dash" style="--c:#818CF8;width:18px"></div>
+                <div class="tip" style="--c:#818CF8"></div>
+                <span style="font-size:10.5px;color:rgba(255,255,255,.85);font-weight:500">Runs <strong style="color:#818CF8">functional + regression tests</strong> on latest code</span>
+              </div>
+
+              <!-- step c: approves (soft sage green for success) -->
+              <div style="display:flex;align-items:center;gap:6px;padding:4px 9px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.45);border-radius:7px">
+                <span style="width:19px;height:19px;border-radius:50%;background:rgba(52,211,153,.25);border:1px solid #34D399;color:#34D399;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">c</span>
+                <div class="dash" style="--c:#34D399;width:18px"></div>
+                <div class="tip" style="--c:#34D399"></div>
+                <span style="font-size:10.5px;color:#34D399;font-weight:900">✅ Approved — Green Signal to DevOps Team to Deploy</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end left column -->
+
+
+    <!-- ─── RIGHT COLUMN: STEP 3 DevOps CI/CD — vertical pipeline | 3 horizontal option rows ─── -->
+    <div class="lane" style="flex:1;min-width:0;background:rgba(52,211,153,.03);border-color:rgba(52,211,153,.22);display:flex;flex-direction:column;gap:4px">
+      <div class="lane-lbl step-lbl">STEP 3 · DEVOPS CI/CD — Build → Scan → Deploy (3 Options)</div>
+
+      <!-- 2-column body: LEFT = vertical CI pipeline | RIGHT = 3 horizontal deploy option rows -->
+      <div style="display:flex;gap:10px;flex:1;min-height:0;margin-top:11px;align-items:stretch">
+
+        <!-- ═══ LEFT: VERTICAL CI PIPELINE — GH Actions ↓ Maven ↓ SonarQube ↓ ✅ Quality Gate ═══ -->
+        <div style="flex:0 0 124px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 2px">
+
+          <!-- GH Actions / Jenkins -->
+          <div id="cust-ghactions" class="nd" style="background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.45);width:100%;padding:7px 8px;margin-top:0">
+            <div class="ic" style="display:flex;justify-content:center;gap:6px">
+              <img src="https://cdn.simpleicons.org/githubactions/2088FF" style="width:19px;height:19px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:17px>🔧</span>'">
+              <img src="https://cdn.simpleicons.org/jenkins/D24939" style="width:19px;height:19px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:17px>⚙️</span>'">
+            </div>
+            <div class="nm" style="color:#38BDF8;font-size:9.5px">GH Actions / Jenkins</div>
+            <div class="sb" style="font-size:8px">Build · CI/CD Trigger</div>
+          </div>
+
+          <!-- ↓ animated vertical arrow -->
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:2px;height:10px;background-image:repeating-linear-gradient(180deg,#38BDF8 0 4px,transparent 4px 8px);background-size:100% 8px;background-position:0 0"></div>
+            <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #38BDF8"></div>
+          </div>
+
+          <!-- Maven -->
+          <div id="cust-maven" class="nd" style="background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.45);width:100%;padding:7px 8px;margin-top:0">
+            <div class="ic"><img src="https://cdn.simpleicons.org/apachemaven/C71A36" style="width:19px;height:19px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:16px>🔨</span>'"></div>
+            <div class="nm" style="color:#38BDF8;font-size:10.5px">Maven</div>
+            <div class="sb" style="font-size:9px">Build · Compile</div>
+          </div>
+
+          <!-- ↓ animated vertical arrow -->
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:2px;height:10px;background-image:repeating-linear-gradient(180deg,#38BDF8 0 4px,transparent 4px 8px);background-size:100% 8px"></div>
+            <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #38BDF8"></div>
+          </div>
+
+          <!-- SonarQube -->
+          <div id="cust-sonar" class="nd" style="background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.45);width:100%;padding:7px 8px;margin-top:0">
+            <div class="ic"><img src="https://cdn.simpleicons.org/sonarqube/4E9BCD" style="width:19px;height:19px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:16px>🔍</span>'"></div>
+            <div class="nm" style="color:#38BDF8;font-size:10.5px">SonarQube</div>
+            <div class="sb" style="font-size:9px">Code Quality ✅</div>
+          </div>
+
+          <!-- ↓ animated vertical arrow -->
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:2px;height:10px;background-image:repeating-linear-gradient(180deg,#34D399 0 4px,transparent 4px 8px);background-size:100% 8px"></div>
+            <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #34D399"></div>
+          </div>
+
+          <!-- ✅ Quality Gate Passed badge -->
+          <div style="padding:5px 8px;background:rgba(52,211,153,.13);border:1.5px solid rgba(52,211,153,.5);border-radius:9px;font-size:9px;color:#34D399;font-weight:900;text-align:center;width:100%;line-height:1.3;letter-spacing:.3px">
+            ✅ Quality Gate<br>Passed
+          </div>
+
+          <!-- DEPLOY → hint label, sits at bottom -->
+          <div style="margin-top:auto;padding-top:6px;font-size:8.5px;color:rgba(255,255,255,.55);font-weight:800;letter-spacing:.6px">DEPLOY ➡</div>
+        </div>
+
+        <!-- ═══ RIGHT: 3 HORIZONTAL DEPLOY OPTION ROWS ═══ -->
+        <div style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0">
+
+          <!-- ─── OPTION A: On-Premises (slate) ─── -->
+          <div style="flex:1;min-height:0;display:flex;align-items:center;gap:9px;padding:6px 11px;background:rgba(148,163,184,.06);border:2px solid rgba(148,163,184,.42);border-radius:10px">
+            <span style="flex-shrink:0;padding:3px 9px;background:rgba(148,163,184,.22);border-radius:9px;font-size:9.5px;font-weight:900;color:#CBD5E1;border:1px solid rgba(148,163,184,.5);white-space:nowrap">OPTION A · Legacy</span>
+            <div style="flex-shrink:0;font-size:26px;line-height:1">🏢</div>
+            <div style="flex-shrink:0;display:flex;flex-direction:column">
+              <div style="font-size:12px;font-weight:900;color:#CBD5E1;line-height:1.1">On-Premises</div>
+              <div style="font-size:8.5px;color:rgba(255,255,255,.55);font-weight:600;margin-top:2px">company's own data center</div>
+            </div>
+            <div class="dash" style="--c:#94A3B8;flex:1;min-width:18px"></div>
+            <div class="tip" style="--c:#94A3B8"></div>
+            <div style="flex-shrink:0;padding:5px 11px;background:rgba(148,163,184,.18);border:1.5px solid rgba(148,163,184,.55);border-radius:8px;font-size:10px;color:#CBD5E1;font-weight:900;white-space:nowrap">⬛ End Point</div>
+          </div>
+
+          <!-- ─── OPTION B: AWS EC2 (amber) ─── -->
+          <div style="flex:1;min-height:0;display:flex;align-items:center;gap:9px;padding:6px 11px;background:rgba(251,191,36,.06);border:2px solid rgba(251,191,36,.42);border-radius:10px">
+            <span style="flex-shrink:0;padding:3px 9px;background:rgba(251,191,36,.22);border-radius:9px;font-size:9.5px;font-weight:900;color:#FBBF24;border:1px solid rgba(251,191,36,.5);white-space:nowrap">OPTION B · Cloud VM</span>
+            <img src="https://cdn.simpleicons.org/amazonaws/FF9900" style="flex-shrink:0;width:26px;height:26px;object-fit:contain" onerror="this.outerHTML='<div style=flex-shrink:0;font-size:26px;line-height:1>💻</div>'">
+            <div style="flex-shrink:0;display:flex;flex-direction:column">
+              <div style="font-size:12px;font-weight:900;color:#FBBF24;line-height:1.1">AWS EC2</div>
+              <div style="font-size:8.5px;color:rgba(255,255,255,.55);font-weight:600;margin-top:2px">virtual machine in the cloud</div>
+            </div>
+            <div class="dash" style="--c:#FBBF24;flex:1;min-width:18px"></div>
+            <div class="tip" style="--c:#FBBF24"></div>
+            <div style="flex-shrink:0;padding:5px 11px;background:rgba(251,191,36,.18);border:1.5px solid rgba(251,191,36,.55);border-radius:8px;font-size:10px;color:#FBBF24;font-weight:900;white-space:nowrap">⬛ End Point</div>
+          </div>
+
+          <!-- ─── OPTION C: Container + Kubernetes ★ — full horizontal flow ─── -->
+          <div style="flex:1.7;min-height:0;background:rgba(52,211,153,.05);border:2px solid rgba(52,211,153,.45);border-radius:10px;padding:5px 9px 6px 9px;display:flex;flex-direction:column;gap:3px;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:7px">
+              <span style="flex-shrink:0;padding:2.5px 8px;background:rgba(52,211,153,.18);border-radius:9px;font-size:9px;font-weight:900;color:#34D399;border:1px solid rgba(52,211,153,.55);white-space:nowrap">OPTION C · Container ★</span>
+              <span style="font-size:8.5px;color:rgba(255,255,255,.55);font-weight:600;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Industry Standard · scenario: customer mobile recharge</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:2px;flex:1;justify-content:space-between">
+
+              <div id="cust-docker" class="nd" style="background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.45);min-width:48px;padding:5px 6px">
+                <div class="ic"><img src="https://cdn.simpleicons.org/docker/2496ED" style="width:18px;height:18px;object-fit:contain"></div>
+                <div class="nm" style="color:#38BDF8;font-size:10px">Docker</div>
+                <div class="sb" style="font-size:9px">container</div>
+              </div>
+              <div class="dash" style="--c:#38BDF8;width:6px;margin-top:10px"></div>
+              <div class="tip" style="--c:#38BDF8;margin-top:10px"></div>
+
+              <div id="cust-ecr" class="nd" style="background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.45);min-width:48px;padding:5px 6px">
+                <div class="ic"><img src="https://cdn.simpleicons.org/amazonaws/FF9900" style="width:18px;height:18px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:16px>📦</span>'"></div>
+                <div class="nm" style="color:#38BDF8;font-size:10px">AWS ECR</div>
+                <div class="sb" style="font-size:9px">image store</div>
+              </div>
+              <div class="dash" style="--c:#38BDF8;width:6px;margin-top:10px"></div>
+              <div class="tip" style="--c:#38BDF8;margin-top:10px"></div>
+
+              <!-- K8s/EKS -->
+              <div id="cust-eks" style="position:relative;background:rgba(52,211,153,.08);border:2px dashed rgba(52,211,153,.5);border-radius:9px;padding:5px 6px;flex-shrink:0;margin-top:10px;min-width:104px">
+                <div style="position:absolute;top:-9px;left:6px;background:#161B22;padding:0 5px;font-size:8.5px;color:#34D399;font-weight:900">EKS / Kubernetes</div>
+                <div style="display:flex;flex-direction:column;gap:2px;margin-top:4px">
+                  <div style="display:flex;gap:3px;align-items:center;padding:1px 4px;background:rgba(56,189,248,.1);border-radius:4px;border:1px solid rgba(56,189,248,.32)">
+                    <img src="https://cdn.simpleicons.org/kubernetes/326CE5" style="width:11px;height:11px;object-fit:contain"><span style="font-size:9px;font-weight:800;color:#38BDF8">Kubernetes</span>
+                  </div>
+                  <div style="display:flex;gap:2px">
+                    <div style="flex:1;padding:1px 2px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:4px;text-align:center;font-size:8.5px;color:#34D399;font-weight:800">Svc-1</div>
+                    <div style="flex:1;padding:1px 2px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:4px;text-align:center;font-size:8.5px;color:#34D399;font-weight:800">Svc-2</div>
+                  </div>
+                  <div style="padding:1px 4px;background:rgba(52,211,153,.18);border:1px solid rgba(52,211,153,.36);border-radius:4px;text-align:center;font-size:8.5px;color:#34D399;font-weight:900">Ingress · ALB</div>
+                </div>
+              </div>
+              <div class="dash" style="--c:#34D399;width:6px;margin-top:10px"></div>
+              <div class="tip" style="--c:#34D399;margin-top:10px"></div>
+
+              <div id="cust-route53" class="nd" style="background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.45);min-width:50px;padding:5px 6px">
+                <div class="ic"><img src="https://cdn.simpleicons.org/amazonaws/FF9900" style="width:18px;height:18px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:16px>📍</span>'"></div>
+                <div class="nm" style="color:#FBBF24;font-size:10px">Route 53</div>
+                <div class="sb" style="font-size:9px">DNS · HTTPS</div>
+              </div>
+              <div class="dash" style="--c:#34D399;width:6px;margin-top:10px"></div>
+              <div class="tip" style="--c:#34D399;margin-top:10px"></div>
+
+              <!-- LIVE -->
+              <div id="cust-live" style="background:linear-gradient(135deg,rgba(52,211,153,.18),rgba(56,189,248,.12));border:2px solid #34D399;border-radius:10px;padding:6px 8px;text-align:center;flex-shrink:0;min-width:80px;margin-top:10px;animation:glow 2s ease-in-out infinite">
+                <img src="https://cdn.simpleicons.org/phonepe/5f259f" style="width:22px;height:22px;object-fit:contain" onerror="this.outerHTML='<div style=font-size:20px>🌍</div>'">
+                <div style="font-size:10px;font-weight:900;color:#34D399;margin-top:2px">phonepay.com</div>
+                <div style="font-size:9px;color:#6EE7B7;font-weight:800">🎉 LIVE</div>
+              </div>
+              <div class="dash" style="--c:#38BDF8;width:6px;margin-top:10px"></div>
+              <div class="tip" style="--c:#38BDF8;margin-top:10px"></div>
+
+              <!-- Chrome End User -->
+              <div id="cust-chrome" style="background:rgba(56,189,248,.08);border:2px solid rgba(56,189,248,.5);border-radius:10px;padding:6px 7px;text-align:center;flex-shrink:0;min-width:74px;margin-top:10px">
+                <div style="font-size:20px">🌐</div>
+                <div style="font-size:10.5px;font-weight:900;color:#38BDF8;margin-top:2px">Chrome</div>
+                <div style="font-size:8.5px;color:rgba(255,255,255,.5);font-weight:600">User visits</div>
+                <div style="font-size:9px;color:#34D399;font-weight:800">phonepay.com</div>
+                <div style="font-size:8px;color:rgba(255,255,255,.4);font-weight:600">1 Cr+ users</div>
+              </div>
+
+              <!-- ← recharges  arrow from Customer back to Chrome -->
+              <div style="display:flex;flex-direction:column;align-items:center;margin-top:10px;flex-shrink:0;padding:0 3px">
+                <div style="font-size:8px;font-weight:900;color:#FBBF24;letter-spacing:.3px;margin-bottom:2px">recharges</div>
+                <div style="display:flex;align-items:center">
+                  <div style="width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-right:7px solid #FBBF24"></div>
+                  <div style="width:14px;height:1.8px;background:#FBBF24"></div>
+                </div>
+              </div>
+
+              <!-- 🧑‍💼 CUSTOMER — click trigger (single-click start, double-click stop) -->
+              <div id="cust-customer" style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;margin:6px 0 0 4px;cursor:pointer;position:relative;user-select:none;-webkit-user-select:none" title="Single-click to start the recharge journey · Double-click to stop">
+                <div id="cust-customer-avatar" style="background:linear-gradient(135deg,rgba(251,191,36,.22),rgba(56,189,248,.12));border:2px solid #FBBF24;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(251,191,36,.45);font-size:22px;line-height:1;transition:transform .25s ease, box-shadow .25s ease, background .25s ease">🧑‍💼</div>
+                <div style="font-size:8.5px;font-weight:900;color:#FBBF24;letter-spacing:.4px;margin-top:3px">CUSTOMER</div>
+                <div style="font-size:7px;color:rgba(255,255,255,.65);font-weight:700;letter-spacing:.2px;margin-top:1px;text-align:center;white-space:nowrap">wants recharge</div>
+                <div style="font-size:7px;font-weight:800;color:#0D1117;background:#FBBF24;padding:1.5px 6px;border-radius:8px;margin-top:3px;letter-spacing:.3px;animation:custTapHint 1.6s ease-in-out infinite;white-space:nowrap">👆 CLICK · 2× STOP</div>
+              </div>
+
+            </div>
+          </div>
+
+        </div><!-- end 3 stacked option rows -->
+
+      </div><!-- end 2-column body -->
+
+    </div><!-- end right DevOps column -->
+
+  </div><!-- end main body -->
+
+  <!-- ═══ CUSTOMER JOURNEY CURSOR — animated reverse trace from Chrome → Devs ═══ -->
+  <div id="cust-cursor" style="position:absolute;width:34px;height:34px;pointer-events:none;z-index:99;
+       transition:left 2.15s cubic-bezier(.4,0,.2,1), top 2.15s cubic-bezier(.4,0,.2,1);opacity:0;
+       filter:drop-shadow(0 0 6px rgba(56,189,248,.85)) drop-shadow(0 0 3px #fff)">
+    <div style="font-size:28px;line-height:1;transform:rotate(-15deg)">👆</div>
+  </div>
+
+  <div id="cust-label" style="position:absolute;background:#38BDF8;color:#0D1117;
+       padding:4px 11px;border-radius:14px;font-size:11px;font-weight:900;letter-spacing:.4px;
+       pointer-events:none;z-index:100;white-space:nowrap;
+       box-shadow:0 4px 12px rgba(0,0,0,.5);
+       transition:left 2.15s cubic-bezier(.4,0,.2,1), top 2.15s cubic-bezier(.4,0,.2,1), background-color .5s ease;
+       opacity:0"></div>
+
+  <div id="cust-pulse" style="position:absolute;width:48px;height:48px;border-radius:50%;
+       border:2.5px solid #38BDF8;pointer-events:none;z-index:97;opacity:0;box-sizing:border-box"></div>
+
+  <div id="cust-trail" style="position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:96;overflow:visible">
+    <svg style="position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible" preserveAspectRatio="none">
+      <path id="cust-trail-path" d="" fill="none" stroke="rgba(56,189,248,.45)" stroke-width="1.4"
+            stroke-dasharray="4 3" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+<style>
+@keyframes custPulseRing {
+  0%   { transform:scale(.45); opacity:1; border-width:3px; }
+  100% { transform:scale(2.5);  opacity:0; border-width:1px; }
+}
+@keyframes custTapHint {
+  0%,100% { opacity:1;   transform:scale(1);    }
+  50%     { opacity:.55; transform:scale(.94);  }
+}
+#cust-customer:hover #cust-customer-avatar {
+  background:linear-gradient(135deg,rgba(251,191,36,.4),rgba(56,189,248,.18)) !important;
+  box-shadow:0 0 18px rgba(251,191,36,.85) !important;
+  transform:scale(1.08);
+}
+.cust-active-glow {
+  box-shadow:0 0 22px 5px rgba(56,189,248,.55), inset 0 0 14px rgba(56,189,248,.18) !important;
+  filter:brightness(1.18) saturate(1.1);
+  transition:box-shadow .35s ease, filter .35s ease;
+}
+</style>
+
+<script>
+(function () {
+  // Mobile recharge journey: customer click → travels back through every layer to the developers
+  const path = [
+    { id:'cust-chrome',    label:'1. Customer opens Chrome to recharge their mobile',  color:'#38BDF8' },
+    { id:'cust-live',      label:'2. Goes to phonepay.com (LIVE site)',                color:'#34D399' },
+    { id:'cust-route53',   label:'3. Route 53 resolves DNS → routes the recharge call',color:'#FBBF24' },
+    { id:'cust-eks',       label:'4. K8s Ingress on EKS forwards to recharge service', color:'#34D399' },
+    { id:'cust-ecr',       label:'5. Recharge container image pulled from AWS ECR',    color:'#38BDF8' },
+    { id:'cust-docker',    label:'6. Docker container runs the recharge logic',        color:'#38BDF8' },
+    { id:'cust-sonar',     label:'7. Recharge code passed SonarQube quality scan',     color:'#38BDF8' },
+    { id:'cust-maven',     label:'8. Recharge service built & compiled by Maven',      color:'#38BDF8' },
+    { id:'cust-ghactions', label:'9. CI/CD pipeline by GH Actions / Jenkins',          color:'#38BDF8' },
+    { id:'gh-node',        label:'10. Recharge feature code on GitHub',                color:'#E2E8F0' },
+    { id:'cust-git',       label:'11. Pushed via Git from local machine',              color:'#FCA5A5' },
+    { id:'cust-vscode',    label:'12. Written in VS Code',                             color:'#60A5FA' },
+    { id:'cust-dev1',      label:'13. Developer 1 coded the recharge UI ✍',            color:'#60A5FA' },
+    { id:'cust-dev2',      label:'14. Developer 2 coded the payment logic ✨',         color:'#60A5FA' }
+  ];
+
+  function init () {
+    const slide   = document.getElementById('slide-2');
+    const cursor  = document.getElementById('cust-cursor');
+    const label   = document.getElementById('cust-label');
+    const pulse   = document.getElementById('cust-pulse');
+    const trail   = document.getElementById('cust-trail-path');
+    const trigger = document.getElementById('cust-customer');
+    if (!slide || !cursor || !label || !pulse || !trigger) return;
+
+    let timer = null, currentPrev = null, running = false, clickPending = null;
+
+    function clearAll () {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      cursor.style.opacity = '0';
+      label.style.opacity  = '0';
+      pulse.style.opacity  = '0';
+      pulse.style.animation = 'none';
+      trail.setAttribute('d', '');
+      if (currentPrev) currentPrev.classList.remove('cust-active-glow');
+      currentPrev = null;
+      running = false;
+    }
+
+    function tick (idx, points) {
+      const step = path[idx];
+      const el   = document.getElementById(step.id);
+      if (!el) { timer = setTimeout(() => tick(idx + 1, points), 60); return; }
+
+      // account for slide scroll (slide is pannable)
+      const sR = slide.getBoundingClientRect();
+      const eR = el.getBoundingClientRect();
+      const cx = eR.left - sR.left + slide.scrollLeft + eR.width / 2;
+      const cy = eR.top  - sR.top  + slide.scrollTop  + eR.height / 2;
+
+      cursor.style.left = (cx - 6)  + 'px';
+      cursor.style.top  = (cy - 22) + 'px';
+      cursor.style.opacity = '1';
+
+      label.textContent = step.label;
+      label.style.background = step.color;
+      const placeBelow = cy < 80;
+      label.style.left = (cx + 14) + 'px';
+      label.style.top  = (placeBelow ? cy + 26 : cy - 18) + 'px';
+      label.style.opacity = '1';
+
+      if (currentPrev) currentPrev.classList.remove('cust-active-glow');
+      el.classList.add('cust-active-glow');
+      currentPrev = el;
+
+      pulse.style.left = (cx - 24) + 'px';
+      pulse.style.top  = (cy - 24) + 'px';
+      pulse.style.borderColor = step.color;
+      pulse.style.opacity = '1';
+      pulse.style.animation = 'none';
+      void pulse.offsetWidth;
+      pulse.style.animation = 'custPulseRing 1.7s ease-out';
+
+      points.push([cx, cy]);
+      if (points.length > 5) points.shift();
+      if (points.length > 1) {
+        let d = 'M ' + points[0][0] + ' ' + points[0][1];
+        for (let i = 1; i < points.length; i++) d += ' L ' + points[i][0] + ' ' + points[i][1];
+        trail.setAttribute('d', d);
+      }
+
+      const next = idx + 1;
+      if (next >= path.length) {
+        timer = setTimeout(clearAll, 4300);
+        return;
+      }
+      // Slowed by another 30% — dwell now ~2340ms (normal) / ~3120ms (first/last)
+      const dwell = (next === 1 || next === path.length - 1) ? 3120 : 2340;
+      timer = setTimeout(() => tick(next, points), dwell);
+    }
+
+    function startJourney () {
+      if (running) return;
+      clearAll();
+      running = true;
+      tick(0, []);
+    }
+
+    function stopJourney () {
+      clearAll();
+    }
+
+    // Single-click START / Double-click STOP
+    // We delay single-click action so a second click within 280ms is treated as dblclick
+    trigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (clickPending) return; // a pending click is already waiting; the dblclick will handle it
+      clickPending = setTimeout(() => {
+        clickPending = null;
+        startJourney();
+      }, 280);
+    });
+    trigger.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      if (clickPending) { clearTimeout(clickPending); clickPending = null; }
+      stopJourney();
+    });
+  }
+
+  // ─── Cross-column arrows: GitHub → GH Actions, GitHub → QA Team
+  // Computes paths from REAL element positions so they always align (any viewport).
+  function positionCrossArrows () {
+    const svg     = document.getElementById('cross-arrows');
+    const arrAct  = document.getElementById('arr-gh-to-actions');
+    const arrQA   = document.getElementById('arr-gh-to-qa');
+    const gh      = document.getElementById('gh-node');
+    const actions = document.getElementById('cust-ghactions');
+    const qa      = document.getElementById('qa-node');
+    if (!svg || !arrAct || !arrQA || !gh || !actions || !qa) return;
+
+    const sR  = svg.getBoundingClientRect();
+    const ghR = gh.getBoundingClientRect();
+    const aR  = actions.getBoundingClientRect();
+    const qR  = qa.getBoundingClientRect();
+
+    // GitHub right-mid (start of arrow toward Step 3 GH Actions)
+    const ghRightX = ghR.right - sR.left;
+    const ghMidY   = ghR.top + ghR.height / 2 - sR.top;
+    // GitHub bottom-mid (start of arrow toward QA — straight vertical drop)
+    const ghBotX   = ghR.left + ghR.width / 2 - sR.left;
+    const ghBotY   = ghR.bottom - sR.top;
+    // GH Actions left-mid
+    const aLeftX   = aR.left - sR.left;
+    const aMidY    = aR.top + aR.height / 2 - sR.top;
+    // QA Team — land on the TOP-CENTER of the QA box (so it lines up vertically under GitHub)
+    const qTopY    = qR.top - sR.top;
+
+    // 1) Straight diagonal from GitHub right-edge to GH Actions left-edge
+    arrAct.setAttribute('d', `M ${ghRightX + 4} ${ghMidY} L ${aLeftX - 4} ${aMidY}`);
+
+    // 2) Single STRAIGHT VERTICAL line from GitHub bottom → QA top (lands directly above QA box, centered under GitHub)
+    arrQA.setAttribute('d', `M ${ghBotX} ${ghBotY + 2} L ${ghBotX} ${qTopY - 2}`);
+  }
+
+  function bootAll () {
+    init();
+    positionCrossArrows();
+    // Recompute after fonts/images settle
+    window.addEventListener('load',  positionCrossArrows);
+    window.addEventListener('resize', positionCrossArrows);
+    setTimeout(positionCrossArrows, 250);
+    setTimeout(positionCrossArrows, 800);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootAll);
+  } else {
+    bootAll();
+  }
+})();
+</script>
+
+<!-- page footer -->
+<div class="page-footer">
+  <div class="pf-brand"><span class="pf-dot"></span> DEVOPSMATE · AWS DEVOPS TRAINING</div>
+  <div class="pf-num">LIVE DEMO · IDEA → PRODUCTION &nbsp;·&nbsp; <b>02</b> / 04 <span class="pf-bar"><i style="width:50%"></i></span></div>
+</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     SLIDE 3 — COURSE CONTENT (3 sections: AWS · DevOps · Career)
+═══════════════════════════════════════ -->
+<div class="slide" id="slide-3-course" style="padding:0">
+
+  <!-- subtle bg orbs (sky-blue palette) -->
+  <div style="position:absolute;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.07) 0%,transparent 70%);top:-180px;left:-100px;pointer-events:none"></div>
+  <div style="position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.06) 0%,transparent 70%);bottom:-140px;right:-80px;pointer-events:none"></div>
+  <!-- subtle dot grid -->
+  <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.035) 1px,transparent 1px);background-size:22px 22px;pointer-events:none"></div>
+
+  <!-- HEADER: logo + title only (no subtitle) -->
+  <div style="display:flex;align-items:center;gap:26px;padding:22px 60px 6px 60px;position:relative;z-index:2;flex-shrink:0">
+
+    <!-- DevOpsMate logo -->
+    <div class="premium-logo-hero logo-slot">
+      <img src="devopsmate_logo.png" alt="DevOpsMate">
+    </div>
+
+    <!-- divider -->
+    <div style="width:1.5px;height:62px;background:linear-gradient(180deg,transparent,rgba(56,189,248,.45),rgba(129,140,248,.45),transparent);flex-shrink:0"></div>
+
+    <!-- Title — only "Course Content", no subtitle -->
+    <div style="flex:1;font-size:40px;font-weight:900;line-height:1.05;letter-spacing:-1px;
+                background:linear-gradient(90deg,#7DD3FC,#0EA5E9,#1E40AF);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+                filter:drop-shadow(0 2px 6px rgba(56,189,248,.2))">Course Content</div>
+  </div>
+
+  <!-- BODY — 3 columns split by sparkle dividers (AWS · DevOps · Career help) -->
+  <div style="flex:1;display:flex;align-items:stretch;gap:0;padding:14px 50px 0 50px;position:relative;z-index:2;min-height:0">
+
+    <!-- ═════════════ COLUMN 1 — SECTION 01 · AWS ═════════════ -->
+    <div style="flex:1.05;min-width:0;padding:0 22px 0 0;display:flex;flex-direction:column">
+
+      <!-- Section label (cloud-blue gradient) -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,#0EA5E9,#1E40AF);padding:4px 10px;border-radius:5px;letter-spacing:1.5px">SECTION 01</span>
+        <span style="font-size:18px;font-weight:800;background:linear-gradient(90deg,#7DD3FC,#0EA5E9,#1E40AF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px">AWS</span>
+      </div>
+
+      <!-- Vertical numbered list — items in EXACT user order, projects highlighted inline -->
+      <ol style="list-style:none;padding:0;margin:0">
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">01</span> AWS DevOps Overview
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">02</span> AWS Account creation
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">03</span> VPC
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">VPC project — complete networking</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">04</span> EC2
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">Application deployment on EC2</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">05</span> Linux
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">06</span> Load Balancer (ALB / NLB)
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">Using ELB</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">07</span> RDS
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">2-Tier infra — EC2 (public) + RDS (private) · VPC</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">08</span> IAM
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">09</span> S3
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">Static website hosting on S3</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">10</span> Lambda
+        </li>
+      </ol>
+    </div>
+
+    <!-- ═════════════ DIVIDER 1 ═════════════ -->
+    <div style="width:1.5px;background:linear-gradient(180deg,transparent 0%,rgba(56,189,248,.5) 20%,rgba(129,140,248,.5) 50%,rgba(56,189,248,.4) 80%,transparent 100%);align-self:stretch;flex-shrink:0;box-shadow:0 0 14px rgba(56,189,248,.18);position:relative">
+      <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:#38BDF8;box-shadow:0 0 12px rgba(56,189,248,.9)"></span>
+    </div>
+
+    <!-- ═════════════ COLUMN 2 — SECTION 02 · DevOps ═════════════ -->
+    <div style="flex:1.05;min-width:0;padding:0 22px;display:flex;flex-direction:column">
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,#0EA5E9,#1E40AF);padding:4px 10px;border-radius:5px;letter-spacing:1.5px">SECTION 02</span>
+        <span style="font-size:18px;font-weight:800;background:linear-gradient(90deg,#7DD3FC,#0EA5E9,#1E40AF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px">DevOps</span>
+      </div>
+
+      <ol style="list-style:none;padding:0;margin:0">
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">01</span> Git
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">02</span> GitHub
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">03</span> Ansible
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">Ansible project one</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">Ansible project two</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">04</span> Terraform
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">VPC project (complete networking) — using Terraform</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">2-Tier infra (EC2 + VPC + ALB) — using Terraform</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">05</span> CI/CD (GitHub Actions)
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">Complete CI/CD pipeline — Dev → QA → Prod setup</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">06</span> Docker
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">07</span> ECR
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:12.5px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">08</span> Kubernetes — EKS / ECS
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">Application deployment end-to-end on <b>EC2</b></span>
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">Application deployment end-to-end on <b>Docker</b></span>
+        </li>
+        <li style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;background:rgba(56,189,248,.10);border-left:3px solid #38BDF8;font-size:12px;color:rgba(255,255,255,.95);font-weight:700">
+          <span style="font-size:9.5px;font-weight:800;color:#38BDF8;letter-spacing:1px">PROJECT</span>
+          <span style="line-height:1.3">Application deployment end-to-end on <b>Kubernetes — EKS / ECS</b></span>
+        </li>
+      </ol>
+    </div>
+
+    <!-- ═════════════ DIVIDER 2 ═════════════ -->
+    <div style="width:1.5px;background:linear-gradient(180deg,transparent 0%,rgba(56,189,248,.5) 20%,rgba(129,140,248,.5) 50%,rgba(56,189,248,.4) 80%,transparent 100%);align-self:stretch;flex-shrink:0;box-shadow:0 0 14px rgba(56,189,248,.18);position:relative">
+      <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:#818CF8;box-shadow:0 0 12px rgba(129,140,248,.9)"></span>
+    </div>
+
+    <!-- ═════════════ COLUMN 3 — SECTION 03 · Career help ═════════════ -->
+    <div style="flex:.85;min-width:0;padding:0 0 0 22px;display:flex;flex-direction:column">
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,#0EA5E9,#1E40AF);padding:4px 10px;border-radius:5px;letter-spacing:1.5px">SECTION 03</span>
+        <span style="font-size:18px;font-weight:800;background:linear-gradient(90deg,#7DD3FC,#0EA5E9,#1E40AF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px">Career help</span>
+      </div>
+
+      <ol style="list-style:none;padding:0;margin:0">
+        <li style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:13px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">01</span> Resume building
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:13px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">02</span> Mock interviews
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:13px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">03</span> Naukri profile handling
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:13px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">04</span> LinkedIn optimization
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:13px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">05</span> 1:1 doubt clearance
+        </li>
+        <li style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:13px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px;padding-top:2px">06</span>
+          <span style="line-height:1.5">Beyond Interview Question and Answers will be shared. You can expect <span style="color:#38BDF8;font-weight:800">80–90%</span> in the interviews</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(56,189,248,.12);font-size:13px;color:rgba(255,255,255,.92);font-weight:600">
+          <span style="font-size:10.5px;font-weight:700;color:rgba(125,211,252,.7);min-width:22px">07</span> Class Recording will be shared &nbsp;<span style="font-size:11.5px;color:#34D399;font-weight:700">(Lifetime Access)</span>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <!-- ── Personalization note: we add any tool / service the learner wants ── -->
+  <div style="margin:18px 50px 0 50px;padding:12px 20px;border-radius:10px;
+              background:linear-gradient(90deg,rgba(56,189,248,.10),rgba(129,140,248,.06),rgba(212,175,122,.10));
+              border:1px solid rgba(167,139,250,.30);
+              box-shadow:0 4px 16px rgba(0,0,0,.20);
+              display:flex;align-items:center;gap:14px;flex-shrink:0;position:relative;z-index:2">
+
+    <span style="font-size:22px;line-height:1;flex-shrink:0">💡</span>
+
+    <div style="flex:1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:800;color:#D4AF7A;letter-spacing:2px;flex-shrink:0">NOT IN THE LIST?</span>
+      <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,.88);letter-spacing:.2px;line-height:1.4">
+        Want any other Aws service or tool to learn? Just tell us — we'll add it to your plan based on your individual interest. Your learning, your way.
+      </span>
+    </div>
+  </div>
+
+  <!-- bottom spacer -->
+  <div style="height:24px;flex-shrink:0"></div>
+
+  <!-- page footer -->
+  <div class="page-footer">
+    <div class="pf-brand"><span class="pf-dot"></span> DEVOPSMATE · AWS DEVOPS TRAINING</div>
+    <div class="pf-num">COURSE CONTENT · 9 PROJECTS &nbsp;·&nbsp; <b>03</b> / 04 <span class="pf-bar"><i style="width:75%"></i></span></div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     SLIDE 4 — FAQ (agenda-style, simple list, no boxes)
+═══════════════════════════════════════ -->
+<div class="slide" id="slide-3" style="padding:0">
+
+  <!-- bg orbs (matched to slide 2 palette) -->
+  <div style="position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,255,.10) 0%,transparent 70%);top:-200px;right:0;pointer-events:none"></div>
+  <div style="position:absolute;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.08) 0%,transparent 70%);bottom:-120px;left:0;pointer-events:none"></div>
+  <!-- subtle dot grid -->
+  <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.035) 1px,transparent 1px);background-size:22px 22px;pointer-events:none"></div>
+
+  <!-- HEADER: logo + FAQ title (same style as slide 1) -->
+  <div style="display:flex;align-items:center;gap:26px;padding:22px 60px 6px 60px;position:relative;z-index:2;flex-shrink:0">
+
+    <!-- DevOpsMate logo — same size as slide 1 -->
+    <div class="premium-logo-hero logo-slot">
+      <img src="devopsmate_logo.png" alt="DevOpsMate">
+    </div>
+
+    <!-- divider -->
+    <div style="width:1.5px;height:62px;background:linear-gradient(180deg,transparent,rgba(56,189,248,.45),rgba(129,140,248,.45),transparent);flex-shrink:0"></div>
+
+    <!-- Title (compact) -->
+    <div style="flex:1;font-size:40px;font-weight:900;line-height:1.05;letter-spacing:-1px;
+                background:linear-gradient(90deg,#38BDF8,#818CF8,#34D399);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+                filter:drop-shadow(0 2px 6px rgba(56,189,248,.2))">FAQ &nbsp;|&nbsp; Who is eligible</div>
+  </div>
+
+  <!-- TWO-COLUMN BODY: FAQ (left)  ║  Who is eligible (right) — sparkle divider in the middle -->
+  <div style="flex:1;display:flex;align-items:stretch;gap:0;padding:14px 50px 0 50px;position:relative;z-index:2;min-height:0">
+
+    <!-- ═══════ LEFT COLUMN — FREQUENTLY ASKED QUESTIONS ═══════ -->
+    <div style="flex:1;min-width:0;padding:0 30px 0 0;display:flex;flex-direction:column">
+
+      <!-- Section label -->
+      <div style="display:inline-block;font-size:15px;font-weight:800;color:#7DD3FC;letter-spacing:2.5px;padding-bottom:5px;border-bottom:2px solid rgba(56,189,248,.55);margin-bottom:14px;width:fit-content">Frequently Asked Questions</div>
+
+      <!-- 6 numbered Q&A items — agenda style -->
+      <ol style="list-style:none;padding:0;margin:0">
+        <li style="display:flex;align-items:flex-start;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px;padding-top:2px">01</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">Is coding or programming knowledge required?</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,.55);line-height:1.45;font-weight:500;margin-top:2px">Not at all. Just basic shell scripts &amp; using AI to generate code per scenario — we guide you from scratch.</div>
+          </div>
+        </li>
+        <li style="display:flex;align-items:flex-start;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px;padding-top:2px">02</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">I'm from a non-technical / non-IT background — can I learn?</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,.55);line-height:1.45;font-weight:500;margin-top:2px">Yes. 30%+ of our learners are non-IT — we start from zero, no prior tech background needed.</div>
+          </div>
+        </li>
+        <li style="display:flex;align-items:flex-start;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px;padding-top:2px">03</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">Any prerequisites to learn AWS DevOps?</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,.55);line-height:1.45;font-weight:500;margin-top:2px">Just a laptop, internet &amp; willingness to learn — nothing else.</div>
+          </div>
+        </li>
+        <li style="display:flex;align-items:flex-start;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px;padding-top:2px">04</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">How long is the course?</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,.55);line-height:1.45;font-weight:500;margin-top:2px">45 days · 1–2 hr daily session.</div>
+          </div>
+        </li>
+        <li style="display:flex;align-items:flex-start;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px;padding-top:2px">05</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">Will I get a certificate at the end?</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,.55);line-height:1.45;font-weight:500;margin-top:2px">Yes — DevOpsMate completion certificate.</div>
+          </div>
+        </li>
+        <li style="display:flex;align-items:flex-start;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px;padding-top:2px">06</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">Job opportunities &amp; salary range?</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,.55);line-height:1.45;font-weight:500;margin-top:2px">DevOps · SRE · Cloud roles · ₹4–35 LPA based on experience.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- ═══════ VERTICAL SPARKLE DIVIDER (middle of screen) ═══════ -->
+    <div style="width:1.5px;background:linear-gradient(180deg,
+                  transparent 0%,
+                  rgba(56,189,248,.55) 18%,
+                  rgba(129,140,248,.55) 50%,
+                  rgba(52,211,153,.45) 82%,
+                  transparent 100%);
+                align-self:stretch;flex-shrink:0;
+                box-shadow:0 0 18px rgba(129,140,248,.25);
+                position:relative">
+      <!-- tiny sparkle dots along the divider -->
+      <span style="position:absolute;top:18%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:#38BDF8;box-shadow:0 0 12px rgba(56,189,248,.9)"></span>
+      <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:#818CF8;box-shadow:0 0 14px rgba(129,140,248,.95)"></span>
+      <span style="position:absolute;top:82%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:#34D399;box-shadow:0 0 12px rgba(52,211,153,.9)"></span>
+    </div>
+
+    <!-- ═══════ RIGHT COLUMN — WHO IS ELIGIBLE ═══════ -->
+    <div style="flex:1;min-width:0;padding:0 0 0 30px;display:flex;flex-direction:column">
+
+      <!-- Section label -->
+      <div style="display:inline-block;font-size:15px;font-weight:800;color:#7DD3FC;letter-spacing:2.5px;padding-bottom:5px;border-bottom:2px solid rgba(56,189,248,.55);margin-bottom:14px;width:fit-content">Who is eligible</div>
+
+      <!-- 6 numbered profile rows — questions only, no answers -->
+      <ol style="list-style:none;padding:0;margin:0">
+        <li style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px">01</span>
+          <div style="flex:1;min-width:0;font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">🎓 Freshers — any degree</div>
+        </li>
+        <li style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px">02</span>
+          <div style="flex:1;min-width:0;font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">💼 Working professionals stuck in support projects</div>
+        </li>
+        <li style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px">03</span>
+          <div style="flex:1;min-width:0;font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">🛠 SysAdmins · Network · Support</div>
+        </li>
+        <li style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px">04</span>
+          <div style="flex:1;min-width:0;font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">🧪 QA · Testers</div>
+        </li>
+        <li style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px">05</span>
+          <div style="flex:1;min-width:0;font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">👨‍💻 Developers</div>
+        </li>
+        <li style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:13px;font-weight:700;color:rgba(125,211,252,.75);min-width:24px">06</span>
+          <div style="flex:1;min-width:0;font-size:14.5px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.2px;line-height:1.3">🌱 Anyone curious to learn the fast-growing AWS DevOps stack</div>
+        </li>
+      </ol>
+
+    </div>
+
+  </div>
+
+  <!-- Subtle contact line — full-width, below the 2 columns -->
+  <div style="text-align:center;padding:14px 0 36px 0;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:1.8px;flex-shrink:0;position:relative;z-index:2">
+  Still have a question? &nbsp;💬 &nbsp;<a href="mailto:devopmate7@gmail.com" style="color:#7DD3FC;text-decoration:none">devopmate7@gmail.com</a>
+  </div>
+
+  <!-- page footer -->
+  <div class="page-footer">
+    <div class="pf-brand"><span class="pf-dot"></span> DEVOPSMATE · AWS DEVOPS TRAINING</div>
+    <div class="pf-num">FAQ &amp; ELIGIBILITY &nbsp;·&nbsp; <b>04</b> / 04 <span class="pf-bar"><i style="width:100%"></i></span></div>
+  </div>
+
+</div>
+
+
+</body>
+</html>

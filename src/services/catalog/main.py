@@ -295,6 +295,71 @@ COURSES: List[Course] = [
             ],
         ),
     ),
+    Course(
+        id="c-interview-qa-offline",
+        slug="interview-qa-offline",
+        title="Real DevOps & Cloud Interview Questions",
+        subtitle=(
+            "Offline download of real interview Q&A across DevOps tools, cloud (AWS / Azure / GCP), "
+            "and behavioral & projects. These questions were asked in 151 real interviews at 85 companies. "
+            "Most answers have a diagram."
+        ),
+        price_inr=0,
+        level="Career prep",
+        duration="Offline",
+        mode="Download pack",
+        badge="Offline pack",
+        category="Career",
+        highlights=[
+            "Asked in 151 real interviews at 85 companies",
+            "Most answers include a diagram",
+            "Everyday DevOps tools: Linux, Git, Docker, K8s, Terraform, CI/CD, Ansible, and more",
+            "Cloud: AWS, Azure, GCP",
+            "Managerial: behavioral & project storytelling",
+        ],
+        includes=[
+            "Offline Q&A dump (download pack)",
+            "Diagram-backed answers",
+            "Tools + Cloud + Behavioral coverage",
+            "WhatsApp enrollment for delivery steps",
+        ],
+        syllabus=[
+            SyllabusSection(
+                number="01",
+                title="DevOps tools (everyday stack)",
+                topics=[
+                    SyllabusTopic(number="01", title="Linux"),
+                    SyllabusTopic(number="02", title="Scripting"),
+                    SyllabusTopic(number="03", title="Networking"),
+                    SyllabusTopic(number="04", title="Git & GitHub"),
+                    SyllabusTopic(number="05", title="Docker"),
+                    SyllabusTopic(number="06", title="Kubernetes"),
+                    SyllabusTopic(number="07", title="Terraform & IaC"),
+                    SyllabusTopic(number="08", title="CI/CD"),
+                    SyllabusTopic(number="09", title="Observability & SRE"),
+                    SyllabusTopic(number="10", title="Security"),
+                    SyllabusTopic(number="11", title="Ansible"),
+                    SyllabusTopic(number="12", title="Databases"),
+                ],
+            ),
+            SyllabusSection(
+                number="02",
+                title="Cloud",
+                topics=[
+                    SyllabusTopic(number="01", title="AWS"),
+                    SyllabusTopic(number="02", title="Azure"),
+                    SyllabusTopic(number="03", title="GCP"),
+                ],
+            ),
+            SyllabusSection(
+                number="03",
+                title="Managerial",
+                topics=[
+                    SyllabusTopic(number="01", title="Behavioral & projects"),
+                ],
+            ),
+        ],
+    ),
 ]
 
 

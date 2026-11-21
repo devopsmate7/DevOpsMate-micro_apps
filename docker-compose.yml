@@ -35,6 +35,9 @@ services:
       SMTP_FROM: "${SMTP_FROM:-DevOpsMate <devopsmate7@gmail.com>}"
       SMTP_TLS: ${SMTP_TLS:-false}
       CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      INTERVIEW_QA_PACK_PATH: /app/assets/interview-qa/Real-DevOps-Cloud-Interview-Questions.zip
+    volumes:
+      - ./assets/interview-qa:/app/assets/interview-qa:ro
     ports:
       - "8000:8000"
     depends_on:

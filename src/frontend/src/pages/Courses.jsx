@@ -66,7 +66,7 @@ export default function Courses() {
           <p className="eyebrow">Services</p>
           <h1 className="page-title">A program for every stage</h1>
           <p className="page-sub">
-            Four offerings, each with a clear purpose. Select one and submit your enrollment on WhatsApp.
+            Five offerings, each with a clear purpose. Select one and submit your enrollment on WhatsApp.
           </p>
         </div>
 
