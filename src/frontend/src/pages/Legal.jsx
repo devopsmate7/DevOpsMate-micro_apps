@@ -40,8 +40,8 @@ export function Terms() {
     <LegalShell title="Terms of use">
       <p>
         By creating an account, enrolling, or using DevOpsMate, you agree to these terms. Our services
-        include AWS + DevOps + AI training, Job Support, Website Building + Maintenance, Interview
-        Support, and the Offline Interview Q&A pack.
+        include AWS + DevOps + AI training, Job Support, Interview Support, and the Offline Interview
+        Q&A pack.
       </p>
       <p>
         You confirm that the details you share are accurate and that you will use the platform only for

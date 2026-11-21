@@ -5,7 +5,7 @@ import Icon from "../components/Icon";
 const PILLARS = [
   {
     title: "The curriculum",
-    text: "AWS cloud, DevOps delivery, AI tooling, and website building (2-tier / 3-tier / shop apps) used in day-to-day engineering.",
+    text: "AWS cloud, DevOps delivery, and AI tooling used in day-to-day engineering.",
   },
   {
     title: "The support",
@@ -13,15 +13,15 @@ const PILLARS = [
   },
   {
     title: "The enrollment",
-    text: "Create an account, choose from four services, and confirm on WhatsApp. The process is direct and clear.",
+    text: "Create an account, choose a service, and confirm on WhatsApp — or pay UPI for the offline Q&A pack.",
   },
 ];
 
 const VALUES = [
   "AWS + DevOps + AI",
-  "Website Building + Maintenance",
   "Job Support",
   "45-days interview plan",
+  "Offline Interview Q&A",
 ];
 
 export default function About() {
@@ -38,8 +38,8 @@ export default function About() {
         <p className="about-statement reveal d1">
           We guide engineers from classroom concepts to production work.{" "}
           <em>
-            AWS, DevOps, and AI training, website building and maintenance, job support, and a 45-days
-            interview plan — delivered the way engineering teams operate.
+            AWS, DevOps, and AI training, job support, a 45-days interview plan, and an offline Q&A pack
+            — delivered the way engineering teams operate.
           </em>
         </p>
 
@@ -64,7 +64,7 @@ export default function About() {
 
         <div className="cta-band">
           <h2>When you are ready to begin</h2>
-          <p>Review the four programs and submit your enrollment at a time that suits you.</p>
+          <p>Review the services and submit your enrollment at a time that suits you.</p>
           <div className="hero-actions">
             <Link to="/courses" className="btn btn-primary btn-lg">
               View programs
