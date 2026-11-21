@@ -75,7 +75,29 @@ export default function Home() {
           </span>
           <p className="hero-welcome reveal d1">Welcome to</p>
           <h1 className="hero-title reveal d1">DevOpsMate</h1>
-          <div className="hero-actions reveal d2">
+        </div>
+      </section>
+
+      <section className="section home-programs">
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">Programs</p>
+            <h2 className="section-title">Pick your starting point</h2>
+            <p className="section-sub">
+              Train, get job support, prep interviews, or grab the offline Q&A pack — full details on
+              Services.
+            </p>
+          </div>
+          <div className="home-paths">
+            {PATHS.map((p) => (
+              <Link key={p.title} to="/courses" className="home-path panel">
+                <span className="home-path-label">{p.label}</span>
+                <span className="home-path-title">{p.title}</span>
+                <span className="home-path-copy">{p.copy}</span>
+              </Link>
+            ))}
+          </div>
+          <div className="hero-actions reveal" style={{ marginTop: 28, justifyContent: "center" }}>
             <Link to="/courses" className="btn btn-primary btn-lg">
               Browse services
               <Icon name="arrowRight" size={18} />
@@ -109,37 +131,24 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section home-programs">
-        <div className="container">
-          <div className="section-head">
-            <p className="eyebrow">Programs</p>
-            <h2 className="section-title">Pick your starting point</h2>
-            <p className="section-sub">Train, get job support, prep interviews, or grab the offline Q&A pack — full details on Services.</p>
-          </div>
-          <div className="home-paths">
-            {PATHS.map((p) => (
-              <Link key={p.title} to="/courses" className="home-path panel">
-                <span className="home-path-label">{p.label}</span>
-                <span className="home-path-title">{p.title}</span>
-                <span className="home-path-copy">{p.copy}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="section home-platforms">
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">The platforms</p>
             <h2 className="section-title">Tools used across modern engineering teams</h2>
-            <p className="section-sub">AWS, Kubernetes, Terraform, CI/CD, and the platforms teams rely on in production.</p>
+            <p className="section-sub">
+              AWS, Kubernetes, Terraform, CI/CD, and the platforms teams rely on in production.
+            </p>
           </div>
         </div>
         <div className="marquee" aria-label="Popular DevOps tools">
           <div className="marquee-track">
             {[...TOOLS, ...TOOLS].map((t, i) => (
-              <div key={`${t.name}-${i}`} className={t.mono ? "tool mono" : "tool"} aria-hidden={i >= TOOLS.length}>
+              <div
+                key={`${t.name}-${i}`}
+                className={t.mono ? "tool mono" : "tool"}
+                aria-hidden={i >= TOOLS.length}
+              >
                 <img src={`/tools/${t.file}`} alt={t.name} />
                 <span>{t.name}</span>
               </div>

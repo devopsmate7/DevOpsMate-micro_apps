@@ -2,28 +2,10 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth";
 import Icon from "../components/Icon";
 
-const HIGHLIGHTS = [
-  "DevOps Engineer @ Bayer",
-  "Ex-HCLTech Lead Engineer",
-  "Ex-TCS · Ex-Infinite",
-  "5+ years IT experience",
-  "AWS & Terraform Certified",
-  "AI-First · Claude Code & Cursor",
-];
-
-const PILLARS = [
-  {
-    title: "Cloud & automation",
-    text: "AWS, Terraform, and cloud automation built with a production mindset — the same stacks used on the job.",
-  },
-  {
-    title: "AI-first builder",
-    text: "Working with Anthropic Claude Code, Cursor, and modern AI tooling to ship faster without losing engineering rigor.",
-  },
-  {
-    title: "Career-ready training",
-    text: "DevOpsMate packages real projects, job support, interview drills, and an offline Q&A pack for learners who want to grow.",
-  },
+const CERTS = [
+  "GitHub",
+  "Terraform Certified",
+  "AWS Solutions Architect Certified",
 ];
 
 export default function About() {
@@ -42,26 +24,16 @@ export default function About() {
 
         <p className="about-statement reveal d1">
           DevOps Engineer @Bayer | Ex-HCLTech Lead Engineer | Ex-TCS | Ex-Infinite | 5+ Years IT
-          Experience | AWS & Terraform Certified | AI-First | Anthropic Claude Code & Cursor | Cloud
-          Automation | Builder Mindset {"\uD83D\uDE80"}
+          Experience | AI-First | Anthropic Claude Code & Cursor | Cloud Automation | Builder Mindset{" "}
+          {"\uD83D\uDE80"}
         </p>
 
         <div className="chip-row reveal d2" style={{ justifyContent: "center", marginTop: 32 }}>
-          {HIGHLIGHTS.map((v) => (
+          {CERTS.map((v) => (
             <span key={v} className="chip">
               <Icon name="check" size={14} stroke={2.5} />
               {v}
             </span>
-          ))}
-        </div>
-
-        <div className="pillars">
-          {PILLARS.map((p, i) => (
-            <div key={p.title} className="pillar">
-              <p className="pillar-num">{String(i + 1).padStart(2, "0")}</p>
-              <h3>{p.title}</h3>
-              <p>{p.text}</p>
-            </div>
           ))}
         </div>
 
