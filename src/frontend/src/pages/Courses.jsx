@@ -80,57 +80,50 @@ export default function Courses() {
           <div className="panel empty">Programs are temporarily unavailable. Please try again shortly.</div>
         ) : null}
 
-        <div className="service-stage">
-          <div className="service-sparkles" aria-hidden="true">
-            {Array.from({ length: 14 }, (_, i) => (
-              <span key={i} className={`svc-star st${i + 1}`} />
-            ))}
-          </div>
-          <div className="service-grid">
-            {courses.map((c, i) => (
-              <article key={c.id} className={`service-card reveal d${i + 1}`}>
-                <div className="service-top">
-                  <span className="service-icon">
-                    <Icon name={SERVICE_ICON[c.slug] || "layers"} size={22} />
-                  </span>
-                  {c.badge ? <span className="badge">{c.badge}</span> : null}
-                </div>
-                <div>
-                  <h2 className="service-title">
-                    <Link to={`/courses/${c.slug}`}>{c.title}</Link>
-                  </h2>
-                  <p className="service-copy">{c.subtitle}</p>
-                </div>
-                <div className="chip-row">
-                  <span className="chip">{c.duration}</span>
-                  <span className="chip">{c.mode}</span>
-                </div>
-                <ul className="check-list">
-                  {c.highlights.slice(0, 3).map((h) => (
-                    <li key={h}>
-                      <Icon name="check" size={16} stroke={2.5} />
-                      {h}
-                    </li>
-                  ))}
-                </ul>
-                <div className="service-actions">
-                  <Link to={`/courses/${c.slug}`} className="btn btn-secondary">
-                    Details
-                  </Link>
-                  <button type="button" className="btn btn-wa" onClick={() => onEnrollClick(c)}>
-                    {c.slug === "interview-qa-offline" ? (
-                      "Pay UPI"
-                    ) : (
-                      <>
-                        <WhatsAppIcon size={16} />
-                        Enroll
-                      </>
-                    )}
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
+        <div className="service-grid">
+          {courses.map((c, i) => (
+            <article key={c.id} className={`service-card reveal d${i + 1}`}>
+              <div className="service-top">
+                <span className="service-icon">
+                  <Icon name={SERVICE_ICON[c.slug] || "layers"} size={22} />
+                </span>
+                {c.badge ? <span className="badge">{c.badge}</span> : null}
+              </div>
+              <div>
+                <h2 className="service-title">
+                  <Link to={`/courses/${c.slug}`}>{c.title}</Link>
+                </h2>
+                <p className="service-copy">{c.subtitle}</p>
+              </div>
+              <div className="chip-row">
+                <span className="chip">{c.duration}</span>
+                <span className="chip">{c.mode}</span>
+              </div>
+              <ul className="check-list">
+                {c.highlights.slice(0, 3).map((h) => (
+                  <li key={h}>
+                    <Icon name="check" size={16} stroke={2.5} />
+                    {h}
+                  </li>
+                ))}
+              </ul>
+              <div className="service-actions">
+                <Link to={`/courses/${c.slug}`} className="btn btn-secondary">
+                  Details
+                </Link>
+                <button type="button" className="btn btn-wa" onClick={() => onEnrollClick(c)}>
+                  {c.slug === "interview-qa-offline" ? (
+                    "Pay UPI"
+                  ) : (
+                    <>
+                      <WhatsAppIcon size={16} />
+                      Enroll
+                    </>
+                  )}
+                </button>
+              </div>
+            </article>
+          ))}
         </div>
 
         <div className="steps">
