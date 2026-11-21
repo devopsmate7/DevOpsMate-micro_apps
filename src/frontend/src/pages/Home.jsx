@@ -76,12 +76,12 @@ export default function Home() {
           <p className="hero-welcome reveal d1">Welcome to</p>
           <h1 className="hero-title reveal d1">DevOpsMate</h1>
           <p className="hero-lead reveal d2">
-            AWS, DevOps, and AI training — plus website building, job support, and a 45-days interview
-            plan — grounded in production practice so the skills you build are ready for the role.
+            Hands-on AWS, DevOps, and AI training — plus website building, job support, and a 45-days
+            interview plan — so you build skills production teams actually use.
           </p>
           <div className="hero-actions reveal d3">
             <Link to="/courses" className="btn btn-primary btn-lg">
-              View programs
+              Browse services
               <Icon name="arrowRight" size={18} />
             </Link>
             {token ? null : (
@@ -117,8 +117,8 @@ export default function Home() {
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">Programs</p>
-            <h2 className="section-title">Four paths. One clear next step.</h2>
-            <p className="section-sub">Pick the track that matches your goal — full details live on Services.</p>
+            <h2 className="section-title">Pick your starting point</h2>
+            <p className="section-sub">Join a live track, get job support, or prep interviews — full details on Services.</p>
           </div>
           <div className="home-paths">
             {PATHS.map((p) => (

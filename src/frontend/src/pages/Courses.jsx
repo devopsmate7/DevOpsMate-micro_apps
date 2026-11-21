@@ -8,9 +8,9 @@ import Icon, { SERVICE_ICON, WhatsAppIcon } from "../components/Icon";
 import { enrollmentMessage, openWhatsApp } from "../whatsapp";
 
 const STEPS = [
-  { title: "Select a program", text: "Choose the training or support that matches your current goal." },
-  { title: "Confirm on WhatsApp", text: "Your details and selection are prepared in a single message." },
-  { title: "Receive confirmation", text: "We confirm your place and share the schedule and next steps." },
+  { title: "Open the service you want", text: "Pick the track that matches your goal — training, support, or interview prep." },
+  { title: "Confirm on WhatsApp or UPI", text: "Most programs continue on WhatsApp. Offline Q&A uses UPI, then admin approval." },
+  { title: "Start learning", text: "We confirm your place, share next steps, and deliver pack files by email when approved." },
 ];
 
 export default function Courses() {
@@ -68,9 +68,9 @@ export default function Courses() {
       <div className="container">
         <div className="page-head center reveal">
           <p className="eyebrow">Services</p>
-          <h1 className="page-title">A program for every stage</h1>
+          <h1 className="page-title">Pick your starting point</h1>
           <p className="page-sub">
-            Five offerings, each with a clear purpose. Most enroll via WhatsApp; the Offline Q&A pack uses UPI payment.
+            Five clear offerings. Most enroll on WhatsApp; the Offline Interview Q&A pack uses UPI, then we email your ZIP after approval.
           </p>
         </div>
 
@@ -80,50 +80,57 @@ export default function Courses() {
           <div className="panel empty">Programs are temporarily unavailable. Please try again shortly.</div>
         ) : null}
 
-        <div className="service-grid">
-          {courses.map((c, i) => (
-            <article key={c.id} className={`service-card reveal d${i + 1}`}>
-              <div className="service-top">
-                <span className="service-icon">
-                  <Icon name={SERVICE_ICON[c.slug] || "layers"} size={22} />
-                </span>
-                {c.badge ? <span className="badge">{c.badge}</span> : null}
-              </div>
-              <div>
-                <h2 className="service-title">
-                  <Link to={`/courses/${c.slug}`}>{c.title}</Link>
-                </h2>
-                <p className="service-copy">{c.subtitle}</p>
-              </div>
-              <div className="chip-row">
-                <span className="chip">{c.duration}</span>
-                <span className="chip">{c.mode}</span>
-              </div>
-              <ul className="check-list">
-                {c.highlights.slice(0, 3).map((h) => (
-                  <li key={h}>
-                    <Icon name="check" size={16} stroke={2.5} />
-                    {h}
-                  </li>
-                ))}
-              </ul>
-              <div className="service-actions">
-                <Link to={`/courses/${c.slug}`} className="btn btn-secondary">
-                  Details
-                </Link>
-                <button type="button" className="btn btn-wa" onClick={() => onEnrollClick(c)}>
-                  {c.slug === "interview-qa-offline" ? (
-                    "Pay UPI"
-                  ) : (
-                    <>
-                      <WhatsAppIcon size={16} />
-                      Enroll
-                    </>
-                  )}
-                </button>
-              </div>
-            </article>
-          ))}
+        <div className="service-stage">
+          <div className="service-sparkles" aria-hidden="true">
+            {Array.from({ length: 14 }, (_, i) => (
+              <span key={i} className={`svc-star st${i + 1}`} />
+            ))}
+          </div>
+          <div className="service-grid">
+            {courses.map((c, i) => (
+              <article key={c.id} className={`service-card reveal d${i + 1}`}>
+                <div className="service-top">
+                  <span className="service-icon">
+                    <Icon name={SERVICE_ICON[c.slug] || "layers"} size={22} />
+                  </span>
+                  {c.badge ? <span className="badge">{c.badge}</span> : null}
+                </div>
+                <div>
+                  <h2 className="service-title">
+                    <Link to={`/courses/${c.slug}`}>{c.title}</Link>
+                  </h2>
+                  <p className="service-copy">{c.subtitle}</p>
+                </div>
+                <div className="chip-row">
+                  <span className="chip">{c.duration}</span>
+                  <span className="chip">{c.mode}</span>
+                </div>
+                <ul className="check-list">
+                  {c.highlights.slice(0, 3).map((h) => (
+                    <li key={h}>
+                      <Icon name="check" size={16} stroke={2.5} />
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+                <div className="service-actions">
+                  <Link to={`/courses/${c.slug}`} className="btn btn-secondary">
+                    Details
+                  </Link>
+                  <button type="button" className="btn btn-wa" onClick={() => onEnrollClick(c)}>
+                    {c.slug === "interview-qa-offline" ? (
+                      "Pay UPI"
+                    ) : (
+                      <>
+                        <WhatsAppIcon size={16} />
+                        Enroll
+                      </>
+                    )}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
 
         <div className="steps">

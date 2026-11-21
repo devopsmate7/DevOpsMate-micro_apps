@@ -101,8 +101,8 @@ export default function SiteLayout() {
               </span>
               <span className="footer-tagline">Learn {"\u00B7"} Grow {"\u00B7"} Succeed</span>
               <p className="footer-about">
-                Professional training in AWS, DevOps, and AI, with job support and interview preparation
-                for engineers advancing their careers.
+                Hands-on AWS, DevOps, and AI training — plus website building, job support, and interview
+                prep — so the skills you build are ready for real work.
               </p>
               <div className="social-row" aria-label="Social links">
                 {SOCIALS.map((s) => (
@@ -125,34 +125,34 @@ export default function SiteLayout() {
               <h4>Legal</h4>
               <ul>
                 <li>
-                  <Link to="/terms">Terms and Conditions</Link>
+                  <Link to="/terms">Terms of use</Link>
                 </li>
                 <li>
-                  <Link to="/privacy">Privacy Policy</Link>
+                  <Link to="/privacy">Privacy policy</Link>
                 </li>
                 <li>
-                  <Link to="/refund">Refund Policy</Link>
+                  <Link to="/refund">Refund policy</Link>
                 </li>
               </ul>
             </div>
 
             <div className="footer-col footer-contact">
-              <h4>Contact</h4>
+              <h4>Contact us</h4>
               <ul>
                 <li>
                   <a href="mailto:devopsmate7@gmail.com">devopsmate7@gmail.com</a>
                 </li>
                 <li>
                   <a href="https://wa.me/918088929670" target="_blank" rel="noreferrer">
-                    +91 80889 29670
+                    WhatsApp / Call +91 80889 29670
                   </a>
                 </li>
               </ul>
             </div>
 
             <div className="footer-col footer-enroll">
-              <h4>Enroll</h4>
-              <p className="footer-note">Select a program, then confirm your enrollment on WhatsApp.</p>
+              <h4>Not sure where to start?</h4>
+              <p className="footer-note">Message us on WhatsApp and we will help you pick the right service.</p>
               <a
                 href="https://wa.me/918088929670"
                 target="_blank"
@@ -168,7 +168,7 @@ export default function SiteLayout() {
           <div className="footer-bottom">
             <p className="footer-copy">{"\u00A9"} 2026 DevOpsMate. All rights reserved.</p>
             <p className="footer-heart">
-              AI DevOps Enthusiast <span aria-hidden="true">{"\u2665"}</span>
+              Built for learners who ship <span aria-hidden="true">{"\u2665"}</span>
             </p>
           </div>
         </div>
