@@ -35,13 +35,14 @@ export default function PayPack() {
       let current = order;
       if (!current) {
         current = await apiFetch("/api/commerce/pack/checkout", {
+          token,
           method: "POST",
-          body: JSON.stringify({
+          body: {
             accept_terms: true,
             accept_refund: true,
             email: user?.email || "",
             buyer_name: user?.full_name || "",
-          }),
+          },
         });
         setOrder(current);
       }

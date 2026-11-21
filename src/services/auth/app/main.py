@@ -36,6 +36,45 @@ async def dynamodb_unavailable(request: Request, exc: Exception):
     )
 
 
+def _ensure_admin_user() -> None:
+    import time
+
+    from botocore.exceptions import ClientError
+
+    from app import user_repo
+    from app.dynamo import get_table
+    from app.security import hash_password
+
+    while not dynamo.db_status.get("ready"):
+        time.sleep(2)
+    mobile = settings.admin_mobile
+    password_hash = hash_password(settings.admin_password)
+    try:
+        existing = user_repo.get_by_mobile(mobile)
+        if existing:
+            get_table().update_item(
+                Key={"mobile": mobile},
+                UpdateExpression="SET password_hash = :p, is_active = :a, full_name = :n",
+                ExpressionAttributeValues={
+                    ":p": password_hash,
+                    ":a": True,
+                    ":n": "DevOpsMate Admin",
+                },
+            )
+            logging.info("Admin user password refreshed for %s", mobile)
+        else:
+            user_repo.create_user(
+                full_name="DevOpsMate Admin",
+                email=settings.admin_email,
+                mobile=mobile,
+                city="India",
+                password_hash=password_hash,
+            )
+            logging.info("Admin user created for %s", mobile)
+    except (BotoCoreError, ClientError) as exc:
+        logging.warning("Could not ensure admin user yet: %s", dynamo.explain_error(exc))
+
+
 @app.on_event("startup")
 def on_startup():
     # Do not crash if DynamoDB is unreachable: keep serving and keep retrying,
@@ -49,6 +88,7 @@ def on_startup():
         "set" if settings.smtp_password else "MISSING",
     )
     threading.Thread(target=dynamo.connect_with_retry, daemon=True).start()
+    threading.Thread(target=_ensure_admin_user, daemon=True).start()
 
 
 @app.get("/health")

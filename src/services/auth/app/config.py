@@ -34,6 +34,9 @@ class Settings(BaseSettings):
 
     cors_origins: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
     admin_key: str = "dm-admin-change-me"
+    admin_mobile: str = "7013274348"
+    admin_password: str = "amtheadmin"
+    admin_email: str = "admin@devopsmate.local"
     interview_qa_pack_path: str = "/app/assets/interview-qa/Real-DevOps-Cloud-Interview-Questions.zip"
 
     @property

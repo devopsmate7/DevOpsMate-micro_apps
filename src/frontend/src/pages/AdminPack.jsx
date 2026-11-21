@@ -1,33 +1,46 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { apiFetch } from "../api";
+import { useAuth } from "../auth";
+
+const ADMIN_MOBILE = "7013274348";
 
 export default function AdminPack() {
-  const [params, setParams] = useSearchParams();
-  const [key, setKey] = useState(params.get("key") || localStorage.getItem("dm-admin-key") || "");
+  const { token, user, login, logout } = useAuth();
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState("");
+  const [loginBusy, setLoginBusy] = useState(false);
+  const isAdmin = Boolean(token && user?.mobile === ADMIN_MOBILE);
 
-  async function load(adminKey) {
+  async function load() {
     setError("");
-    const res = await fetch(`/api/commerce/admin/pack-orders?admin_key=${encodeURIComponent(adminKey)}`);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || "Failed to load orders");
+    const data = await apiFetch("/api/commerce/admin/pack-orders", { token });
     setOrders(Array.isArray(data) ? data : []);
   }
 
   useEffect(() => {
-    if (!key) return;
-    localStorage.setItem("dm-admin-key", key);
-    load(key).catch((e) => setError(e.message));
-  }, [key]);
+    if (!isAdmin) return;
+    load().catch((e) => setError(e.message));
+  }, [isAdmin, token]);
 
-  function saveKey(e) {
+  async function onLogin(e) {
     e.preventDefault();
-    const next = new FormData(e.target).get("admin_key")?.toString().trim() || "";
-    setKey(next);
-    setParams(next ? { key: next } : {});
+    setLoginBusy(true);
+    setError("");
+    setMsg("");
+    try {
+      const form = new FormData(e.target);
+      await login({
+        mobile: String(form.get("mobile") || "").trim(),
+        password: String(form.get("password") || ""),
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoginBusy(false);
+    }
   }
 
   async function approve(orderId) {
@@ -35,15 +48,13 @@ export default function AdminPack() {
     setMsg("");
     setError("");
     try {
-      const res = await fetch(`/api/commerce/admin/pack-orders/${orderId}/approve`, {
+      const data = await apiFetch(`/api/commerce/admin/pack-orders/${orderId}/approve`, {
+        token,
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ admin_key: key }),
+        body: {},
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Approve failed");
-      setMsg(`Approved ${orderId}. ZIP email sent to ${data.email}.`);
-      await load(key);
+      setMsg(`Approved ${orderId}. ZIP emailed to ${data.email}.`);
+      await load();
     } catch (e) {
       setError(e.message);
     } finally {
@@ -55,56 +66,89 @@ export default function AdminPack() {
     <div className="page">
       <div className="container" style={{ maxWidth: 900 }}>
         <h1 className="page-title">Admin · Offline pack orders</h1>
-        <p className="page-sub">Verify WhatsApp screenshot, then approve by Order ID to email the ZIP.</p>
+        <p className="page-sub">
+          Login with the admin mobile, verify WhatsApp screenshots, then approve to email the ZIP.
+        </p>
+        <p>
+          <Link to="/" className="text-link">
+            Back to site
+          </Link>
+        </p>
 
-        <form className="panel" onSubmit={saveKey} style={{ marginBottom: 16 }}>
-          <label>
-            Admin key
-            <input name="admin_key" defaultValue={key} type="password" required style={{ width: "100%", marginTop: 6 }} />
-          </label>
-          <button type="submit" className="btn btn-secondary" style={{ marginTop: 10 }}>
-            Load orders
-          </button>
-        </form>
-
-        {msg ? <div className="flash ok">{msg}</div> : null}
-        {error ? <div className="flash error">{error}</div> : null}
-
-        <div className="panel">
-          {!orders.length ? <p className="muted">No pack orders yet.</p> : null}
-          {orders.map((o) => (
-            <div
-              key={o.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 12,
-                flexWrap: "wrap",
-                borderBottom: "1px solid var(--line, #ddd)",
-                padding: "12px 0",
-              }}
-            >
-              <div>
-                <strong>{o.id}</strong>
-                <div className="muted" style={{ fontSize: 14 }}>
-                  {o.buyer_name} · {o.email} · ₹{o.total_inr} · {o.status}
-                </div>
-                <div className="muted" style={{ fontSize: 12 }}>
-                  {o.created_at}
-                  {o.delivered_at ? ` · delivered ${o.delivered_at}` : ""}
-                </div>
-              </div>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                disabled={o.status === "delivered" || busy === o.id}
-                onClick={() => approve(o.id)}
-              >
-                {o.status === "delivered" ? "Delivered" : busy === o.id ? "Sending..." : "Approve & email ZIP"}
+        {!isAdmin ? (
+          <form className="panel" onSubmit={onLogin} style={{ marginTop: 16 }}>
+            <p className="muted" style={{ fontSize: 14 }}>
+              Admin login (mobile + password)
+            </p>
+            <label style={{ display: "block", marginTop: 10 }}>
+              Mobile
+              <input
+                name="mobile"
+                defaultValue={ADMIN_MOBILE}
+                required
+                inputMode="numeric"
+                style={{ width: "100%", marginTop: 6 }}
+              />
+            </label>
+            <label style={{ display: "block", marginTop: 10 }}>
+              Password
+              <input name="password" type="password" required style={{ width: "100%", marginTop: 6 }} />
+            </label>
+            {error ? <div className="flash error">{error}</div> : null}
+            <button type="submit" className="btn btn-secondary" style={{ marginTop: 12 }} disabled={loginBusy}>
+              {loginBusy ? "Signing in..." : "Admin login"}
+            </button>
+          </form>
+        ) : (
+          <>
+            <div className="chip-row" style={{ margin: "12px 0" }}>
+              <span className="chip">Admin {user.mobile}</span>
+              <button type="button" className="btn btn-secondary" onClick={logout}>
+                Log out
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={() => load().catch((e) => setError(e.message))}>
+                Refresh
               </button>
             </div>
-          ))}
-        </div>
+            {msg ? <div className="flash ok">{msg}</div> : null}
+            {error ? <div className="flash error">{error}</div> : null}
+            <div className="panel">
+              {!orders.length ? <p className="muted">No pack orders yet.</p> : null}
+              {orders.map((o) => (
+                <div
+                  key={o.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
+                    borderBottom: "1px solid var(--line, #ddd)",
+                    padding: "12px 0",
+                  }}
+                >
+                  <div>
+                    <strong>{o.id}</strong>
+                    <div className="muted" style={{ fontSize: 14 }}>
+                      {o.buyer_name} · {o.email} · ₹{o.total_inr} · {o.status}
+                    </div>
+                    <div className="muted" style={{ fontSize: 12 }}>
+                      {o.created_at}
+                      {o.delivered_at ? ` · delivered ${o.delivered_at}` : ""}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={o.status === "delivered" || busy === o.id}
+                    onClick={() => approve(o.id)}
+                  >
+                    {o.status === "delivered" ? "Delivered" : busy === o.id ? "Sending..." : "Approve & email ZIP"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

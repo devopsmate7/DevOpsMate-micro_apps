@@ -37,6 +37,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
 
 PACK_COURSE_ID = "c-interview-qa-offline"
 ADMIN_KEY = os.getenv("ADMIN_KEY", "dm-admin-change-me")
+ADMIN_MOBILE = os.getenv("ADMIN_MOBILE", "7013274348")
 UPI_ID = os.getenv("UPI_ID", "devopamate@ybl")
 UPI_ID_ALT = os.getenv("UPI_ID_ALT", "balureddy123457@ybl")
 AUTH_INTERNAL_URL = os.getenv("AUTH_INTERNAL_URL", "http://auth:8000").rstrip("/")
@@ -164,13 +165,11 @@ class PackPayInfo(BaseModel):
     upi_id_alt: str
 
 
-class AdminApproveIn(BaseModel):
-    admin_key: str
-
-
-def require_admin(key: Optional[str]) -> None:
-    if not key or key != ADMIN_KEY:
-        raise HTTPException(status_code=403, detail="Invalid admin key")
+def require_admin_user(authorization: Optional[str]) -> str:
+    user_id = require_user(authorization)
+    if user_id != ADMIN_MOBILE:
+        raise HTTPException(status_code=403, detail="Admin login required")
+    return user_id
 
 
 def row_to_order(r: sqlite3.Row) -> OrderOut:
@@ -414,8 +413,8 @@ def pack_checkout(payload: PackCheckoutIn, authorization: Optional[str] = Header
 
 
 @app.get("/api/commerce/admin/pack-orders", response_model=List[OrderOut])
-def admin_pack_orders(admin_key: str = ""):
-    require_admin(admin_key)
+def admin_pack_orders(authorization: Optional[str] = Header(default=None)):
+    require_admin_user(authorization)
     with db() as conn:
         rows = conn.execute(
             """
@@ -430,8 +429,8 @@ def admin_pack_orders(admin_key: str = ""):
 
 
 @app.post("/api/commerce/admin/pack-orders/{order_id}/approve", response_model=OrderOut)
-def admin_approve_pack(order_id: str, payload: AdminApproveIn):
-    require_admin(payload.admin_key)
+def admin_approve_pack(order_id: str, authorization: Optional[str] = Header(default=None)):
+    require_admin_user(authorization)
     with db() as conn:
         row = conn.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
         if not row:

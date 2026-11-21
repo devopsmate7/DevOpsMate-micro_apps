@@ -37,6 +37,9 @@ services:
       CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
       INTERVIEW_QA_PACK_PATH: /app/assets/interview-qa/Real-DevOps-Cloud-Interview-Questions.zip
       ADMIN_KEY: ${ADMIN_KEY:-dm-admin-change-me}
+      ADMIN_MOBILE: ${ADMIN_MOBILE:-7013274348}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-amtheadmin}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@devopsmate.local}
     volumes:
       - ./assets/interview-qa:/app/assets/interview-qa:ro
     ports:
@@ -57,6 +60,7 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-later}
       ADMIN_KEY: ${ADMIN_KEY:-dm-admin-change-me}
+      ADMIN_MOBILE: ${ADMIN_MOBILE:-7013274348}
       UPI_ID: ${UPI_ID:-devopamate@ybl}
       UPI_ID_ALT: ${UPI_ID_ALT:-balureddy123457@ybl}
       PACK_PRICE_INR: ${PACK_PRICE_INR:-99}
