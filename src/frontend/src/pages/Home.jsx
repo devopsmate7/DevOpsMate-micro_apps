@@ -23,14 +23,14 @@ const TOOLS = [
 
 const FEATURES = [
   {
-    icon: "user",
-    title: "Practitioner-led instruction",
-    text: "Sessions led by engineers who have delivered cloud and DevOps work in industry.",
+    icon: "code",
+    title: "Real-time with more projects",
+    text: "Learn live, build often, and ship production-style work instead of toy demos.",
   },
   {
-    icon: "code",
-    title: "Applied project work",
-    text: "Cloud, delivery, and AI projects structured the way operating teams build them.",
+    icon: "user",
+    title: "Clear career path roadmap",
+    text: "A step-by-step path from fundamentals to job-ready skills for cloud and DevOps roles.",
   },
   {
     icon: "award",
@@ -97,7 +97,7 @@ export default function Home() {
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">The approach</p>
-            <h2 className="section-title">Training shaped by production practice</h2>
+            <h2 className="section-title">Real projects. Clear path. Job-ready skills.</h2>
           </div>
           <div className="features">
             {FEATURES.map((f) => (
