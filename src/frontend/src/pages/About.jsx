@@ -2,26 +2,28 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth";
 import Icon from "../components/Icon";
 
-const PILLARS = [
-  {
-    title: "The curriculum",
-    text: "AWS cloud, DevOps delivery, and AI tooling used in day-to-day engineering.",
-  },
-  {
-    title: "The support",
-    text: "1:1 job support for tickets and pipelines, plus a 45-days interview plan with project storytelling and behavioral drills.",
-  },
-  {
-    title: "The enrollment",
-    text: "Create an account, choose a service, and confirm on WhatsApp — or pay UPI for the offline Q&A pack.",
-  },
+const HIGHLIGHTS = [
+  "DevOps Engineer @ Bayer",
+  "Ex-HCLTech Lead Engineer",
+  "Ex-TCS · Ex-Infinite",
+  "5+ years IT experience",
+  "AWS & Terraform Certified",
+  "AI-First · Claude Code & Cursor",
 ];
 
-const VALUES = [
-  "AWS + DevOps + AI",
-  "Job Support",
-  "45-days interview plan",
-  "Offline Interview Q&A",
+const PILLARS = [
+  {
+    title: "Cloud & automation",
+    text: "AWS, Terraform, and cloud automation built with a production mindset — the same stacks used on the job.",
+  },
+  {
+    title: "AI-first builder",
+    text: "Working with Anthropic Claude Code, Cursor, and modern AI tooling to ship faster without losing engineering rigor.",
+  },
+  {
+    title: "Career-ready training",
+    text: "DevOpsMate packages real projects, job support, interview drills, and an offline Q&A pack for learners who want to grow.",
+  },
 ];
 
 export default function About() {
@@ -31,20 +33,21 @@ export default function About() {
     <div className="page">
       <div className="container">
         <div className="page-head center reveal">
-          <p className="eyebrow">About DevOpsMate</p>
-          <h1 className="page-title">Prepared for production roles</h1>
+          <p className="eyebrow">About me</p>
+          <h1 className="page-title">Balu Reddy</h1>
+          <p className="page-sub" style={{ marginTop: 8 }}>
+            He/Him
+          </p>
         </div>
 
         <p className="about-statement reveal d1">
-          We guide engineers from classroom concepts to production work.{" "}
-          <em>
-            AWS, DevOps, and AI training, job support, a 45-days interview plan, and an offline Q&A pack
-            — delivered the way engineering teams operate.
-          </em>
+          DevOps Engineer @Bayer | Ex-HCLTech Lead Engineer | Ex-TCS | Ex-Infinite | 5+ Years IT
+          Experience | AWS & Terraform Certified | AI-First | Anthropic Claude Code & Cursor | Cloud
+          Automation | Builder Mindset {"\uD83D\uDE80"}
         </p>
 
         <div className="chip-row reveal d2" style={{ justifyContent: "center", marginTop: 32 }}>
-          {VALUES.map((v) => (
+          {HIGHLIGHTS.map((v) => (
             <span key={v} className="chip">
               <Icon name="check" size={14} stroke={2.5} />
               {v}
@@ -64,7 +67,7 @@ export default function About() {
 
         <div className="cta-band">
           <h2>When you are ready to begin</h2>
-          <p>Review the services and submit your enrollment at a time that suits you.</p>
+          <p>Review the services and enroll when it suits you.</p>
           <div className="hero-actions">
             <Link to="/courses" className="btn btn-primary btn-lg">
               View programs

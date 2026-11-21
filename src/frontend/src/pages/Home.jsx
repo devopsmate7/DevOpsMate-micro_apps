@@ -75,11 +75,7 @@ export default function Home() {
           </span>
           <p className="hero-welcome reveal d1">Welcome to</p>
           <h1 className="hero-title reveal d1">DevOpsMate</h1>
-          <p className="hero-lead reveal d2">
-            Hands-on AWS, DevOps, and AI training — plus job support, a 45-days interview plan, and an
-            offline Q&A pack — so you build skills production teams actually use.
-          </p>
-          <div className="hero-actions reveal d3">
+          <div className="hero-actions reveal d2">
             <Link to="/courses" className="btn btn-primary btn-lg">
               Browse services
               <Icon name="arrowRight" size={18} />

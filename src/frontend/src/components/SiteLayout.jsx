@@ -101,8 +101,8 @@ export default function SiteLayout() {
               </span>
               <span className="footer-tagline">Learn {"\u00B7"} Grow {"\u00B7"} Succeed</span>
               <p className="footer-about">
-                Hands-on AWS, DevOps, and AI training — plus job support, interview prep, and an offline
-                Q&A pack — so the skills you build are ready for real work.
+                Built by Balu Reddy — DevOps Engineer @ Bayer. AWS & Terraform certified, AI-first,
+                with training, job support, and interview prep for engineers who want to grow.
               </p>
               <div className="social-row" aria-label="Social links">
                 {SOCIALS.map((s) => (
