@@ -38,6 +38,10 @@ export default function Courses() {
       navigate("/login");
       return;
     }
+    if (course.slug === "interview-qa-offline") {
+      navigate("/pay/interview-qa-offline");
+      return;
+    }
     setPendingCourse(course);
   }
 
@@ -66,7 +70,7 @@ export default function Courses() {
           <p className="eyebrow">Services</p>
           <h1 className="page-title">A program for every stage</h1>
           <p className="page-sub">
-            Five offerings, each with a clear purpose. Select one and submit your enrollment on WhatsApp.
+            Five offerings, each with a clear purpose. Most enroll via WhatsApp; the Offline Q&A pack uses UPI payment.
           </p>
         </div>
 
@@ -108,8 +112,14 @@ export default function Courses() {
                   Details
                 </Link>
                 <button type="button" className="btn btn-wa" onClick={() => onEnrollClick(c)}>
-                  <WhatsAppIcon size={16} />
-                  Enroll
+                  {c.slug === "interview-qa-offline" ? (
+                    "Pay UPI"
+                  ) : (
+                    <>
+                      <WhatsAppIcon size={16} />
+                      Enroll
+                    </>
+                  )}
                 </button>
               </div>
             </article>

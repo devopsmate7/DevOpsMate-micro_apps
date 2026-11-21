@@ -304,10 +304,10 @@ COURSES: List[Course] = [
             "and behavioral & projects. These questions were asked in 151 real interviews at 85 companies. "
             "Most answers have a diagram."
         ),
-        price_inr=0,
+        price_inr=99,
         level="Career prep",
         duration="Offline",
-        mode="Download pack",
+        mode="UPI + download",
         badge="Offline pack",
         category="Career",
         highlights=[
@@ -318,10 +318,10 @@ COURSES: List[Course] = [
             "Managerial: behavioral & project storytelling",
         ],
         includes=[
-            "Offline Q&A dump (download pack)",
+            "Offline Q&A dump (ZIP after admin approval)",
             "Diagram-backed answers",
             "Tools + Cloud + Behavioral coverage",
-            "WhatsApp enrollment for delivery steps",
+            "Pay via UPI, share screenshot on WhatsApp",
         ],
         syllabus=[
             SyllabusSection(

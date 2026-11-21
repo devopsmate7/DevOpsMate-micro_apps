@@ -1,7 +1,9 @@
 import logging
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from html import escape
+from pathlib import Path
 
 import aiosmtplib
 
@@ -78,6 +80,93 @@ def welcome_email_html(name: str) -> str:
     <p><strong>Good luck. You can do this.</strong><br/>Team DevOpsMate<br/>WhatsApp: {WHATSAPP}</p>
   </div>
 </body></html>"""
+
+
+def pack_email_text(name: str, order_id: str) -> str:
+    return f"""Dear {name},
+
+Payment successful for your Offline Interview Q&A pack (Order {order_id}).
+
+Thank you for purchasing Real DevOps & Cloud Interview Questions. Your download pack is attached as a ZIP file. Extract it and open the HTML files in your browser (keep the logo file in the same folder).
+
+Fees are non-refundable after the order is confirmed. We store your name, email, and mobile only to run your account, and we do not sell your data.
+
+Terms: {SITE_URL}/terms
+Privacy: {SITE_URL}/privacy
+Refund: {SITE_URL}/refund
+
+By creating this account you agree to these policies.
+
+Good luck. You can do this.
+Team DevOpsMate
+WhatsApp: {WHATSAPP}
+"""
+
+
+def pack_email_html(name: str, order_id: str) -> str:
+    name = escape(name)
+    order_id = escape(order_id)
+    link = "color:#0b3d91;"
+    return f"""<!DOCTYPE html>
+<html><body style="font-family:Arial,sans-serif;color:#1d1d1f;line-height:1.6;max-width:560px;margin:auto;padding:0;">
+  <div style="background:#0b3d91;padding:28px;text-align:center;border-radius:12px 12px 0 0;">
+    <h1 style="color:#fff;margin:0;font-size:22px;">DevOpsMate</h1>
+    <p style="color:#c9dbff;margin:8px 0 0;font-size:13px;">Learn | Grow | Succeed</p>
+  </div>
+  <div style="padding:28px;background:#f7fafc;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;">
+    <p>Dear <strong>{name}</strong>,</p>
+    <p><strong>Payment successful</strong> for your Offline Interview Q&amp;A pack
+    (Order <strong>{order_id}</strong>).</p>
+    <p>Thank you for purchasing <strong>Real DevOps &amp; Cloud Interview Questions</strong>.
+    Your download pack is attached as a ZIP. Extract it and open the HTML files in your browser
+    (keep the logo file in the same folder).</p>
+    <p style="font-size:13px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:16px;">
+      Fees are non-refundable after the order is confirmed. We store your name, email, and mobile only to run your
+      account, and we do not sell your data.<br/>
+      <a href="{SITE_URL}/terms" style="{link}">Terms</a> ·
+      <a href="{SITE_URL}/privacy" style="{link}">Privacy</a> ·
+      <a href="{SITE_URL}/refund" style="{link}">Refund</a><br/>
+      By creating this account you agree to these policies.
+    </p>
+    <p><strong>Good luck. You can do this.</strong><br/>Team DevOpsMate<br/>WhatsApp: {WHATSAPP}</p>
+  </div>
+</body></html>"""
+
+
+async def send_pack_email(name: str, email: str, order_id: str) -> None:
+    zip_path = Path(settings.interview_qa_pack_path)
+    if not zip_path.is_file():
+        raise RuntimeError(f"Pack ZIP missing at {zip_path}")
+
+    msg = MIMEMultipart("mixed")
+    msg["Subject"] = "Payment successful — Interview Q&A pack | DevOpsMate"
+    msg["From"] = settings.smtp_from
+    msg["To"] = email
+
+    alt = MIMEMultipart("alternative")
+    alt.attach(MIMEText(pack_email_text(name, order_id), "plain", "utf-8"))
+    alt.attach(MIMEText(pack_email_html(name, order_id), "html", "utf-8"))
+    msg.attach(alt)
+
+    with zip_path.open("rb") as f:
+        attachment = MIMEApplication(f.read(), Name=zip_path.name)
+    attachment["Content-Disposition"] = f'attachment; filename="{zip_path.name}"'
+    msg.attach(attachment)
+
+    if settings.smtp_host in ("mailhog", "127.0.0.1", "localhost"):
+        logger.warning("Pack mail for %s is going to MailHog, not to a real inbox", email)
+    if settings.smtp_host == "smtp.gmail.com" and not settings.smtp_password:
+        raise RuntimeError("SMTP_PASSWORD is empty. Set it in the server .env file.")
+
+    await aiosmtplib.send(
+        msg,
+        hostname=settings.smtp_host,
+        port=settings.smtp_port,
+        username=settings.smtp_user or None,
+        password=settings.smtp_password or None,
+        start_tls=settings.smtp_tls,
+    )
+    logger.info("Pack email sent to %s for order %s", email, order_id)
 
 
 async def send_welcome_email(name: str, email: str, mobile: str, city: str) -> None:

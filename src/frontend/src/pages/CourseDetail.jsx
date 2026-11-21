@@ -32,6 +32,10 @@ export default function CourseDetail() {
       navigate("/login");
       return;
     }
+    if (course?.slug === "interview-qa-offline") {
+      navigate("/pay/interview-qa-offline");
+      return;
+    }
     setPendingEnroll(true);
   }
 
@@ -186,8 +190,14 @@ export default function CourseDetail() {
             {msg ? <div className="flash ok">{msg}</div> : null}
             {enrollError ? <div className="flash error">{enrollError}</div> : null}
             <button type="button" className="btn btn-wa btn-lg btn-block" onClick={onEnrollClick}>
-              <WhatsAppIcon />
-              Enroll now
+              {course.slug === "interview-qa-offline" ? (
+                "Pay via UPI"
+              ) : (
+                <>
+                  <WhatsAppIcon />
+                  Enroll now
+                </>
+              )}
             </button>
             {token ? (
               <Link to="/orders" className="btn btn-secondary btn-block">

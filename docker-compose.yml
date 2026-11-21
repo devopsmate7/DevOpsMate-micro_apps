@@ -36,6 +36,7 @@ services:
       SMTP_TLS: ${SMTP_TLS:-false}
       CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
       INTERVIEW_QA_PACK_PATH: /app/assets/interview-qa/Real-DevOps-Cloud-Interview-Questions.zip
+      ADMIN_KEY: ${ADMIN_KEY:-dm-admin-change-me}
     volumes:
       - ./assets/interview-qa:/app/assets/interview-qa:ro
     ports:
@@ -55,12 +56,19 @@ services:
     build: ./src/services/commerce
     environment:
       JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-later}
+      ADMIN_KEY: ${ADMIN_KEY:-dm-admin-change-me}
+      UPI_ID: ${UPI_ID:-devopamate@ybl}
+      UPI_ID_ALT: ${UPI_ID_ALT:-balureddy123457@ybl}
+      PACK_PRICE_INR: ${PACK_PRICE_INR:-99}
+      AUTH_INTERNAL_URL: http://auth:8000
     volumes:
       - commercedata:/data
     # A new volume is owned by root. This service must write its database file there.
     user: "0:0"
     ports:
       - "8002:8002"
+    depends_on:
+      - auth
     restart: unless-stopped
 
   notice:

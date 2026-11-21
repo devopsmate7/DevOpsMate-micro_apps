@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     smtp_tls: bool = False
 
     cors_origins: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
+    admin_key: str = "dm-admin-change-me"
+    interview_qa_pack_path: str = "/app/assets/interview-qa/Real-DevOps-Cloud-Interview-Questions.zip"
 
     @property
     def cors_origin_list(self) -> List[str]:

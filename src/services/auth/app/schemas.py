@@ -96,6 +96,12 @@ class MessageResponse(BaseModel):
     mail: Optional[str] = None
 
 
+class DeliverPackRequest(BaseModel):
+    order_id: str = Field(min_length=3, max_length=40)
+    email: EmailStr
+    name: str = Field(default="Student", min_length=1, max_length=60)
+
+
 class ProfileUpdateRequest(BaseModel):
     # mobile and email are the DynamoDB primary/secondary keys and are immutable
     # after signup, so they are intentionally not editable here.

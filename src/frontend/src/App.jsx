@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import SiteLayout from "./components/SiteLayout";
+import AdminPack from "./pages/AdminPack";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import CourseDetail from "./pages/CourseDetail";
@@ -9,6 +10,7 @@ import Home from "./pages/Home";
 import { Privacy, Refund, Terms } from "./pages/Legal";
 import Login from "./pages/Login";
 import Orders from "./pages/Orders";
+import PayPack from "./pages/PayPack";
 import Profile from "./pages/Profile";
 import Signup from "./pages/Signup";
 import Welcome from "./pages/Welcome";
@@ -17,11 +19,13 @@ export default function App() {
   return (
     <Routes>
       <Route path="/welcome" element={<Welcome />} />
+      <Route path="/admin/pack-orders" element={<AdminPack />} />
 
       <Route element={<SiteLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:slug" element={<CourseDetail />} />
+        <Route path="/pay/interview-qa-offline" element={<PayPack />} />
         <Route path="/about" element={<About />} />
         <Route path="/register" element={<Navigate to="/signup" replace />} />
         <Route path="/login" element={<Login />} />

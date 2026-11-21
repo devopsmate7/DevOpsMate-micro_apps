@@ -30,10 +30,16 @@ CATALOG: Dict[str, Dict[str, Any]] = {
     "c-interview-support": {"title": "Interview Support", "price_inr": 0, "slug": "interview-support"},
     "c-interview-qa-offline": {
         "title": "Real DevOps & Cloud Interview Questions",
-        "price_inr": 0,
+        "price_inr": int(os.getenv("PACK_PRICE_INR", "99")),
         "slug": "interview-qa-offline",
     },
 }
+
+PACK_COURSE_ID = "c-interview-qa-offline"
+ADMIN_KEY = os.getenv("ADMIN_KEY", "dm-admin-change-me")
+UPI_ID = os.getenv("UPI_ID", "devopamate@ybl")
+UPI_ID_ALT = os.getenv("UPI_ID_ALT", "balureddy123457@ybl")
+AUTH_INTERNAL_URL = os.getenv("AUTH_INTERNAL_URL", "http://auth:8000").rstrip("/")
 
 
 app = FastAPI(title="DevOpsMate Commerce Service", version="1.0.0")
@@ -68,10 +74,23 @@ def init_db() -> None:
               items_json TEXT NOT NULL,
               total_inr INTEGER NOT NULL,
               status TEXT NOT NULL,
-              created_at TEXT NOT NULL
+              created_at TEXT NOT NULL,
+              email TEXT,
+              buyer_name TEXT,
+              course_id TEXT,
+              delivered_at TEXT
             );
             """
         )
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(orders)").fetchall()}
+        for col, ddl in (
+            ("email", "ALTER TABLE orders ADD COLUMN email TEXT"),
+            ("buyer_name", "ALTER TABLE orders ADD COLUMN buyer_name TEXT"),
+            ("course_id", "ALTER TABLE orders ADD COLUMN course_id TEXT"),
+            ("delivered_at", "ALTER TABLE orders ADD COLUMN delivered_at TEXT"),
+        ):
+            if col not in cols:
+                conn.execute(ddl)
 
 
 @app.on_event("startup")
@@ -124,6 +143,72 @@ class OrderOut(BaseModel):
     total_inr: int
     status: str
     created_at: str
+    email: Optional[str] = None
+    buyer_name: Optional[str] = None
+    course_id: Optional[str] = None
+    delivered_at: Optional[str] = None
+
+
+class PackCheckoutIn(BaseModel):
+    accept_terms: bool = True
+    accept_refund: bool = True
+    email: str
+    buyer_name: str = ""
+
+
+class PackPayInfo(BaseModel):
+    course_id: str
+    title: str
+    price_inr: int
+    upi_id: str
+    upi_id_alt: str
+
+
+class AdminApproveIn(BaseModel):
+    admin_key: str
+
+
+def require_admin(key: Optional[str]) -> None:
+    if not key or key != ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+
+
+def row_to_order(r: sqlite3.Row) -> OrderOut:
+    keys = r.keys()
+    return OrderOut(
+        id=r["id"],
+        items=[CartItemOut(**i) for i in json.loads(r["items_json"])],
+        total_inr=r["total_inr"],
+        status=r["status"],
+        created_at=r["created_at"],
+        email=r["email"] if "email" in keys else None,
+        buyer_name=r["buyer_name"] if "buyer_name" in keys else None,
+        course_id=r["course_id"] if "course_id" in keys else None,
+        delivered_at=r["delivered_at"] if "delivered_at" in keys else None,
+    )
+
+
+def trigger_pack_email(order_id: str, email: str, name: str) -> None:
+    import json as _json
+    import urllib.error
+    import urllib.request
+
+    body = _json.dumps({"order_id": order_id, "email": email, "name": name or "Student"}).encode()
+    req = urllib.request.Request(
+        f"{AUTH_INTERNAL_URL}/api/auth/internal/deliver-pack",
+        data=body,
+        headers={"Content-Type": "application/json", "X-Admin-Key": ADMIN_KEY},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            if resp.status >= 400:
+                raise HTTPException(status_code=502, detail="Pack email failed")
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode(errors="ignore")[:300]
+        raise HTTPException(status_code=502, detail=f"Pack email failed: {detail}")
+    except urllib.error.URLError as e:
+        raise HTTPException(status_code=502, detail=f"Auth unreachable for pack email: {e.reason}")
 
 
 def load_cart_items(user_id: str) -> List[Dict[str, Any]]:
@@ -262,13 +347,106 @@ def list_orders(authorization: Optional[str] = Header(default=None)):
             "SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC",
             (user_id,),
         ).fetchall()
-    return [
-        OrderOut(
-            id=r["id"],
-            items=[CartItemOut(**i) for i in json.loads(r["items_json"])],
-            total_inr=r["total_inr"],
-            status=r["status"],
-            created_at=r["created_at"],
+    return [row_to_order(r) for r in rows]
+
+
+@app.get("/api/commerce/pack/pay-info", response_model=PackPayInfo)
+def pack_pay_info():
+    meta = CATALOG[PACK_COURSE_ID]
+    return PackPayInfo(
+        course_id=PACK_COURSE_ID,
+        title=meta["title"],
+        price_inr=meta["price_inr"],
+        upi_id=UPI_ID,
+        upi_id_alt=UPI_ID_ALT,
+    )
+
+
+@app.post("/api/commerce/pack/checkout", response_model=OrderOut)
+def pack_checkout(payload: PackCheckoutIn, authorization: Optional[str] = Header(default=None)):
+    user_id = require_user(authorization)
+    if not payload.accept_terms or not payload.accept_refund:
+        raise HTTPException(status_code=400, detail="Accept Terms and No Refund Policy to continue")
+    email = (payload.email or "").strip().lower()
+    if "@" not in email:
+        raise HTTPException(status_code=400, detail="Valid email required for pack delivery")
+    meta = CATALOG[PACK_COURSE_ID]
+    item = CartItemOut(
+        course_id=PACK_COURSE_ID,
+        title=meta["title"],
+        slug=meta["slug"],
+        price_inr=meta["price_inr"],
+        qty=1,
+        line_total_inr=meta["price_inr"],
+    )
+    order_id = f"DM-{uuid.uuid4().hex[:10].upper()}"
+    created = datetime.utcnow().isoformat()
+    with db() as conn:
+        conn.execute(
+            """
+            INSERT INTO orders
+              (id, user_id, items_json, total_inr, status, created_at, email, buyer_name, course_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                order_id,
+                user_id,
+                json.dumps([item.model_dump()]),
+                meta["price_inr"],
+                "awaiting_approval",
+                created,
+                email,
+                (payload.buyer_name or "").strip() or "Student",
+                PACK_COURSE_ID,
+            ),
         )
-        for r in rows
-    ]
+    return OrderOut(
+        id=order_id,
+        items=[item],
+        total_inr=meta["price_inr"],
+        status="awaiting_approval",
+        created_at=created,
+        email=email,
+        buyer_name=(payload.buyer_name or "").strip() or "Student",
+        course_id=PACK_COURSE_ID,
+        delivered_at=None,
+    )
+
+
+@app.get("/api/commerce/admin/pack-orders", response_model=List[OrderOut])
+def admin_pack_orders(admin_key: str = ""):
+    require_admin(admin_key)
+    with db() as conn:
+        rows = conn.execute(
+            """
+            SELECT * FROM orders
+            WHERE course_id = ? OR items_json LIKE ?
+            ORDER BY created_at DESC
+            LIMIT 100
+            """,
+            (PACK_COURSE_ID, f"%{PACK_COURSE_ID}%"),
+        ).fetchall()
+    return [row_to_order(r) for r in rows]
+
+
+@app.post("/api/commerce/admin/pack-orders/{order_id}/approve", response_model=OrderOut)
+def admin_approve_pack(order_id: str, payload: AdminApproveIn):
+    require_admin(payload.admin_key)
+    with db() as conn:
+        row = conn.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Order not found")
+        order = row_to_order(row)
+        if order.status == "delivered":
+            return order
+        email = order.email
+        if not email:
+            raise HTTPException(status_code=400, detail="Order has no email")
+        trigger_pack_email(order.id, email, order.buyer_name or "Student")
+        delivered = datetime.utcnow().isoformat()
+        conn.execute(
+            "UPDATE orders SET status = ?, delivered_at = ? WHERE id = ?",
+            ("delivered", delivered, order_id),
+        )
+        row = conn.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+    return row_to_order(row)
