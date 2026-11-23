@@ -85,9 +85,13 @@ export default function PayPack() {
           Pay for Interview Q&amp;A pack
         </h1>
         <p className="page-sub">
-          Pay with UPI, share the screenshot on WhatsApp with your Order ID. After we verify, the ZIP is emailed to you.
-          No ZIP is sent until approval.
+          Pay with UPI, then WhatsApp your payment screenshot with Order ID. After we verify and approve, the ZIP is
+          emailed to you.
         </p>
+        <div className="flash warn">
+          <strong>Important:</strong> After UPI payment, <strong>share the receipt / screenshot on WhatsApp</strong>{" "}
+          (+91 80889 29670). We verify there, then approve in admin — ZIP is emailed only after approval.
+        </div>
 
         {msg ? <div className="flash ok">{msg}</div> : null}
         {error ? <div className="flash error">{error}</div> : null}

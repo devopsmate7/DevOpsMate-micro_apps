@@ -11,6 +11,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app import dynamo, user_repo
 from app.config import settings
 from app.email_service import send_connect_emails, send_pack_email, send_welcome_email
+from app import stats_repo
 from app.schemas import (
     DeliverPackRequest,
     LoginRequest,
@@ -20,6 +21,7 @@ from app.schemas import (
     SignupRequest,
     TokenResponse,
     UserOut,
+    VisitorCountOut,
 )
 from app.security import create_access_token, decode_access_token, hash_password, verify_password
 
@@ -140,6 +142,27 @@ def update_me(
             raise HTTPException(status_code=503, detail="Could not update profile right now. Please try again.")
 
     return _to_user_out(item)
+
+
+@router.post("/visit", response_model=VisitorCountOut)
+def record_visit():
+    """Public: bump visitor counter once per call (frontend should call once per session)."""
+    if not dynamo.db_status["ready"]:
+        raise HTTPException(status_code=503, detail=dynamo.db_status["error"] or "DynamoDB is not ready")
+    try:
+        return VisitorCountOut(count=stats_repo.bump_and_get_visitors())
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=dynamo.explain_error(e)) from e
+
+
+@router.get("/visitors", response_model=VisitorCountOut)
+def visitors():
+    if not dynamo.db_status["ready"]:
+        raise HTTPException(status_code=503, detail=dynamo.db_status["error"] or "DynamoDB is not ready")
+    try:
+        return VisitorCountOut(count=stats_repo.get_visitors())
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=dynamo.explain_error(e)) from e
 
 
 @router.get("/health", response_model=MessageResponse)

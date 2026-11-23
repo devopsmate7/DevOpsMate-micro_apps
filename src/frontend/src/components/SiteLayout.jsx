@@ -1,4 +1,6 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { apiFetch } from "../api";
 import { useAuth } from "../auth";
 import Backdrop from "./Backdrop";
 import Logo from "./Logo";
@@ -35,6 +37,26 @@ const SOCIALS = [
 
 export default function SiteLayout() {
   const { token, logout } = useAuth();
+  const [visitors, setVisitors] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const key = "dm_visit_counted";
+    const run = sessionStorage.getItem(key)
+      ? apiFetch("/api/auth/visitors")
+      : apiFetch("/api/auth/visit", { method: "POST" }).then((data) => {
+          sessionStorage.setItem(key, "1");
+          return data;
+        });
+    run
+      .then((data) => {
+        if (!cancelled && data?.count != null) setVisitors(data.count);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="site">
@@ -167,6 +189,11 @@ export default function SiteLayout() {
 
           <div className="footer-bottom">
             <p className="footer-copy">{"\u00A9"} 2026 DevOpsMate. All rights reserved.</p>
+            {visitors != null ? (
+              <p className="footer-visitors" aria-label="Site visitors">
+                Visitors · {Number(visitors).toLocaleString("en-IN")}
+              </p>
+            ) : null}
             <p className="footer-heart">
               Built for learners who ship <span aria-hidden="true">{"\u2665"}</span>
             </p>

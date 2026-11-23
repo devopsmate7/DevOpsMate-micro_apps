@@ -40,7 +40,29 @@ export function packPaymentMessage({ user, orderId, amount, upiId }) {
     `UPI: ${upiId || "devopamate@ybl"}`,
     "UTR/ref: <fill after payment>",
     "",
-    "Attaching payment screenshot.",
-    "Please approve so I receive the ZIP on email.",
+    "Attaching payment screenshot / receipt.",
+    "Please verify and approve so I receive the ZIP on email.",
+  ].join("\n");
+}
+
+export function connectPaymentMessage({ user, bookingId, amount, slot, plan, upiId }) {
+  const name = user?.full_name || "Student";
+  const email = user?.email || "-";
+  const mobile = user?.mobile || "-";
+  return [
+    "Hi DevOpsMate, I booked 1:1 Connect and paid via UPI.",
+    "",
+    `Booking: ${bookingId}`,
+    `Name: ${name}`,
+    `Email: ${email}`,
+    `Mobile: ${mobile}`,
+    `Plan: ${plan || "-"}`,
+    `When: ${slot || "-"}`,
+    `Amount: ₹${amount}`,
+    `UPI: ${upiId || "devopamate@ybl"}`,
+    "UTR/ref: <fill after payment>",
+    "",
+    "Attaching payment screenshot / receipt.",
+    "Please verify on WhatsApp, then approve in admin so I get the Zoom link by email.",
   ].join("\n");
 }

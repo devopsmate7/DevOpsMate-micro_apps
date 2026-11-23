@@ -464,6 +464,19 @@ ul, ol { list-style: none; }
 }
 .flash.ok { color: #86efac; background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.25); }
 .flash.error { color: #fca5a5; background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.25); }
+.flash.warn {
+  color: #fde68a;
+  background: rgba(234, 179, 8, 0.12);
+  border-color: rgba(234, 179, 8, 0.4);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.time-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+.footer-visitors {
+  font-size: 12.5px;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+}
 
 /* ---------- Forms ---------- */
 .form-grid { display: grid; gap: 14px; }

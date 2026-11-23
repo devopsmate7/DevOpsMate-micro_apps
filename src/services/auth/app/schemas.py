@@ -96,6 +96,10 @@ class MessageResponse(BaseModel):
     mail: Optional[str] = None
 
 
+class VisitorCountOut(BaseModel):
+    count: int
+
+
 class DeliverPackRequest(BaseModel):
     order_id: str = Field(min_length=3, max_length=40)
     email: EmailStr
