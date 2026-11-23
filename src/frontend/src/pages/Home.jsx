@@ -60,6 +60,11 @@ const PATHS = [
     title: "Offline Interview Q&A",
     copy: "Downloadable Q&A pack delivered by email after UPI approval.",
   },
+  {
+    label: "1:1",
+    title: "1:1 Connect",
+    copy: "Book 15 or 40 min on Zoom — normal or priority pricing.",
+  },
 ];
 
 export default function Home() {

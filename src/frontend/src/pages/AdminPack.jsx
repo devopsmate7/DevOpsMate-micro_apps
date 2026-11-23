@@ -8,6 +8,7 @@ const ADMIN_MOBILE = "7013274348";
 export default function AdminPack() {
   const { token, user, login, logout } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState("");
@@ -16,8 +17,12 @@ export default function AdminPack() {
 
   async function load() {
     setError("");
-    const data = await apiFetch("/api/commerce/admin/pack-orders", { token });
-    setOrders(Array.isArray(data) ? data : []);
+    const [packData, bookingData] = await Promise.all([
+      apiFetch("/api/commerce/admin/pack-orders", { token }),
+      apiFetch("/api/commerce/admin/bookings", { token }),
+    ]);
+    setOrders(Array.isArray(packData) ? packData : []);
+    setBookings(Array.isArray(bookingData) ? bookingData : []);
   }
 
   useEffect(() => {
@@ -65,9 +70,9 @@ export default function AdminPack() {
   return (
     <div className="page">
       <div className="container" style={{ maxWidth: 900 }}>
-        <h1 className="page-title">Admin · Offline pack orders</h1>
+        <h1 className="page-title">Admin · Pack & 1:1 bookings</h1>
         <p className="page-sub">
-          Login with the admin mobile, verify WhatsApp screenshots, then approve to email the ZIP.
+          Approve offline pack ZIPs, and review 1:1 Connect bookings (Zoom already emailed to the user).
         </p>
         <p>
           <Link to="/" className="text-link">
@@ -112,6 +117,9 @@ export default function AdminPack() {
             </div>
             {msg ? <div className="flash ok">{msg}</div> : null}
             {error ? <div className="flash error">{error}</div> : null}
+            <h2 className="panel-title" style={{ marginTop: 20 }}>
+              Offline pack orders
+            </h2>
             <div className="panel">
               {!orders.length ? <p className="muted">No pack orders yet.</p> : null}
               {orders.map((o) => (
@@ -144,6 +152,34 @@ export default function AdminPack() {
                   >
                     {o.status === "delivered" ? "Delivered" : busy === o.id ? "Sending..." : "Approve & email ZIP"}
                   </button>
+                </div>
+              ))}
+            </div>
+
+            <h2 className="panel-title" style={{ marginTop: 28 }}>
+              1:1 Connect bookings
+            </h2>
+            <div className="panel">
+              {!bookings.length ? <p className="muted">No 1:1 bookings yet.</p> : null}
+              {bookings.map((b) => (
+                <div
+                  key={b.id}
+                  style={{
+                    borderBottom: "1px solid var(--line, #ddd)",
+                    padding: "12px 0",
+                  }}
+                >
+                  <strong>{b.id}</strong>
+                  <div className="muted" style={{ fontSize: 14 }}>
+                    {b.buyer_name} · {b.mobile} · {b.email}
+                  </div>
+                  <div className="muted" style={{ fontSize: 14 }}>
+                    {b.duration_min} min{b.priority ? " priority" : ""} · ₹{b.price_inr} ·{" "}
+                    {new Date(b.slot_start).toLocaleString()}
+                  </div>
+                  <a href={b.meeting_link} target="_blank" rel="noreferrer" className="text-link">
+                    Zoom link
+                  </a>
                 </div>
               ))}
             </div>

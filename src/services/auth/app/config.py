@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     admin_mobile: str = "7013274348"
     admin_password: str = "amtheadmin"
     admin_email: str = "admin@devopsmate.local"
+    booking_notify_email: str = "devopsmate7@gmail.com"
     interview_qa_pack_path: str = "/app/assets/interview-qa/Real-DevOps-Cloud-Interview-Questions.zip"
 
     @property

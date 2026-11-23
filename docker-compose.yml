@@ -40,6 +40,7 @@ services:
       ADMIN_MOBILE: ${ADMIN_MOBILE:-7013274348}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-amtheadmin}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@devopsmate.local}
+      BOOKING_NOTIFY_EMAIL: ${BOOKING_NOTIFY_EMAIL:-devopsmate7@gmail.com}
     volumes:
       - ./assets/interview-qa:/app/assets/interview-qa:ro
     ports:
@@ -63,8 +64,10 @@ services:
       ADMIN_MOBILE: ${ADMIN_MOBILE:-7013274348}
       UPI_ID: ${UPI_ID:-devopamate@ybl}
       UPI_ID_ALT: ${UPI_ID_ALT:-balureddy123457@ybl}
-      PACK_PRICE_INR: ${PACK_PRICE_INR:-99}
+      PACK_PRICE_INR: ${PACK_PRICE_INR:-1999}
+      ZOOM_JOIN_URL: ${ZOOM_JOIN_URL:-https://zoom.us/j/devopsmate-1on1}
       AUTH_INTERNAL_URL: http://auth:8000
+      BOOKING_NOTIFY_EMAIL: ${BOOKING_NOTIFY_EMAIL:-devopsmate7@gmail.com}
     volumes:
       - commercedata:/data
     # A new volume is owned by root. This service must write its database file there.

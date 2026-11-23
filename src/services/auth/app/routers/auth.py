@@ -10,11 +10,12 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app import dynamo, user_repo
 from app.config import settings
-from app.email_service import send_pack_email, send_welcome_email
+from app.email_service import send_connect_emails, send_pack_email, send_welcome_email
 from app.schemas import (
     DeliverPackRequest,
     LoginRequest,
     MessageResponse,
+    NotifyConnectRequest,
     ProfileUpdateRequest,
     SignupRequest,
     TokenResponse,
@@ -165,5 +166,30 @@ async def deliver_pack(
         await send_pack_email(payload.name, payload.email, payload.order_id)
     except Exception as e:
         logger.exception("Pack email failed for %s", payload.email)
+        raise HTTPException(status_code=502, detail=str(e))
+    return MessageResponse(message="sent")
+
+
+@router.post("/internal/notify-connect", response_model=MessageResponse)
+async def notify_connect(
+    payload: NotifyConnectRequest,
+    x_admin_key: Optional[str] = Header(default=None, alias="X-Admin-Key"),
+):
+    if not x_admin_key or x_admin_key != settings.admin_key:
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+    try:
+        await send_connect_emails(
+            name=payload.name,
+            email=str(payload.email),
+            mobile=payload.mobile,
+            booking_id=payload.booking_id,
+            duration_min=payload.duration_min,
+            priority=payload.priority,
+            slot_start=payload.slot_start,
+            price_inr=payload.price_inr,
+            meeting_link=payload.meeting_link,
+        )
+    except Exception as e:
+        logger.exception("Connect email failed for %s", payload.email)
         raise HTTPException(status_code=502, detail=str(e))
     return MessageResponse(message="sent")

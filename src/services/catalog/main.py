@@ -51,6 +51,9 @@ class Course(BaseModel):
     subtitle: str
     price_inr: int = 0
     compare_at_inr: Optional[int] = None
+    price_display: Optional[str] = None
+    pricing_note: Optional[str] = None
+    support_plans: List[str] = []
     level: str
     duration: str
     mode: str
@@ -68,7 +71,9 @@ COURSES: List[Course] = [
         slug="aws-devops-ai",
         title="AWS + DevOps + AI",
         subtitle="A single program covering AWS cloud, DevOps delivery, and AI tooling for modern engineering roles.",
-        price_inr=0,
+        price_inr=20000,
+        price_display="₹20,000",
+        pricing_note="Full program fee · Live + labs",
         level="Career track",
         duration="Flexible",
         mode="Live + labs",
@@ -185,7 +190,10 @@ COURSES: List[Course] = [
         slug="job-support",
         title="Job Support",
         subtitle="Guided support for day-to-day DevOps work, including tickets, pipelines, cloud issues, and delivery.",
-        price_inr=0,
+        price_inr=20000,
+        price_display="₹20,000 – ₹30,000",
+        pricing_note="Choose a plan based on how you want support",
+        support_plans=["Weekly support", "Monthly support", "Task-based support"],
         level="Career support",
         duration="Ongoing",
         mode="1:1 support",
@@ -240,7 +248,9 @@ COURSES: List[Course] = [
             "and behavioral & projects. These questions were asked in 151 real interviews at 85 companies. "
             "Most answers have a diagram."
         ),
-        price_inr=99,
+        price_inr=1999,
+        price_display="₹1,999",
+        pricing_note="UPI · ZIP after approval",
         level="Career prep",
         duration="Offline",
         mode="UPI + download",
@@ -295,6 +305,28 @@ COURSES: List[Course] = [
                 ],
             ),
         ],
+    ),
+    Course(
+        id="c-1on1-connect",
+        slug="1on1-connect",
+        title="1:1 Connect",
+        subtitle="Book a live 1:1 call — pick 15 or 40 minutes, normal or priority, choose date and time, and get a Zoom link by email.",
+        price_inr=99,
+        price_display="From ₹99",
+        pricing_note="15 min ₹99 / ₹199 priority · 40 min ₹199 / ₹299 priority",
+        support_plans=["15 min · ₹99", "15 min priority · ₹199", "40 min · ₹199", "40 min priority · ₹299"],
+        level="1:1 call",
+        duration="15 or 40 min",
+        mode="Zoom booking",
+        badge="1:1",
+        category="Career",
+        highlights=[
+            "Choose date and time that works for you",
+            "Normal or priority slots",
+            "Zoom link emailed as soon as you book",
+            "Shown in the admin bookings list for follow-up",
+        ],
+        includes=["Zoom meeting link", "Calendar slot", "Email confirmation"],
     ),
 ]
 

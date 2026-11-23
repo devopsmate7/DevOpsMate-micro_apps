@@ -102,6 +102,18 @@ class DeliverPackRequest(BaseModel):
     name: str = Field(default="Student", min_length=1, max_length=60)
 
 
+class NotifyConnectRequest(BaseModel):
+    booking_id: str = Field(min_length=3, max_length=40)
+    email: EmailStr
+    name: str = Field(default="Student", min_length=1, max_length=60)
+    mobile: str = Field(default="", max_length=20)
+    duration_min: int = 15
+    priority: bool = False
+    slot_start: str = Field(min_length=8, max_length=64)
+    price_inr: int = 99
+    meeting_link: str = Field(min_length=8, max_length=500)
+
+
 class ProfileUpdateRequest(BaseModel):
     # mobile and email are the DynamoDB primary/secondary keys and are immutable
     # after signup, so they are intentionally not editable here.

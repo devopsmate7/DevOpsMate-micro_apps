@@ -36,7 +36,18 @@ export default function CourseDetail() {
       navigate("/pay/interview-qa-offline");
       return;
     }
+    if (course?.slug === "1on1-connect") {
+      navigate("/book/1on1");
+      return;
+    }
     setPendingEnroll(true);
+  }
+
+  function priceLabel() {
+    if (!course) return "";
+    if (course.price_display) return course.price_display;
+    if (course.price_inr > 0) return `₹${Number(course.price_inr).toLocaleString("en-IN")}`;
+    return "Contact for fee";
   }
 
   async function confirmEnroll() {
@@ -184,14 +195,40 @@ export default function CourseDetail() {
 
           <aside className="panel detail-aside reveal d1">
             <h2 className="panel-title" style={{ marginBottom: 0 }}>
-              Request enrollment
+              {course.slug === "1on1-connect" ? "Book 1:1" : "Request enrollment"}
             </h2>
-            <p>WhatsApp opens with your details and this program, ready to send to the team.</p>
+            <div style={{ margin: "4px 0 8px" }}>
+              <p style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em" }}>{priceLabel()}</p>
+              {course.pricing_note ? (
+                <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
+                  {course.pricing_note}
+                </p>
+              ) : null}
+            </div>
+            {course.support_plans?.length ? (
+              <ul className="check-list" style={{ marginBottom: 8 }}>
+                {course.support_plans.map((p) => (
+                  <li key={p}>
+                    <Icon name="check" size={14} stroke={2.5} />
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <p>
+              {course.slug === "1on1-connect"
+                ? "Pick a slot, pay via UPI, and get your Zoom link by email right away."
+                : course.slug === "interview-qa-offline"
+                  ? "Pay via UPI, share the screenshot on WhatsApp, then we email the ZIP after approval."
+                  : "WhatsApp opens with your details and this program, ready to send to the team."}
+            </p>
             {msg ? <div className="flash ok">{msg}</div> : null}
             {enrollError ? <div className="flash error">{enrollError}</div> : null}
             <button type="button" className="btn btn-wa btn-lg btn-block" onClick={onEnrollClick}>
               {course.slug === "interview-qa-offline" ? (
                 "Pay via UPI"
+              ) : course.slug === "1on1-connect" ? (
+                "Book now"
               ) : (
                 <>
                   <WhatsAppIcon />

@@ -20,22 +20,32 @@ DB_PATH = Path(os.getenv("COMMERCE_DB_PATH", str(Path(__file__).resolve().parent
 
 # In-memory course lookup (mirrors catalog service for local demo)
 CATALOG: Dict[str, Dict[str, Any]] = {
-    "c-aws-devops-ai": {"title": "AWS + DevOps + AI", "price_inr": 0, "slug": "aws-devops-ai"},
-    "c-job-support": {"title": "Job Support", "price_inr": 0, "slug": "job-support"},
+    "c-aws-devops-ai": {"title": "AWS + DevOps + AI", "price_inr": 20000, "slug": "aws-devops-ai"},
+    "c-job-support": {"title": "Job Support", "price_inr": 20000, "slug": "job-support"},
     "c-interview-support": {"title": "Interview Support", "price_inr": 0, "slug": "interview-support"},
     "c-interview-qa-offline": {
         "title": "Real DevOps & Cloud Interview Questions",
-        "price_inr": int(os.getenv("PACK_PRICE_INR", "99")),
+        "price_inr": int(os.getenv("PACK_PRICE_INR", "1999")),
         "slug": "interview-qa-offline",
     },
+    "c-1on1-connect": {"title": "1:1 Connect", "price_inr": 99, "slug": "1on1-connect"},
 }
 
 PACK_COURSE_ID = "c-interview-qa-offline"
+CONNECT_COURSE_ID = "c-1on1-connect"
 ADMIN_KEY = os.getenv("ADMIN_KEY", "dm-admin-change-me")
 ADMIN_MOBILE = os.getenv("ADMIN_MOBILE", "7013274348")
 UPI_ID = os.getenv("UPI_ID", "devopamate@ybl")
 UPI_ID_ALT = os.getenv("UPI_ID_ALT", "balureddy123457@ybl")
 AUTH_INTERNAL_URL = os.getenv("AUTH_INTERNAL_URL", "http://auth:8000").rstrip("/")
+ZOOM_JOIN_URL = os.getenv("ZOOM_JOIN_URL", "https://zoom.us/j/devopsmate-1on1")
+
+CONNECT_PRICES = {
+    (15, False): 99,
+    (15, True): 199,
+    (40, False): 199,
+    (40, True): 299,
+}
 
 
 app = FastAPI(title="DevOpsMate Commerce Service", version="1.0.0")
@@ -75,6 +85,20 @@ def init_db() -> None:
               buyer_name TEXT,
               course_id TEXT,
               delivered_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS bookings (
+              id TEXT PRIMARY KEY,
+              user_id TEXT NOT NULL,
+              buyer_name TEXT NOT NULL,
+              email TEXT NOT NULL,
+              mobile TEXT NOT NULL,
+              duration_min INTEGER NOT NULL,
+              priority INTEGER NOT NULL,
+              slot_start TEXT NOT NULL,
+              price_inr INTEGER NOT NULL,
+              meeting_link TEXT NOT NULL,
+              status TEXT NOT NULL,
+              created_at TEXT NOT NULL
             );
             """
         )
@@ -444,3 +468,177 @@ def admin_approve_pack(order_id: str, authorization: Optional[str] = Header(defa
         )
         row = conn.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
     return row_to_order(row)
+
+
+class ConnectPayInfo(BaseModel):
+    upi_id: str
+    upi_id_alt: str
+    prices: Dict[str, int]
+
+
+class ConnectBookIn(BaseModel):
+    accept_terms: bool = True
+    accept_refund: bool = True
+    email: str
+    buyer_name: str = ""
+    mobile: str = ""
+    duration_min: int
+    priority: bool = False
+    slot_start: str
+
+
+class BookingOut(BaseModel):
+    id: str
+    user_id: str
+    buyer_name: str
+    email: str
+    mobile: str
+    duration_min: int
+    priority: bool
+    slot_start: str
+    price_inr: int
+    meeting_link: str
+    status: str
+    created_at: str
+
+
+def row_to_booking(r: sqlite3.Row) -> BookingOut:
+    return BookingOut(
+        id=r["id"],
+        user_id=r["user_id"],
+        buyer_name=r["buyer_name"],
+        email=r["email"],
+        mobile=r["mobile"],
+        duration_min=int(r["duration_min"]),
+        priority=bool(r["priority"]),
+        slot_start=r["slot_start"],
+        price_inr=int(r["price_inr"]),
+        meeting_link=r["meeting_link"],
+        status=r["status"],
+        created_at=r["created_at"],
+    )
+
+
+def trigger_connect_email(booking: BookingOut) -> None:
+    import json as _json
+    import urllib.error
+    import urllib.request
+
+    body = _json.dumps(
+        {
+            "booking_id": booking.id,
+            "name": booking.buyer_name,
+            "email": booking.email,
+            "mobile": booking.mobile,
+            "duration_min": booking.duration_min,
+            "priority": booking.priority,
+            "slot_start": booking.slot_start,
+            "price_inr": booking.price_inr,
+            "meeting_link": booking.meeting_link,
+        }
+    ).encode()
+    req = urllib.request.Request(
+        f"{AUTH_INTERNAL_URL}/api/auth/internal/notify-connect",
+        data=body,
+        headers={"Content-Type": "application/json", "X-Admin-Key": ADMIN_KEY},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            if resp.status >= 400:
+                raise HTTPException(status_code=502, detail="Connect email failed")
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode() if e.fp else str(e)
+        raise HTTPException(status_code=502, detail=f"Connect email failed: {detail}")
+    except urllib.error.URLError as e:
+        raise HTTPException(status_code=502, detail=f"Auth unreachable for connect email: {e.reason}")
+
+
+@app.get("/api/commerce/connect/pay-info", response_model=ConnectPayInfo)
+def connect_pay_info():
+    return ConnectPayInfo(
+        upi_id=UPI_ID,
+        upi_id_alt=UPI_ID_ALT,
+        prices={
+            "15": CONNECT_PRICES[(15, False)],
+            "15p": CONNECT_PRICES[(15, True)],
+            "40": CONNECT_PRICES[(40, False)],
+            "40p": CONNECT_PRICES[(40, True)],
+        },
+    )
+
+
+@app.post("/api/commerce/connect/book", response_model=BookingOut)
+def connect_book(payload: ConnectBookIn, authorization: Optional[str] = Header(default=None)):
+    user_id = require_user(authorization)
+    if not payload.accept_terms or not payload.accept_refund:
+        raise HTTPException(status_code=400, detail="Accept Terms and No Refund Policy to continue")
+    email = (payload.email or "").strip().lower()
+    if "@" not in email:
+        raise HTTPException(status_code=400, detail="Valid email required")
+    if payload.duration_min not in (15, 40):
+        raise HTTPException(status_code=400, detail="Duration must be 15 or 40 minutes")
+    price = CONNECT_PRICES.get((payload.duration_min, bool(payload.priority)))
+    if price is None:
+        raise HTTPException(status_code=400, detail="Invalid plan")
+    slot = (payload.slot_start or "").strip()
+    if len(slot) < 10:
+        raise HTTPException(status_code=400, detail="Pick a date and time")
+    booking_id = f"C1-{uuid.uuid4().hex[:10].upper()}"
+    created = datetime.utcnow().isoformat()
+    meeting_link = f"{ZOOM_JOIN_URL}{'&' if '?' in ZOOM_JOIN_URL else '?'}booking={booking_id}"
+    booking = BookingOut(
+        id=booking_id,
+        user_id=user_id,
+        buyer_name=(payload.buyer_name or "").strip() or "Student",
+        email=email,
+        mobile=(payload.mobile or user_id or "").strip(),
+        duration_min=payload.duration_min,
+        priority=bool(payload.priority),
+        slot_start=slot,
+        price_inr=price,
+        meeting_link=meeting_link,
+        status="confirmed",
+        created_at=created,
+    )
+    with db() as conn:
+        clash = conn.execute(
+            "SELECT id FROM bookings WHERE slot_start = ? AND status != 'cancelled'",
+            (slot,),
+        ).fetchone()
+        if clash:
+            raise HTTPException(status_code=409, detail="That slot is already booked. Pick another time.")
+        conn.execute(
+            """
+            INSERT INTO bookings
+              (id, user_id, buyer_name, email, mobile, duration_min, priority, slot_start,
+               price_inr, meeting_link, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                booking.id,
+                booking.user_id,
+                booking.buyer_name,
+                booking.email,
+                booking.mobile,
+                booking.duration_min,
+                1 if booking.priority else 0,
+                booking.slot_start,
+                booking.price_inr,
+                booking.meeting_link,
+                booking.status,
+                booking.created_at,
+            ),
+        )
+    trigger_connect_email(booking)
+    return booking
+
+
+@app.get("/api/commerce/admin/bookings", response_model=List[BookingOut])
+def admin_bookings(authorization: Optional[str] = Header(default=None)):
+    require_admin_user(authorization)
+    with db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM bookings ORDER BY created_at DESC LIMIT 100"
+        ).fetchall()
+    return [row_to_booking(r) for r in rows]

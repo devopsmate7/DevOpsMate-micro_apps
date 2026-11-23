@@ -107,6 +107,7 @@ def test_signup_sends_welcome_mail(client, monkeypatch):
         "Job Support",
         "Interview Support (45-days interview plan)",
         "Real DevOps & Cloud Interview Questions (offline pack)",
+        "1:1 Connect (Zoom booking)",
         "non-refundable",
         "/privacy",
         "/refund",

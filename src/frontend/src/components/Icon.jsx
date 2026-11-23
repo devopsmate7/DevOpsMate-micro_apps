@@ -70,4 +70,5 @@ export const SERVICE_ICON = {
   "job-support": "briefcase",
   "interview-support": "chat",
   "interview-qa-offline": "award",
+  "1on1-connect": "user",
 };

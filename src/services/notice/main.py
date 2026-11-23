@@ -28,7 +28,7 @@ class Notice(BaseModel):
 NOTICES: List[Notice] = [
     Notice(
         id="batch-2026-11",
-        message="Enrollment open: AWS + DevOps + AI, Job Support, Interview Support, and Offline Interview Q&A pack.",
+        message="Enrollment open: AWS + DevOps + AI, Job Support, Interview Support, Offline Q&A pack, and 1:1 Connect.",
         link_text="Reserve a seat",
         link_href="https://wa.me/918088929670",
         active=True,

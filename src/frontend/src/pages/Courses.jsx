@@ -70,7 +70,7 @@ export default function Courses() {
           <p className="eyebrow">Services</p>
           <h1 className="page-title">Pick your starting point</h1>
           <p className="page-sub">
-            Four clear offerings. Most enroll on WhatsApp; the Offline Interview Q&A pack uses UPI, then we email your ZIP after approval.
+            Training, support, interview prep, offline Q&A, and 1:1 Connect. Most enroll on WhatsApp; packs and 1:1 use UPI.
           </p>
         </div>
 

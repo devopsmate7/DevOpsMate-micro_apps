@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import SiteLayout from "./components/SiteLayout";
 import AdminPack from "./pages/AdminPack";
+import BookConnect from "./pages/BookConnect";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import CourseDetail from "./pages/CourseDetail";
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:slug" element={<CourseDetail />} />
         <Route path="/pay/interview-qa-offline" element={<PayPack />} />
+        <Route path="/book/1on1" element={<BookConnect />} />
         <Route path="/about" element={<About />} />
         <Route path="/register" element={<Navigate to="/signup" replace />} />
         <Route path="/login" element={<Login />} />

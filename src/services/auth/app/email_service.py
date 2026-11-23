@@ -18,6 +18,7 @@ SERVICES = [
     "Job Support — 1:1",
     "Interview Support (45-days interview plan)",
     "Real DevOps & Cloud Interview Questions (offline pack)",
+    "1:1 Connect (Zoom booking)",
 ]
 
 
@@ -166,6 +167,80 @@ async def send_pack_email(name: str, email: str, order_id: str) -> None:
         start_tls=settings.smtp_tls,
     )
     logger.info("Pack email sent to %s for order %s", email, order_id)
+
+
+async def send_connect_emails(
+    *,
+    name: str,
+    email: str,
+    mobile: str,
+    booking_id: str,
+    duration_min: int,
+    priority: bool,
+    slot_start: str,
+    price_inr: int,
+    meeting_link: str,
+) -> None:
+    plan = f"{duration_min} min" + (" priority" if priority else "")
+    user_text = f"""Dear {name},
+
+Your 1:1 Connect is confirmed (Booking {booking_id}).
+
+Plan: {plan}
+When: {slot_start}
+Fee: ₹{price_inr}
+Join Zoom: {meeting_link}
+
+Pay via UPI if you have not already, then join on time.
+
+Team DevOpsMate
+WhatsApp: {WHATSAPP}
+"""
+    user_html = f"""<!DOCTYPE html><body style="font-family:Arial,sans-serif;line-height:1.6">
+<p>Dear <strong>{escape(name)}</strong>,</p>
+<p>Your <strong>1:1 Connect</strong> is confirmed (Booking <strong>{escape(booking_id)}</strong>).</p>
+<ul>
+<li>Plan: {escape(plan)}</li>
+<li>When: {escape(slot_start)}</li>
+<li>Fee: ₹{price_inr}</li>
+</ul>
+<p><a href="{escape(meeting_link)}">Join Zoom meeting</a></p>
+<p>Team DevOpsMate · WhatsApp: {WHATSAPP}</p>
+</body></html>"""
+    admin_text = f"""New 1:1 Connect booking
+
+ID: {booking_id}
+Name: {name}
+Mobile: {mobile}
+Email: {email}
+Plan: {plan}
+When: {slot_start}
+Fee: ₹{price_inr}
+Zoom: {meeting_link}
+"""
+    user_msg = MIMEMultipart("alternative")
+    user_msg["Subject"] = f"1:1 Connect confirmed — {plan} | DevOpsMate"
+    user_msg["From"] = settings.smtp_from
+    user_msg["To"] = email
+    user_msg.attach(MIMEText(user_text, "plain", "utf-8"))
+    user_msg.attach(MIMEText(user_html, "html", "utf-8"))
+
+    admin_to = (settings.booking_notify_email or "").strip() or "devopsmate7@gmail.com"
+    admin_msg = MIMEText(admin_text, "plain", "utf-8")
+    admin_msg["Subject"] = f"New 1:1 booking — {name} · {slot_start}"
+    admin_msg["From"] = settings.smtp_from
+    admin_msg["To"] = admin_to
+
+    kwargs = dict(
+        hostname=settings.smtp_host,
+        port=settings.smtp_port,
+        username=settings.smtp_user or None,
+        password=settings.smtp_password or None,
+        start_tls=settings.smtp_tls,
+    )
+    await aiosmtplib.send(user_msg, **kwargs)
+    await aiosmtplib.send(admin_msg, **kwargs)
+    logger.info("Connect emails sent booking=%s user=%s admin=%s", booking_id, email, admin_to)
 
 
 async def send_welcome_email(name: str, email: str, mobile: str, city: str) -> None:
