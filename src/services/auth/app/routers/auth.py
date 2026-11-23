@@ -179,6 +179,7 @@ async def notify_connect(
         raise HTTPException(status_code=403, detail="Invalid admin key")
     try:
         await send_connect_emails(
+            kind=payload.kind or "admin_pending",
             name=payload.name,
             email=str(payload.email),
             mobile=payload.mobile,
@@ -187,7 +188,7 @@ async def notify_connect(
             priority=payload.priority,
             slot_start=payload.slot_start,
             price_inr=payload.price_inr,
-            meeting_link=payload.meeting_link,
+            meeting_link=payload.meeting_link or "",
         )
     except Exception as e:
         logger.exception("Connect email failed for %s", payload.email)

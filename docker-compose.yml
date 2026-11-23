@@ -65,7 +65,10 @@ services:
       UPI_ID: ${UPI_ID:-devopamate@ybl}
       UPI_ID_ALT: ${UPI_ID_ALT:-balureddy123457@ybl}
       PACK_PRICE_INR: ${PACK_PRICE_INR:-1999}
-      ZOOM_JOIN_URL: ${ZOOM_JOIN_URL:-https://zoom.us/j/devopsmate-1on1}
+      ZOOM_ACCOUNT_ID: ${ZOOM_ACCOUNT_ID:-40iSc0IUQR-YsltpTPj09g}
+      ZOOM_CLIENT_ID: ${ZOOM_CLIENT_ID:-b6qRcNswRheP74Ak8QEVnw}
+      ZOOM_CLIENT_SECRET: ${ZOOM_CLIENT_SECRET:-ZOjUMBVBcYGRiYPTdTaWrK6GEyPmdr0a}
+      ZOOM_HOST_EMAIL: ${ZOOM_HOST_EMAIL:-devopsmate7@gmail.com}
       AUTH_INTERNAL_URL: http://auth:8000
       BOOKING_NOTIFY_EMAIL: ${BOOKING_NOTIFY_EMAIL:-devopsmate7@gmail.com}
     volumes:

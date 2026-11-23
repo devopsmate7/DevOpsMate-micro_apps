@@ -3,22 +3,31 @@ import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api";
 import { useAuth } from "../auth";
 
-function nextSlots() {
+const HOURS = [10, 11, 12, 14, 15, 16, 17, 18, 19];
+
+function pad(n) {
+  return String(n).padStart(2, "0");
+}
+
+function toLocalIso(d) {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+}
+
+function dayKey(d) {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function nextDays(count = 14) {
   const out = [];
   const now = new Date();
-  for (let d = 0; d < 14; d += 1) {
+  for (let i = 0; i < count + 4 && out.length < count; i += 1) {
     const day = new Date(now);
-    day.setDate(now.getDate() + d);
+    day.setDate(now.getDate() + i);
     day.setHours(0, 0, 0, 0);
     if (day.getDay() === 0) continue;
-    for (const h of [10, 11, 12, 14, 15, 16, 17, 18, 19]) {
-      const slot = new Date(day);
-      slot.setHours(h, 0, 0, 0);
-      if (slot.getTime() < now.getTime() + 60 * 60 * 1000) continue;
-      out.push(slot.toISOString());
-    }
+    out.push(day);
   }
-  return out.slice(0, 48);
+  return out;
 }
 
 export default function BookConnect() {
@@ -27,11 +36,12 @@ export default function BookConnect() {
   const [info, setInfo] = useState(null);
   const [duration, setDuration] = useState(15);
   const [priority, setPriority] = useState(false);
-  const [slot, setSlot] = useState("");
+  const [dateKey, setDateKey] = useState("");
+  const [hour, setHour] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(null);
-  const slots = useMemo(() => nextSlots(), []);
+  const days = useMemo(() => nextDays(12), []);
 
   useEffect(() => {
     if (!token) {
@@ -45,12 +55,31 @@ export default function BookConnect() {
 
   const price = useMemo(() => {
     if (!info?.prices) return priority ? (duration === 15 ? 199 : 299) : duration === 15 ? 99 : 199;
-    const key = `${duration}${priority ? "p" : ""}`;
-    return info.prices[key] ?? 99;
+    return info.prices[`${duration}${priority ? "p" : ""}`] ?? 99;
   }, [info, duration, priority]);
+
+  const availableHours = useMemo(() => {
+    if (!dateKey) return [];
+    const now = new Date();
+    return HOURS.filter((h) => {
+      const [y, m, d] = dateKey.split("-").map(Number);
+      const slot = new Date(y, m - 1, d, h, 0, 0);
+      return slot.getTime() > now.getTime() + 60 * 60 * 1000;
+    });
+  }, [dateKey]);
+
+  const slot = useMemo(() => {
+    if (!dateKey || hour == null) return "";
+    const [y, m, d] = dateKey.split("-").map(Number);
+    return toLocalIso(new Date(y, m - 1, d, hour, 0, 0));
+  }, [dateKey, hour]);
 
   async function onSubmit(e) {
     e.preventDefault();
+    if (!slot) {
+      setError("Pick a date and time");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -81,19 +110,17 @@ export default function BookConnect() {
     return (
       <div className="page">
         <div className="container" style={{ maxWidth: 640 }}>
-          <h1 className="page-title">Booking confirmed</h1>
+          <h1 className="page-title">Request received</h1>
           <div className="panel" style={{ marginTop: 16 }}>
             <p>
               <strong>{done.id}</strong> · {done.duration_min} min
               {done.priority ? " priority" : ""} · ₹{done.price_inr}
             </p>
-            <p className="muted">When: {new Date(done.slot_start).toLocaleString()}</p>
+            <p className="muted">When: {done.slot_start.replace("T", " ")}</p>
             <p>
-              Zoom link emailed to <strong>{done.email}</strong>.
+              Status: <strong>awaiting approval</strong>. After admin accepts, your Zoom link is emailed to{" "}
+              <strong>{done.email}</strong>.
             </p>
-            <a className="btn btn-primary btn-block" href={done.meeting_link} target="_blank" rel="noreferrer">
-              Open Zoom link
-            </a>
             <Link to="/orders" className="btn btn-secondary btn-block" style={{ marginTop: 10 }}>
               My orders
             </Link>
@@ -105,28 +132,42 @@ export default function BookConnect() {
 
   return (
     <div className="page">
-      <div className="container" style={{ maxWidth: 640 }}>
+      <div className="container" style={{ maxWidth: 680 }}>
         <Link to="/courses/1on1-connect" className="text-link">
           Back to 1:1 Connect
         </Link>
         <h1 className="page-title" style={{ marginTop: 16 }}>
           Book 1:1 Connect
         </h1>
-        <p className="page-sub">Pay via UPI, then confirm — Zoom link is emailed immediately.</p>
+        <p className="page-sub">
+          Pick date and time, pay via UPI, then confirm. Zoom link is emailed only after admin accepts.
+        </p>
         {error ? <div className="flash error">{error}</div> : null}
 
         <form className="panel form-grid" onSubmit={onSubmit} style={{ marginTop: 16 }}>
-          <div className="form-group">
-            <label>Duration</label>
-            <select value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
-              <option value={15}>15 minutes</option>
-              <option value={40}>40 minutes</option>
-            </select>
+          <div className="slot-box-row">
+            <button
+              type="button"
+              className={`slot-box ${duration === 15 ? "active" : ""}`}
+              onClick={() => setDuration(15)}
+            >
+              15 min
+            </button>
+            <button
+              type="button"
+              className={`slot-box ${duration === 40 ? "active" : ""}`}
+              onClick={() => setDuration(40)}
+            >
+              40 min
+            </button>
+            <button
+              type="button"
+              className={`slot-box ${priority ? "active" : ""}`}
+              onClick={() => setPriority((v) => !v)}
+            >
+              {priority ? "Priority on" : "Priority"}
+            </button>
           </div>
-          <label className="consent-check">
-            <input type="checkbox" checked={priority} onChange={(e) => setPriority(e.target.checked)} />
-            <span>Priority slot (faster scheduling / higher priority)</span>
-          </label>
           <p style={{ fontSize: 22, fontWeight: 700 }}>₹{price}</p>
           {info ? (
             <p className="muted" style={{ fontSize: 14 }}>
@@ -139,23 +180,62 @@ export default function BookConnect() {
               ) : null}
             </p>
           ) : null}
+
           <div className="form-group">
-            <label>Date & time</label>
-            <select value={slot} onChange={(e) => setSlot(e.target.value)} required>
-              <option value="">Select a slot</option>
-              {slots.map((s) => (
-                <option key={s} value={s}>
-                  {new Date(s).toLocaleString()}
-                </option>
-              ))}
-            </select>
+            <label>Date</label>
+            <div className="slot-box-grid">
+              {days.map((d) => {
+                const key = dayKey(d);
+                const label = d.toLocaleDateString(undefined, {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                });
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`slot-box ${dateKey === key ? "active" : ""}`}
+                    onClick={() => {
+                      setDateKey(key);
+                      setHour(null);
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {dateKey ? (
+            <div className="form-group">
+              <label>Time</label>
+              <div className="slot-box-grid">
+                {availableHours.length ? (
+                  availableHours.map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      className={`slot-box ${hour === h ? "active" : ""}`}
+                      onClick={() => setHour(h)}
+                    >
+                      {pad(h)}:00
+                    </button>
+                  ))
+                ) : (
+                  <p className="muted">No times left for this day. Pick another date.</p>
+                )}
+              </div>
+            </div>
+          ) : null}
+
           <div className="form-group">
             <label>Full name</label>
             <input name="name" defaultValue={user?.full_name || ""} required />
           </div>
           <div className="form-group">
-            <label>Email (Zoom link)</label>
+            <label>Email (Zoom link after approval)</label>
             <input name="email" type="email" defaultValue={user?.email || ""} required />
           </div>
           <div className="form-group">

@@ -6,7 +6,7 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py ./
+COPY main.py zoom.py ./
 
 RUN useradd --uid 10001 --create-home app && mkdir -p /data && chown 10001 /data
 USER 10001

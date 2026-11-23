@@ -67,6 +67,25 @@ export default function AdminPack() {
     }
   }
 
+  async function approveBooking(bookingId) {
+    setBusy(bookingId);
+    setMsg("");
+    setError("");
+    try {
+      const data = await apiFetch(`/api/commerce/admin/bookings/${bookingId}/approve`, {
+        token,
+        method: "POST",
+        body: {},
+      });
+      setMsg(`Accepted ${bookingId}. Zoom emailed to ${data.email}.`);
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy("");
+    }
+  }
+
   return (
     <div className="page">
       <div className="container" style={{ maxWidth: 900 }}>
@@ -165,21 +184,45 @@ export default function AdminPack() {
                 <div
                   key={b.id}
                   style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
                     borderBottom: "1px solid var(--line, #ddd)",
                     padding: "12px 0",
                   }}
                 >
-                  <strong>{b.id}</strong>
-                  <div className="muted" style={{ fontSize: 14 }}>
-                    {b.buyer_name} · {b.mobile} · {b.email}
+                  <div>
+                    <strong>{b.id}</strong>
+                    <div className="muted" style={{ fontSize: 14 }}>
+                      {b.buyer_name} · {b.mobile} · {b.email} · {b.status}
+                    </div>
+                    <div className="muted" style={{ fontSize: 14 }}>
+                      {b.duration_min} min{b.priority ? " priority" : ""} · ₹{b.price_inr} ·{" "}
+                      {String(b.slot_start).replace("T", " ")}
+                    </div>
+                    {b.meeting_link ? (
+                      <a href={b.meeting_link} target="_blank" rel="noreferrer" className="text-link">
+                        Zoom link
+                      </a>
+                    ) : (
+                      <span className="muted" style={{ fontSize: 13 }}>
+                        Zoom after accept
+                      </span>
+                    )}
                   </div>
-                  <div className="muted" style={{ fontSize: 14 }}>
-                    {b.duration_min} min{b.priority ? " priority" : ""} · ₹{b.price_inr} ·{" "}
-                    {new Date(b.slot_start).toLocaleString()}
-                  </div>
-                  <a href={b.meeting_link} target="_blank" rel="noreferrer" className="text-link">
-                    Zoom link
-                  </a>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={b.status === "confirmed" || busy === b.id}
+                    onClick={() => approveBooking(b.id)}
+                  >
+                    {b.status === "confirmed"
+                      ? "Accepted"
+                      : busy === b.id
+                        ? "Creating Zoom..."
+                        : "Accept & email Zoom"}
+                  </button>
                 </div>
               ))}
             </div>

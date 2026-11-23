@@ -171,6 +171,7 @@ async def send_pack_email(name: str, email: str, order_id: str) -> None:
 
 async def send_connect_emails(
     *,
+    kind: str,
     name: str,
     email: str,
     mobile: str,
@@ -179,35 +180,20 @@ async def send_connect_emails(
     priority: bool,
     slot_start: str,
     price_inr: int,
-    meeting_link: str,
+    meeting_link: str = "",
 ) -> None:
     plan = f"{duration_min} min" + (" priority" if priority else "")
-    user_text = f"""Dear {name},
+    kwargs = dict(
+        hostname=settings.smtp_host,
+        port=settings.smtp_port,
+        username=settings.smtp_user or None,
+        password=settings.smtp_password or None,
+        start_tls=settings.smtp_tls,
+    )
+    admin_to = (settings.booking_notify_email or "").strip() or "devopsmate7@gmail.com"
 
-Your 1:1 Connect is confirmed (Booking {booking_id}).
-
-Plan: {plan}
-When: {slot_start}
-Fee: ₹{price_inr}
-Join Zoom: {meeting_link}
-
-Pay via UPI if you have not already, then join on time.
-
-Team DevOpsMate
-WhatsApp: {WHATSAPP}
-"""
-    user_html = f"""<!DOCTYPE html><body style="font-family:Arial,sans-serif;line-height:1.6">
-<p>Dear <strong>{escape(name)}</strong>,</p>
-<p>Your <strong>1:1 Connect</strong> is confirmed (Booking <strong>{escape(booking_id)}</strong>).</p>
-<ul>
-<li>Plan: {escape(plan)}</li>
-<li>When: {escape(slot_start)}</li>
-<li>Fee: ₹{price_inr}</li>
-</ul>
-<p><a href="{escape(meeting_link)}">Join Zoom meeting</a></p>
-<p>Team DevOpsMate · WhatsApp: {WHATSAPP}</p>
-</body></html>"""
-    admin_text = f"""New 1:1 Connect booking
+    if kind == "admin_pending":
+        admin_text = f"""New 1:1 Connect booking (awaiting your approval)
 
 ID: {booking_id}
 Name: {name}
@@ -216,31 +202,57 @@ Email: {email}
 Plan: {plan}
 When: {slot_start}
 Fee: ₹{price_inr}
-Zoom: {meeting_link}
+
+Open admin → Accept to create Zoom and email the user the join link.
+{SITE_URL}/admin/pack-orders
 """
-    user_msg = MIMEMultipart("alternative")
-    user_msg["Subject"] = f"1:1 Connect confirmed — {plan} | DevOpsMate"
-    user_msg["From"] = settings.smtp_from
-    user_msg["To"] = email
-    user_msg.attach(MIMEText(user_text, "plain", "utf-8"))
-    user_msg.attach(MIMEText(user_html, "html", "utf-8"))
+        admin_msg = MIMEText(admin_text, "plain", "utf-8")
+        admin_msg["Subject"] = f"New 1:1 booking — {name} · {slot_start}"
+        admin_msg["From"] = settings.smtp_from
+        admin_msg["To"] = admin_to
+        await aiosmtplib.send(admin_msg, **kwargs)
+        logger.info("Connect admin notify sent booking=%s admin=%s", booking_id, admin_to)
+        return
 
-    admin_to = (settings.booking_notify_email or "").strip() or "devopsmate7@gmail.com"
-    admin_msg = MIMEText(admin_text, "plain", "utf-8")
-    admin_msg["Subject"] = f"New 1:1 booking — {name} · {slot_start}"
-    admin_msg["From"] = settings.smtp_from
-    admin_msg["To"] = admin_to
+    if kind == "user_approved":
+        if not meeting_link:
+            raise RuntimeError("meeting_link required for user_approved")
+        user_text = f"""Dear {name},
 
-    kwargs = dict(
-        hostname=settings.smtp_host,
-        port=settings.smtp_port,
-        username=settings.smtp_user or None,
-        password=settings.smtp_password or None,
-        start_tls=settings.smtp_tls,
-    )
-    await aiosmtplib.send(user_msg, **kwargs)
-    await aiosmtplib.send(admin_msg, **kwargs)
-    logger.info("Connect emails sent booking=%s user=%s admin=%s", booking_id, email, admin_to)
+Your 1:1 Connect is approved (Booking {booking_id}).
+
+Plan: {plan}
+When: {slot_start}
+Fee: ₹{price_inr}
+Join Zoom: {meeting_link}
+
+Join on time. Pay via UPI if you have not already.
+
+Team DevOpsMate
+WhatsApp: {WHATSAPP}
+"""
+        user_html = f"""<!DOCTYPE html><body style="font-family:Arial,sans-serif;line-height:1.6">
+<p>Dear <strong>{escape(name)}</strong>,</p>
+<p>Your <strong>1:1 Connect</strong> is approved (Booking <strong>{escape(booking_id)}</strong>).</p>
+<ul>
+<li>Plan: {escape(plan)}</li>
+<li>When: {escape(slot_start)}</li>
+<li>Fee: ₹{price_inr}</li>
+</ul>
+<p><a href="{escape(meeting_link)}">Join Zoom meeting</a></p>
+<p>Team DevOpsMate · WhatsApp: {WHATSAPP}</p>
+</body></html>"""
+        user_msg = MIMEMultipart("alternative")
+        user_msg["Subject"] = f"1:1 Connect approved — Zoom link | DevOpsMate"
+        user_msg["From"] = settings.smtp_from
+        user_msg["To"] = email
+        user_msg.attach(MIMEText(user_text, "plain", "utf-8"))
+        user_msg.attach(MIMEText(user_html, "html", "utf-8"))
+        await aiosmtplib.send(user_msg, **kwargs)
+        logger.info("Connect user Zoom email sent booking=%s user=%s", booking_id, email)
+        return
+
+    raise RuntimeError(f"Unknown connect email kind: {kind}")
 
 
 async def send_welcome_email(name: str, email: str, mobile: str, city: str) -> None:

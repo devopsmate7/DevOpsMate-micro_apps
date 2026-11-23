@@ -38,7 +38,6 @@ ADMIN_MOBILE = os.getenv("ADMIN_MOBILE", "7013274348")
 UPI_ID = os.getenv("UPI_ID", "devopamate@ybl")
 UPI_ID_ALT = os.getenv("UPI_ID_ALT", "balureddy123457@ybl")
 AUTH_INTERNAL_URL = os.getenv("AUTH_INTERNAL_URL", "http://auth:8000").rstrip("/")
-ZOOM_JOIN_URL = os.getenv("ZOOM_JOIN_URL", "https://zoom.us/j/devopsmate-1on1")
 
 CONNECT_PRICES = {
     (15, False): 99,
@@ -519,13 +518,14 @@ def row_to_booking(r: sqlite3.Row) -> BookingOut:
     )
 
 
-def trigger_connect_email(booking: BookingOut) -> None:
+def trigger_connect_email(booking: BookingOut, kind: str) -> None:
     import json as _json
     import urllib.error
     import urllib.request
 
     body = _json.dumps(
         {
+            "kind": kind,
             "booking_id": booking.id,
             "name": booking.buyer_name,
             "email": booking.email,
@@ -534,7 +534,7 @@ def trigger_connect_email(booking: BookingOut) -> None:
             "priority": booking.priority,
             "slot_start": booking.slot_start,
             "price_inr": booking.price_inr,
-            "meeting_link": booking.meeting_link,
+            "meeting_link": booking.meeting_link or "",
         }
     ).encode()
     req = urllib.request.Request(
@@ -586,7 +586,6 @@ def connect_book(payload: ConnectBookIn, authorization: Optional[str] = Header(d
         raise HTTPException(status_code=400, detail="Pick a date and time")
     booking_id = f"C1-{uuid.uuid4().hex[:10].upper()}"
     created = datetime.utcnow().isoformat()
-    meeting_link = f"{ZOOM_JOIN_URL}{'&' if '?' in ZOOM_JOIN_URL else '?'}booking={booking_id}"
     booking = BookingOut(
         id=booking_id,
         user_id=user_id,
@@ -597,8 +596,8 @@ def connect_book(payload: ConnectBookIn, authorization: Optional[str] = Header(d
         priority=bool(payload.priority),
         slot_start=slot,
         price_inr=price,
-        meeting_link=meeting_link,
-        status="confirmed",
+        meeting_link="",
+        status="awaiting_approval",
         created_at=created,
     )
     with db() as conn:
@@ -630,7 +629,7 @@ def connect_book(payload: ConnectBookIn, authorization: Optional[str] = Header(d
                 booking.created_at,
             ),
         )
-    trigger_connect_email(booking)
+    trigger_connect_email(booking, "admin_pending")
     return booking
 
 
@@ -642,3 +641,36 @@ def admin_bookings(authorization: Optional[str] = Header(default=None)):
             "SELECT * FROM bookings ORDER BY created_at DESC LIMIT 100"
         ).fetchall()
     return [row_to_booking(r) for r in rows]
+
+
+@app.post("/api/commerce/admin/bookings/{booking_id}/approve", response_model=BookingOut)
+def admin_approve_booking(booking_id: str, authorization: Optional[str] = Header(default=None)):
+    require_admin_user(authorization)
+    from zoom import create_meeting
+
+    with db() as conn:
+        row = conn.execute("SELECT * FROM bookings WHERE id = ?", (booking_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        booking = row_to_booking(row)
+        if booking.status == "confirmed" and booking.meeting_link:
+            return booking
+        try:
+            meeting = create_meeting(
+                topic=f"DevOpsMate 1:1 — {booking.buyer_name} ({booking.id})",
+                start_iso=booking.slot_start,
+                duration_min=booking.duration_min,
+            )
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=str(e)) from e
+        join_url = (meeting.get("join_url") or "").strip()
+        if not join_url:
+            raise HTTPException(status_code=502, detail="Zoom did not return a join_url")
+        conn.execute(
+            "UPDATE bookings SET meeting_link = ?, status = ? WHERE id = ?",
+            (join_url, "confirmed", booking_id),
+        )
+        row = conn.execute("SELECT * FROM bookings WHERE id = ?", (booking_id,)).fetchone()
+        booking = row_to_booking(row)
+    trigger_connect_email(booking, "user_approved")
+    return booking

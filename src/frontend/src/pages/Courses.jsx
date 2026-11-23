@@ -42,6 +42,10 @@ export default function Courses() {
       navigate("/pay/interview-qa-offline");
       return;
     }
+    if (course.slug === "1on1-connect") {
+      navigate("/book/1on1");
+      return;
+    }
     setPendingCourse(course);
   }
 
@@ -114,6 +118,8 @@ export default function Courses() {
                 <button type="button" className="btn btn-wa" onClick={() => onEnrollClick(c)}>
                   {c.slug === "interview-qa-offline" ? (
                     "Pay UPI"
+                  ) : c.slug === "1on1-connect" ? (
+                    "Book"
                   ) : (
                     <>
                       <WhatsAppIcon size={16} />

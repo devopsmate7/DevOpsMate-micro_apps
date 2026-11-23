@@ -467,6 +467,32 @@ ul, ol { list-style: none; }
 
 /* ---------- Forms ---------- */
 .form-grid { display: grid; gap: 14px; }
+.slot-box-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.slot-box-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+}
+.slot-box {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 12px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.slot-box:hover { border-color: var(--line-strong); background: rgba(255, 255, 255, 0.09); }
+.slot-box.active {
+  border-color: rgba(233, 205, 133, 0.55);
+  background: rgba(233, 205, 133, 0.14);
+  color: #fff8e7;
+}
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-group { display: grid; gap: 8px; }
 .form-group label { font-size: 13px; font-weight: 600; color: var(--text-2); }
