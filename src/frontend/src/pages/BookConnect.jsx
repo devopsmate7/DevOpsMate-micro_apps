@@ -226,14 +226,9 @@ export default function BookConnect() {
           </div>
           <p style={{ fontSize: 22, fontWeight: 700 }}>₹{price}</p>
           {info ? (
-            <p className="muted" style={{ fontSize: 14 }}>
-              UPI: <strong>{info.upi_id}</strong>
-              {info.upi_id_alt ? (
-                <>
-                  {" "}
-                  / <strong>{info.upi_id_alt}</strong>
-                </>
-              ) : null}
+            <p className="upi-highlight">
+              UPI: {info.upi_id}
+              {info.upi_id_alt ? ` / ${info.upi_id_alt}` : ""}
             </p>
           ) : null}
 

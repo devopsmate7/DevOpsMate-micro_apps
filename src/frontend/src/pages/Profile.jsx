@@ -12,10 +12,16 @@ function initials(name) {
     .join("");
 }
 
+function statusLabel(status) {
+  if (status === "awaiting_approval") return "awaiting approval";
+  return status;
+}
+
 export default function Profile() {
   const { token, user, updateProfile } = useAuth();
   const [form, setForm] = useState({ full_name: "", mobile: "", city: "" });
   const [orders, setOrders] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,7 +33,13 @@ export default function Profile() {
 
   useEffect(() => {
     if (!token) return;
-    apiFetch("/api/commerce/orders", { token }).then(setOrders).catch(() => setOrders([]));
+    Promise.all([
+      apiFetch("/api/commerce/orders", { token }).catch(() => []),
+      apiFetch("/api/commerce/my/bookings", { token }).catch(() => []),
+    ]).then(([o, b]) => {
+      setOrders(Array.isArray(o) ? o : []);
+      setBookings(Array.isArray(b) ? b : []);
+    });
   }, [token]);
 
   if (!token) return <Navigate to="/login" replace />;
@@ -46,6 +58,27 @@ export default function Profile() {
       setLoading(false);
     }
   }
+
+  const recent = [
+    ...bookings.map((b) => ({
+      key: b.id,
+      title: `1:1 Connect · ${b.duration_min} min${b.priority ? " priority" : ""}`,
+      date: String(b.slot_start || "").replace("T", " ").slice(0, 16),
+      status: b.status,
+      link: b.status === "confirmed" ? b.meeting_link : null,
+      sort: b.created_at || b.slot_start || "",
+    })),
+    ...orders.map((o) => ({
+      key: o.id,
+      title: o.items.map((i) => i.title).join(", "),
+      date: new Date(o.created_at).toLocaleDateString(),
+      status: o.status,
+      link: null,
+      sort: o.created_at || "",
+    })),
+  ]
+    .sort((a, b) => String(b.sort).localeCompare(String(a.sort)))
+    .slice(0, 6);
 
   return (
     <div className="page">
@@ -112,19 +145,32 @@ export default function Profile() {
 
           <aside className="panel reveal d2">
             <h2 className="panel-title">Recent enrollments</h2>
-            {!orders.length ? (
+            {!recent.length ? (
               <p className="muted">
                 You have no enrollments yet. <Link to="/courses">View programs</Link>
               </p>
             ) : (
               <div className="list">
-                {orders.slice(0, 5).map((o) => (
-                  <div key={o.id} className="list-row">
+                {recent.map((item) => (
+                  <div key={item.key} className="list-row">
                     <div>
-                      <strong>{o.items.map((i) => i.title).join(", ")}</strong>
-                      <small>{new Date(o.created_at).toLocaleDateString()}</small>
+                      <strong>{item.title}</strong>
+                      <small>{item.date}</small>
+                      {item.link ? (
+                        <small>
+                          <a href={item.link} target="_blank" rel="noreferrer">
+                            Open Zoom
+                          </a>
+                        </small>
+                      ) : null}
                     </div>
-                    <span className="badge green">{o.status}</span>
+                    <span
+                      className={`badge ${
+                        item.status === "confirmed" || item.status === "delivered" ? "green" : ""
+                      }`}
+                    >
+                      {statusLabel(item.status)}
+                    </span>
                   </div>
                 ))}
               </div>

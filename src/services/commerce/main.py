@@ -633,6 +633,17 @@ def connect_book(payload: ConnectBookIn, authorization: Optional[str] = Header(d
     return booking
 
 
+@app.get("/api/commerce/my/bookings", response_model=List[BookingOut])
+def my_bookings(authorization: Optional[str] = Header(default=None)):
+    user_id = require_user(authorization)
+    with db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM bookings WHERE user_id = ? ORDER BY created_at DESC LIMIT 50",
+            (user_id,),
+        ).fetchall()
+    return [row_to_booking(r) for r in rows]
+
+
 @app.get("/api/commerce/admin/bookings", response_model=List[BookingOut])
 def admin_bookings(authorization: Optional[str] = Header(default=None)):
     require_admin_user(authorization)

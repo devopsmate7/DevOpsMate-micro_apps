@@ -102,11 +102,9 @@ export default function PayPack() {
             <p>
               Amount: <strong>₹{info.price_inr}</strong>
             </p>
-            <p>
-              UPI ID (primary): <strong>{info.upi_id}</strong>
-            </p>
-            <p>
-              UPI ID (alt): <strong>{info.upi_id_alt}</strong>
+            <p className="upi-highlight">
+              UPI: {info.upi_id}
+              {info.upi_id_alt ? ` / ${info.upi_id_alt}` : ""}
             </p>
             <p className="muted" style={{ fontSize: 14 }}>
               Delivery email: <strong>{user?.email}</strong>
