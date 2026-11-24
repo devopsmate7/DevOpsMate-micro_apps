@@ -466,11 +466,12 @@ export default function BookConnect() {
         <div className="plan-picker">
           {PLANS.map((p) => {
             const amt = info?.prices?.[String(p.id)] ?? (p.id === 5 ? 19 : p.id === 15 ? 99 : 199);
+            const theme = p.id === 5 ? "theme-advice" : p.id === 15 ? "theme-live" : "theme-mentor";
             return (
               <button
                 key={p.id}
                 type="button"
-                className={`mentor-card ${duration === p.id ? "active" : ""}`}
+                className={`mentor-card ${theme} ${duration === p.id ? "active" : ""}`}
                 onClick={() => pickPlan(p.id)}
               >
                 <div className="mentor-card-top">

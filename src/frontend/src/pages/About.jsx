@@ -7,11 +7,11 @@ const CERTS = [
   { icon: "🤖", label: "Anthropic AI Builder" },
 ];
 
-const JOURNEY = [
-  { step: "01", title: "TCS", note: "Enterprise start" },
-  { step: "02", title: "Infinite", note: "Cloud foundations" },
-  { step: "03", title: "HCLTech", note: "Lead Engineer" },
-  { step: "04", title: "Bayer", note: "Platform & AI Builder", current: true },
+const FLOW = [
+  { label: "TCS" },
+  { label: "Infinite" },
+  { label: "HCLTech Lead Engineer" },
+  { label: "Bayer Platform Engineer & AI Builder", current: true },
 ];
 
 export default function About() {
@@ -33,6 +33,16 @@ export default function About() {
               </h1>
               <p className="about-role">DevOps Engineer @ Bayer</p>
               <p className="about-tag">Freelance &amp; Platform Engineer · 5+ Yrs Exp</p>
+
+              <div className="about-flow" aria-label="Career journey">
+                {FLOW.map((item, i) => (
+                  <span key={item.label} className="about-flow-item">
+                    <span className={`about-flow-chip ${item.current ? "current" : ""}`}>{item.label}</span>
+                    {i < FLOW.length - 1 ? <span className="about-flow-arrow" aria-hidden="true">→</span> : null}
+                  </span>
+                ))}
+              </div>
+
               <div className="about-links">
                 <a
                   href="https://github.com/devopsmate7"
@@ -55,7 +65,7 @@ export default function About() {
                 <p className="about-label">Verified Certifications</p>
                 <div className="chip-row">
                   {CERTS.map((c) => (
-                    <span key={c.label} className="chip">
+                    <span key={c.label} className="chip about-cert-chip">
                       {c.icon} {c.label}
                     </span>
                   ))}
@@ -75,7 +85,7 @@ export default function About() {
                     DevOpsMate lab, mentoring session, and interview drill.
                   </p>
                 </article>
-                <article className="about-card">
+                <article className="about-card about-card-ai">
                   <h2>🤖 AI-First DevOps Engineering</h2>
                   <p>
                     Modern cloud engineering goes beyond manual scripts. I pair battle-tested AWS,
@@ -84,22 +94,6 @@ export default function About() {
                   </p>
                 </article>
               </div>
-
-              <p className="about-label" style={{ marginTop: 18 }}>
-                Career Journey
-              </p>
-              <div className="about-journey">
-                {JOURNEY.map((j) => (
-                  <div key={j.step} className={`about-step ${j.current ? "current" : ""}`}>
-                    <span className="about-step-num">{j.step}</span>
-                    <strong>{j.title}</strong>
-                    <span>{j.note}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="about-journey-line muted">
-                TCS → Infinite → HCLTech Lead Engineer → Current Bayer Platform Engineer &amp; AI Builder
-              </p>
 
               <div className="about-cta">
                 <p>When you are ready to begin, explore programs or chat directly.</p>
