@@ -162,6 +162,7 @@ export default function Home() {
                   </span>
                   <span className="home-goal-title">{f.title}</span>
                   <span className="home-goal-copy">{f.text}</span>
+                  <span className="home-goal-spacer" aria-hidden="true" />
                 </div>
               ))}
             </div>
