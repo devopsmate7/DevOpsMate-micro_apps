@@ -122,9 +122,24 @@ function planTitle(duration) {
   return `${duration} min Live Video`;
 }
 
+function useIsMobile(max = 820) {
+  const [mobile, setMobile] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia(`(max-width: ${max}px)`).matches : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${max}px)`);
+    const onChange = () => setMobile(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [max]);
+  return mobile;
+}
+
 export default function BookConnect() {
   const { token, user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile(820);
   const [info, setInfo] = useState(null);
   const [duration, setDuration] = useState(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -149,12 +164,14 @@ export default function BookConnect() {
   }, [token, navigate]);
 
   useEffect(() => {
-    const lock = sheetOpen || Boolean(done);
+    const lock = isMobile && (sheetOpen || Boolean(done));
+    document.body.classList.toggle("sheet-open", lock);
     document.body.style.overflow = lock ? "hidden" : "";
     return () => {
+      document.body.classList.remove("sheet-open");
       document.body.style.overflow = "";
     };
-  }, [sheetOpen, done]);
+  }, [isMobile, sheetOpen, done]);
 
   const plan = PLANS.find((p) => p.id === duration) || null;
   const price = useMemo(() => {
@@ -171,8 +188,8 @@ export default function BookConnect() {
     const [y, m, d] = dateKey.split("-").map(Number);
     const todayKey = dayKey(new Date());
     return SLOT_MINUTES.filter((mins) => {
-      const slot = new Date(y, m - 1, d, Math.floor(mins / 60), mins % 60, 0);
-      if (dateKey === todayKey) return slot.getTime() > now + 15 * 60 * 1000;
+      const slotDate = new Date(y, m - 1, d, Math.floor(mins / 60), mins % 60, 0);
+      if (dateKey === todayKey) return slotDate.getTime() > now + 15 * 60 * 1000;
       return true;
     });
   }, [dateKey]);
@@ -185,13 +202,9 @@ export default function BookConnect() {
 
   function pickPlan(id) {
     setDuration(id);
-    setSheetOpen(true);
     setError("");
     setAgreed(false);
-  }
-
-  function closeSheet() {
-    setSheetOpen(false);
+    if (isMobile) setSheetOpen(true);
   }
 
   async function onSubmit(e) {
@@ -232,11 +245,151 @@ export default function BookConnect() {
     }
   }
 
-  const payOverlay = done ? (
-    <div className="sheet-overlay" role="presentation">
-      <div className="sheet-card enroll-panel" role="dialog" aria-modal="true" aria-label="Pay with UPI">
-        <div className="sheet-grab" />
-        <h2 className="sheet-title">Pay · {planTitle(done.duration_min)}</h2>
+  function renderPlanInfo(p) {
+    if (!p) return null;
+    return (
+      <div className="plan-info panel">
+        <p className="plan-info-blurb">{p.blurb}</p>
+        <p className="plan-info-lead">{p.lead}</p>
+        <ul className="plan-info-list">
+          {p.points.map((pt) => (
+            <li key={pt}>→ {pt}</li>
+          ))}
+        </ul>
+        <p className="plan-info-how">
+          <strong>How it works:</strong> {p.how}
+        </p>
+      </div>
+    );
+  }
+
+  function renderBookForm(formId) {
+    return (
+      <form id={formId} className="book-card panel" onSubmit={onSubmit}>
+        <div className="book-card-head">
+          <h3>When should we meet?</h3>
+          <div className="book-day-nav">
+            <button
+              type="button"
+              className="book-nav-btn"
+              aria-label="Earlier dates"
+              disabled={dayOffset <= 0}
+              onClick={() => setDayOffset((v) => Math.max(0, v - 1))}
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              className="book-nav-btn"
+              aria-label="Later dates"
+              disabled={dayOffset + 5 >= days.length}
+              onClick={() => setDayOffset((v) => Math.min(days.length - 5, v + 1))}
+            >
+              →
+            </button>
+          </div>
+        </div>
+        <div className="book-dates">
+          {visibleDays.map((d) => {
+            const key = dayKey(d);
+            const label = d.toLocaleDateString(undefined, {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            });
+            return (
+              <button
+                key={key}
+                type="button"
+                className={`book-date ${dateKey === key ? "active" : ""}`}
+                onClick={() => {
+                  setDateKey(key);
+                  setTimeMins(null);
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        <h3 className="book-subhead">Select time of day</h3>
+        {!dateKey ? (
+          <p className="muted">Choose a date first.</p>
+        ) : (
+          <div className="book-times">
+            {availableTimes.length ? (
+              availableTimes.map((mins) => (
+                <button
+                  key={mins}
+                  type="button"
+                  className={`book-time ${timeMins === mins ? "active" : ""}`}
+                  onClick={() => setTimeMins(mins)}
+                >
+                  {fmtTime12(mins)}
+                </button>
+              ))
+            ) : (
+              <p className="muted">No times left for this day.</p>
+            )}
+          </div>
+        )}
+
+        <div className="book-tz">
+          <span>Timezone</span>
+          <strong>(GMT+5:30) Chennai, Kolkata, Mumbai, New Delhi</strong>
+        </div>
+
+        <div className="form-group">
+          <label>Full name</label>
+          <input name="name" defaultValue={user?.full_name || ""} required />
+        </div>
+        <div className="form-group">
+          <label>{duration === 5 ? "Email" : "Email (Zoom after approval)"}</label>
+          <input name="email" type="email" defaultValue={user?.email || ""} required />
+        </div>
+        <div className="form-group">
+          <label>Mobile</label>
+          <input name="mobile" defaultValue={user?.mobile || ""} required />
+        </div>
+        <label className="consent-check" htmlFor={`${formId}-terms`}>
+          <input
+            id={`${formId}-terms`}
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+          />
+          <span>
+            I agree to the <Link to="/terms">Terms</Link>, <Link to="/privacy">Privacy</Link>, and{" "}
+            <Link to="/refund">Refund</Link> policies.
+          </span>
+        </label>
+        {!isMobile ? (
+          <button
+            type="submit"
+            className="btn btn-primary btn-lg btn-block"
+            disabled={busy || !slot || !agreed}
+          >
+            {busy ? "Booking..." : `Let's connect · ₹${price}`}
+          </button>
+        ) : null}
+      </form>
+    );
+  }
+
+  function renderPayBlock() {
+    if (!done) return null;
+    const upiUri = buildUpiUri({
+      pa: info?.upi_id,
+      am: done.price_inr,
+      tr: done.id,
+      tn: `1:1 ${done.id}`,
+    });
+    return (
+      <div className="panel enroll-panel">
+        <h2 className="sheet-title" style={{ textAlign: "center" }}>
+          Pay · {planTitle(done.duration_min)}
+        </h2>
         <p className="enroll-order-id">
           <strong>{done.id}</strong> · ₹{done.price_inr}
         </p>
@@ -246,20 +399,7 @@ export default function BookConnect() {
         {!paid ? (
           <>
             <div className="enroll-qr">
-              <img
-                src={qrImageUrl(
-                  buildUpiUri({
-                    pa: info?.upi_id,
-                    am: done.price_inr,
-                    tr: done.id,
-                    tn: `1:1 ${done.id}`,
-                  }),
-                  220
-                )}
-                alt="UPI payment QR"
-                width={220}
-                height={220}
-              />
+              <img src={qrImageUrl(upiUri, 220)} alt="UPI payment QR" width={220} height={220} />
             </div>
             <p className="upi-highlight enroll-upi">
               UPI: {info?.upi_id}
@@ -301,8 +441,16 @@ export default function BookConnect() {
           </>
         )}
       </div>
-    </div>
-  ) : null;
+    );
+  }
+
+  if (done && !isMobile) {
+    return (
+      <div className="page">
+        <div className="container enroll-wrap">{renderPayBlock()}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
@@ -313,7 +461,7 @@ export default function BookConnect() {
         <h1 className="page-title" style={{ marginTop: 12 }}>
           Book 1:1 Connect
         </h1>
-        {error && !sheetOpen ? <div className="flash error">{error}</div> : null}
+        {error && !(isMobile && sheetOpen) ? <div className="flash error">{error}</div> : null}
 
         <div className="plan-picker">
           {PLANS.map((p) => {
@@ -357,13 +505,24 @@ export default function BookConnect() {
             );
           })}
         </div>
-        <p className="muted" style={{ marginTop: 14, textAlign: "center" }}>
-          Tap a plan to pick date &amp; time.
-        </p>
+
+        {!isMobile && plan ? (
+          <>
+            {renderPlanInfo(plan)}
+            {error ? <div className="flash error">{error}</div> : null}
+            {renderBookForm("book-desktop")}
+          </>
+        ) : null}
+
+        {isMobile && !sheetOpen ? (
+          <p className="muted" style={{ marginTop: 14, textAlign: "center" }}>
+            Tap a plan to pick date &amp; time.
+          </p>
+        ) : null}
       </div>
 
-      {sheetOpen && plan ? (
-        <div className="sheet-overlay" role="presentation" onClick={closeSheet}>
+      {isMobile && sheetOpen && plan ? (
+        <div className="sheet-overlay" role="presentation" onClick={() => setSheetOpen(false)}>
           <div
             className="sheet-card"
             role="dialog"
@@ -379,138 +538,55 @@ export default function BookConnect() {
                 </p>
                 <h2 className="sheet-title">{plan.name}</h2>
               </div>
-              <button type="button" className="sheet-close" aria-label="Close" onClick={closeSheet}>
+              <button
+                type="button"
+                className="sheet-close"
+                aria-label="Close"
+                onClick={() => setSheetOpen(false)}
+              >
                 {"\u2715"}
               </button>
             </div>
 
-            <div className="plan-info sheet-info">
-              <p className="plan-info-blurb">{plan.blurb}</p>
-              <p className="plan-info-lead">{plan.lead}</p>
-              <ul className="plan-info-list">
-                {plan.points.map((pt) => (
-                  <li key={pt}>→ {pt}</li>
-                ))}
-              </ul>
-              <p className="plan-info-how">
-                <strong>How it works:</strong> {plan.how}
-              </p>
+            <div className="sheet-scroll">
+              <div className="plan-info sheet-info">
+                <p className="plan-info-blurb">{plan.blurb}</p>
+                <p className="plan-info-lead">{plan.lead}</p>
+                <ul className="plan-info-list">
+                  {plan.points.map((pt) => (
+                    <li key={pt}>→ {pt}</li>
+                  ))}
+                </ul>
+                <p className="plan-info-how">
+                  <strong>How it works:</strong> {plan.how}
+                </p>
+              </div>
+              {error ? <div className="flash error">{error}</div> : null}
+              {renderBookForm("book-mobile")}
             </div>
 
-            {error ? <div className="flash error">{error}</div> : null}
-
-            <form className="book-card" onSubmit={onSubmit}>
-              <div className="book-card-head">
-                <h3>When should we meet?</h3>
-                <div className="book-day-nav">
-                  <button
-                    type="button"
-                    className="book-nav-btn"
-                    aria-label="Earlier dates"
-                    disabled={dayOffset <= 0}
-                    onClick={() => setDayOffset((v) => Math.max(0, v - 1))}
-                  >
-                    ←
-                  </button>
-                  <button
-                    type="button"
-                    className="book-nav-btn"
-                    aria-label="Later dates"
-                    disabled={dayOffset + 5 >= days.length}
-                    onClick={() => setDayOffset((v) => Math.min(days.length - 5, v + 1))}
-                  >
-                    →
-                  </button>
-                </div>
-              </div>
-              <div className="book-dates">
-                {visibleDays.map((d) => {
-                  const key = dayKey(d);
-                  const label = d.toLocaleDateString(undefined, {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "short",
-                  });
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`book-date ${dateKey === key ? "active" : ""}`}
-                      onClick={() => {
-                        setDateKey(key);
-                        setTimeMins(null);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <h3 className="book-subhead">Select time of day</h3>
-              {!dateKey ? (
-                <p className="muted">Choose a date first.</p>
-              ) : (
-                <div className="book-times">
-                  {availableTimes.length ? (
-                    availableTimes.map((mins) => (
-                      <button
-                        key={mins}
-                        type="button"
-                        className={`book-time ${timeMins === mins ? "active" : ""}`}
-                        onClick={() => setTimeMins(mins)}
-                      >
-                        {fmtTime12(mins)}
-                      </button>
-                    ))
-                  ) : (
-                    <p className="muted">No times left for this day.</p>
-                  )}
-                </div>
-              )}
-
-              <div className="book-tz">
-                <span>Timezone</span>
-                <strong>(GMT+5:30) Chennai, Kolkata, Mumbai, New Delhi</strong>
-              </div>
-
-              <div className="form-group">
-                <label>Full name</label>
-                <input name="name" defaultValue={user?.full_name || ""} required />
-              </div>
-              <div className="form-group">
-                <label>{duration === 5 ? "Email" : "Email (Zoom after approval)"}</label>
-                <input name="email" type="email" defaultValue={user?.email || ""} required />
-              </div>
-              <div className="form-group">
-                <label>Mobile</label>
-                <input name="mobile" defaultValue={user?.mobile || ""} required />
-              </div>
-              <label className="consent-check" htmlFor="book-terms">
-                <input
-                  id="book-terms"
-                  type="checkbox"
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                />
-                <span>
-                  I agree to the <Link to="/terms">Terms</Link>, <Link to="/privacy">Privacy</Link>, and{" "}
-                  <Link to="/refund">Refund</Link> policies.
-                </span>
-              </label>
+            <div className="sheet-cta">
               <button
                 type="submit"
+                form="book-mobile"
                 className="btn btn-primary btn-lg btn-block"
                 disabled={busy || !slot || !agreed}
               >
                 {busy ? "Booking..." : `Let's connect · ₹${price}`}
               </button>
-            </form>
+            </div>
           </div>
         </div>
       ) : null}
 
-      {payOverlay}
+      {isMobile && done ? (
+        <div className="sheet-overlay" role="presentation">
+          <div className="sheet-card sheet-card-pay" role="dialog" aria-modal="true" aria-label="Pay with UPI">
+            <div className="sheet-grab" />
+            <div className="sheet-scroll">{renderPayBlock()}</div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

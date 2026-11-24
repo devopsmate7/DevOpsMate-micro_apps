@@ -523,19 +523,21 @@ ul, ol { list-style: none; }
   min-height: 248px;
   padding: 14px 14px 16px;
   border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.16);
-  background: transparent;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.16) 0%, rgba(59,130,246,0.18) 48%, rgba(255,255,255,0.06) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 12px 28px rgba(15, 23, 42, 0.28);
   color: var(--text);
   text-align: left;
   cursor: pointer;
   transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
-.mentor-card:hover { transform: translateY(-2px); border-color: rgba(233, 205, 133, 0.35); }
+.mentor-card:hover { transform: translateY(-2px); border-color: rgba(191, 219, 254, 0.55); }
 .mentor-card.active {
-  border-color: rgba(233, 205, 133, 0.6);
-  box-shadow: 0 0 0 1px rgba(233, 205, 133, 0.25), 0 16px 36px rgba(0,0,0,0.28);
+  border-color: rgba(125, 211, 252, 0.75);
+  box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.35), 0 16px 36px rgba(0,0,0,0.28);
 }
 .mentor-card-top {
   display: flex; justify-content: space-between; gap: 6px;
@@ -583,10 +585,10 @@ ul, ol { list-style: none; }
 .mentor-price { font-size: 18px; font-weight: 800; color: #fff; }
 .mentor-card-name { margin: 0; font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3; }
 .sheet-overlay {
-  position: fixed; inset: 0; z-index: 220;
+  position: fixed; inset: 0; z-index: 400;
   display: flex; align-items: flex-end; justify-content: center;
   padding: 0;
-  background: rgba(3, 3, 6, 0.72);
+  background: rgba(3, 3, 6, 0.78);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: modalFadeIn 0.18s ease;
@@ -594,12 +596,12 @@ ul, ol { list-style: none; }
 .sheet-card {
   width: 100%;
   max-width: 560px;
-  max-height: min(92vh, 900px);
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  max-height: min(94vh, 920px);
+  display: flex;
+  flex-direction: column;
   border-radius: 22px 22px 0 0;
-  padding: 10px 16px calc(18px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(180deg, rgba(22, 24, 36, 0.98), rgba(10, 11, 18, 0.98));
+  padding: 10px 0 0;
+  background: linear-gradient(180deg, rgba(22, 24, 36, 0.99), rgba(10, 11, 18, 0.99));
   border: 1px solid rgba(255,255,255,0.12);
   border-bottom: 0;
   box-shadow: 0 -20px 50px rgba(0,0,0,0.45);
@@ -608,33 +610,47 @@ ul, ol { list-style: none; }
 .sheet-grab {
   width: 42px; height: 4px; border-radius: 999px;
   background: rgba(255,255,255,0.22);
-  margin: 4px auto 12px;
+  margin: 4px auto 8px;
+  flex: none;
 }
 .sheet-head {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
-  margin-bottom: 10px;
+  margin: 0 16px 8px;
+  flex: none;
 }
-.sheet-title { margin: 0; font-size: 18px; font-weight: 750; color: #fff; }
+.sheet-title { margin: 0; font-size: 17px; font-weight: 750; color: #fff; }
 .sheet-close {
   width: 34px; height: 34px; border-radius: 50%;
   border: 1px solid var(--line); background: rgba(255,255,255,0.06);
   color: var(--text-2); cursor: pointer; flex: none;
 }
-.sheet-info { margin: 0 0 12px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: transparent; }
-.sheet-card .book-card { margin-top: 0; padding: 0; background: transparent; border: 0; box-shadow: none; }
+.sheet-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px 12px;
+}
+.sheet-info { margin: 0 0 12px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); }
+.sheet-cta {
+  flex: none;
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255,255,255,0.1);
+  background: rgba(8, 9, 16, 0.96);
+}
+.sheet-card .book-card {
+  margin-top: 0; padding: 0; background: transparent; border: 0; box-shadow: none;
+}
 .sheet-card .book-card::after { display: none; }
+.sheet-card .panel { background: transparent; box-shadow: none; }
+body.sheet-open .site-footer,
+body.sheet-open .site-top {
+  visibility: hidden;
+  pointer-events: none;
+}
 @keyframes sheetUp {
   from { transform: translateY(24px); opacity: 0.7; }
   to { transform: translateY(0); opacity: 1; }
-}
-@media (min-width: 820px) {
-  .sheet-overlay { align-items: center; padding: 24px; }
-  .sheet-card {
-    border-radius: 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.12);
-    max-height: 88vh;
-  }
-  .sheet-grab { display: none; }
 }
 .coming-soon-note {
   display: inline-block; margin-top: 6px;
@@ -694,17 +710,39 @@ ul, ol { list-style: none; }
 }
 .book-tz span { color: var(--text-3); font-weight: 600; }
 @media (max-width: 900px) {
-  .plan-picker { grid-template-columns: 1fr; }
+  .plan-picker { grid-template-columns: 1fr; gap: 10px; }
 }
-@media (max-width: 760px) {
+@media (max-width: 820px) {
+  /* ~30% smaller product cards on mobile only */
+  .mentor-card {
+    min-height: 174px;
+    gap: 6px;
+    padding: 10px 10px 12px;
+    border-radius: 14px;
+    touch-action: manipulation;
+  }
+  .mentor-card-top { font-size: 8px; }
+  .mentor-card-frame {
+    grid-template-columns: 38px 1fr;
+    gap: 8px;
+    min-height: 82px;
+    padding: 6px 4px 4px 0;
+  }
+  .mentor-card-side { font-size: 8px; }
+  .mentor-card-mins { font-size: 16px; }
+  .mentor-card-title { font-size: 16px; margin: 1px 0 4px; }
+  .mentor-card-sub { font-size: 11px; padding-top: 5px; }
+  .mentor-pill { height: 20px; padding: 0 8px; font-size: 10px; }
+  .mentor-price { font-size: 14px; }
+  .mentor-card-name { font-size: 11.5px; }
   .book-dates { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .book-times { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .mentor-card { min-height: 220px; touch-action: manipulation; }
-  .book-date, .book-time { min-height: 44px; touch-action: manipulation; }
-  .mentor-card-title { font-size: 20px; }
-  .mentor-card-mins { font-size: 20px; }
+  .book-date, .book-time { min-height: 42px; touch-action: manipulation; font-size: 12px; }
   .sheet-card .book-times { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sheet-card .book-dates { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sheet-info .plan-info-blurb { font-size: 14.5px; }
+  .sheet-info .plan-info-lead { font-size: 13px; }
+  .sheet-info .plan-info-list li { font-size: 12.5px; }
   .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 .slot-box.active {
