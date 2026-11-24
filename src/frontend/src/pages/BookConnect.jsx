@@ -6,7 +6,6 @@ import { WhatsAppIcon } from "../components/Icon";
 import { buildUpiUri, qrImageUrl } from "../upi";
 import { connectPaymentMessage, openWhatsApp } from "../whatsapp";
 
-/** Afternoon/evening slots matching Topmate-style grid (2:00 PM – 9:30 PM) */
 const SLOT_MINUTES = (() => {
   const out = [];
   for (let h = 14; h <= 21; h += 1) {
@@ -19,8 +18,15 @@ const SLOT_MINUTES = (() => {
 const PLANS = [
   {
     id: 5,
-    label: "₹19 Advice",
-    tag: "Priority DM",
+    mins: "₹19",
+    title: "Priority DM.",
+    subLead: "AWS DevOps",
+    subEm: "Personal Advice",
+    subTail: "",
+    name: "Get My Personal Advice",
+    pill: "Advice",
+    words: ["ASK", "GUIDE", "GROW"],
+    side: "Clarity today.\nBetter tomorrow.",
     blurb: "Yes, it’s just chocolate price",
     lead: "Ask me anything — I’ll reply personally.",
     points: [
@@ -34,8 +40,15 @@ const PLANS = [
   },
   {
     id: 15,
-    label: "15 min Live",
-    tag: "Video call",
+    mins: "15 min",
+    title: "Live Video Call.",
+    subLead: "AWS DevOps Career,",
+    subEm: "Life & Growth",
+    subTail: " Guidance",
+    name: "AWS DevOps Guidance - 1:1",
+    pill: "Popular",
+    words: ["STRATEGY", "CREATIVITY", "IDENTITY"],
+    side: "Clarity today.\nBetter tomorrow.",
     blurb: "Quick clarity for your AWS / DevOps path",
     lead: "Short Zoom call — focused answers and next steps.",
     points: [
@@ -49,8 +62,15 @@ const PLANS = [
   },
   {
     id: 40,
-    label: "40 min Mentorship",
-    tag: "1:1 guidance",
+    mins: "40 min",
+    title: "Live Mentorship.",
+    subLead: "AWS DevOps",
+    subEm: "Mentorship",
+    subTail: " / Guidance - 1:1",
+    name: "AWS DevOps Mentorship / Guidance - 1:1",
+    pill: "Best value",
+    words: ["DEPTH", "CAREER", "SHIP"],
+    side: "Clarity today.\nBetter tomorrow.",
     blurb: "Deeper 1:1 for career, life & growth in DevOps",
     lead: "Longer Zoom — more depth, more practice.",
     points: [
@@ -107,6 +127,7 @@ export default function BookConnect() {
   const navigate = useNavigate();
   const [info, setInfo] = useState(null);
   const [duration, setDuration] = useState(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [dateKey, setDateKey] = useState("");
   const [timeMins, setTimeMins] = useState(null);
   const [dayOffset, setDayOffset] = useState(0);
@@ -126,6 +147,14 @@ export default function BookConnect() {
       .then(setInfo)
       .catch((e) => setError(e.message));
   }, [token, navigate]);
+
+  useEffect(() => {
+    const lock = sheetOpen || Boolean(done);
+    document.body.style.overflow = lock ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [sheetOpen, done]);
 
   const plan = PLANS.find((p) => p.id === duration) || null;
   const price = useMemo(() => {
@@ -153,6 +182,17 @@ export default function BookConnect() {
     const [y, m, d] = dateKey.split("-").map(Number);
     return toLocalIso(new Date(y, m - 1, d, Math.floor(timeMins / 60), timeMins % 60, 0));
   }, [dateKey, timeMins]);
+
+  function pickPlan(id) {
+    setDuration(id);
+    setSheetOpen(true);
+    setError("");
+    setAgreed(false);
+  }
+
+  function closeSheet() {
+    setSheetOpen(false);
+  }
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -182,6 +222,7 @@ export default function BookConnect() {
           slot_start: slot,
         },
       });
+      setSheetOpen(false);
       setDone(data);
       setPaid(false);
     } catch (err) {
@@ -191,66 +232,77 @@ export default function BookConnect() {
     }
   }
 
-  if (done) {
-    const upiUri = buildUpiUri({
-      pa: info?.upi_id,
-      am: done.price_inr,
-      tr: done.id,
-      tn: `1:1 ${done.id}`,
-    });
-    const waPayload = {
-      user: {
-        full_name: done.buyer_name,
-        email: done.email,
-        mobile: done.mobile,
-      },
-      bookingId: done.id,
-      amount: done.price_inr,
-      slot: done.slot_start.replace("T", " "),
-      plan: planTitle(done.duration_min),
-      upiId: info?.upi_id,
-    };
-    return (
-      <div className="page">
-        <div className="container enroll-wrap">
-          <h1 className="page-title">Pay · {planTitle(done.duration_min)}</h1>
-          <p className="enroll-order-id">
-            <strong>{done.id}</strong> · ₹{done.price_inr}
-          </p>
-          <p className="muted">When: {done.slot_start.replace("T", " ")}</p>
-          {!paid ? (
-            <div className="panel enroll-panel">
-              <div className="enroll-qr">
-                <img src={qrImageUrl(upiUri, 220)} alt="UPI payment QR" width={220} height={220} />
-              </div>
-              <p className="upi-highlight enroll-upi">
-                UPI: {info?.upi_id}
-                {info?.upi_id_alt ? ` / ${info.upi_id_alt}` : ""}
-              </p>
-              <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => setPaid(true)}>
-                I&apos;ve paid
-              </button>
+  const payOverlay = done ? (
+    <div className="sheet-overlay" role="presentation">
+      <div className="sheet-card enroll-panel" role="dialog" aria-modal="true" aria-label="Pay with UPI">
+        <div className="sheet-grab" />
+        <h2 className="sheet-title">Pay · {planTitle(done.duration_min)}</h2>
+        <p className="enroll-order-id">
+          <strong>{done.id}</strong> · ₹{done.price_inr}
+        </p>
+        <p className="muted" style={{ textAlign: "center" }}>
+          When: {done.slot_start.replace("T", " ")}
+        </p>
+        {!paid ? (
+          <>
+            <div className="enroll-qr">
+              <img
+                src={qrImageUrl(
+                  buildUpiUri({
+                    pa: info?.upi_id,
+                    am: done.price_inr,
+                    tr: done.id,
+                    tn: `1:1 ${done.id}`,
+                  }),
+                  220
+                )}
+                alt="UPI payment QR"
+                width={220}
+                height={220}
+              />
             </div>
-          ) : (
-            <div className="panel enroll-panel">
-              <div className="flash ok">Payment noted. Share the screenshot on WhatsApp.</div>
-              <button
-                type="button"
-                className="btn btn-wa btn-lg btn-block"
-                onClick={() => openWhatsApp(connectPaymentMessage(waPayload))}
-              >
-                <WhatsAppIcon />
-                Share on WhatsApp
-              </button>
-              <Link to="/orders" className="btn btn-secondary btn-block" style={{ marginTop: 10 }}>
-                My enrollments
-              </Link>
-            </div>
-          )}
-        </div>
+            <p className="upi-highlight enroll-upi">
+              UPI: {info?.upi_id}
+              {info?.upi_id_alt ? ` / ${info.upi_id_alt}` : ""}
+            </p>
+            <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => setPaid(true)}>
+              I&apos;ve paid
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flash ok">Payment noted. Share the screenshot on WhatsApp.</div>
+            <button
+              type="button"
+              className="btn btn-wa btn-lg btn-block"
+              onClick={() =>
+                openWhatsApp(
+                  connectPaymentMessage({
+                    user: {
+                      full_name: done.buyer_name,
+                      email: done.email,
+                      mobile: done.mobile,
+                    },
+                    bookingId: done.id,
+                    amount: done.price_inr,
+                    slot: done.slot_start.replace("T", " "),
+                    plan: planTitle(done.duration_min),
+                    upiId: info?.upi_id,
+                  })
+                )
+              }
+            >
+              <WhatsAppIcon />
+              Share on WhatsApp
+            </button>
+            <Link to="/orders" className="btn btn-secondary btn-block" style={{ marginTop: 10 }}>
+              My enrollments
+            </Link>
+          </>
+        )}
       </div>
-    );
-  }
+    </div>
+  ) : null;
 
   return (
     <div className="page">
@@ -261,204 +313,204 @@ export default function BookConnect() {
         <h1 className="page-title" style={{ marginTop: 12 }}>
           Book 1:1 Connect
         </h1>
-        {error ? <div className="flash error">{error}</div> : null}
+        {error && !sheetOpen ? <div className="flash error">{error}</div> : null}
 
         <div className="plan-picker">
           {PLANS.map((p) => {
             const amt = info?.prices?.[String(p.id)] ?? (p.id === 5 ? 19 : p.id === 15 ? 99 : 199);
-            const theme = p.id === 5 ? "theme-advice" : p.id === 15 ? "theme-live" : "theme-mentor";
             return (
               <button
                 key={p.id}
                 type="button"
-                className={`mentor-card ${theme} ${duration === p.id ? "active" : ""}`}
-                onClick={() => {
-                  setDuration(p.id);
-                  setError("");
-                }}
+                className={`mentor-card ${duration === p.id ? "active" : ""}`}
+                onClick={() => pickPlan(p.id)}
               >
-                {p.id === 5 ? (
-                  <>
-                    <div className="mentor-viz mentor-viz-dm" aria-hidden="true">
-                      <span className="viz-bubble">?</span>
-                      <span className="viz-bubble reply">✓</span>
-                    </div>
-                    <p className="mentor-kicker">Priority DM</p>
-                    <p className="mentor-card-mins">₹{amt}</p>
-                    <p className="mentor-card-title">Personal Advice</p>
-                    <p className="mentor-card-sub">Chocolate-price answers on AWS DevOps, resume &amp; interviews.</p>
-                    <span className="mentor-pill">Almost free</span>
-                  </>
-                ) : p.id === 15 ? (
-                  <>
-                    <div className="mentor-viz mentor-viz-call" aria-hidden="true">
-                      <span className="viz-cam" />
-                      <span className="viz-pulse" />
-                    </div>
-                    <p className="mentor-kicker">Live video · Zoom</p>
-                    <p className="mentor-card-mins">15 min</p>
-                    <p className="mentor-card-title">Quick Connect</p>
+                <div className="mentor-card-top">
+                  {p.words.map((w) => (
+                    <span key={w}>{w}</span>
+                  ))}
+                </div>
+                <div className="mentor-card-frame">
+                  <p className="mentor-card-side">
+                    {p.side.split("\n").map((line) => (
+                      <span key={line}>
+                        {line}
+                        <br />
+                      </span>
+                    ))}
+                  </p>
+                  <div className="mentor-card-main">
+                    <p className="mentor-card-mins">{p.mins}</p>
+                    <p className="mentor-card-title">{p.title}</p>
                     <p className="mentor-card-sub">
-                      Focused AWS DevOps career &amp; <em>growth</em> guidance.
+                      {p.subLead} <em>{p.subEm}</em>
+                      {p.subTail}
                     </p>
-                    <div className="mentor-card-meta">
-                      <span className="mentor-pill">Popular</span>
-                      <span className="mentor-price">₹{amt}</span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="mentor-viz mentor-viz-deep" aria-hidden="true">
-                      <span className="viz-node" />
-                      <span className="viz-node" />
-                      <span className="viz-node" />
-                    </div>
-                    <p className="mentor-kicker">1:1 mentorship</p>
-                    <p className="mentor-card-mins">40 min</p>
-                    <p className="mentor-card-title">Deep Guidance</p>
-                    <p className="mentor-card-sub">
-                      Roadmap, pipelines, K8s doubts &amp; <em>career switch</em> plan.
-                    </p>
-                    <div className="mentor-card-meta">
-                      <span className="mentor-pill">Best value</span>
-                      <span className="mentor-price">₹{amt}</span>
-                    </div>
-                  </>
-                )}
+                  </div>
+                </div>
+                <div className="mentor-card-meta">
+                  <span className="mentor-pill">{p.pill}</span>
+                  <span className="mentor-price">₹{amt}</span>
+                </div>
+                <p className="mentor-card-name">{p.name}</p>
               </button>
             );
           })}
         </div>
-
-        {plan ? (
-          <div className="plan-info panel">
-            <p className="plan-info-blurb">{plan.blurb}</p>
-            <p className="plan-info-lead">{plan.lead}</p>
-            <ul className="plan-info-list">
-              {plan.points.map((pt) => (
-                <li key={pt}>→ {pt}</li>
-              ))}
-            </ul>
-            <p className="plan-info-how">
-              <strong>How it works:</strong> {plan.how}
-            </p>
-          </div>
-        ) : (
-          <p className="muted" style={{ marginTop: 12 }}>
-            Pick ₹19 Advice, 15 min, or 40 min to continue.
-          </p>
-        )}
-
-        {duration ? (
-          <form className="book-card panel" onSubmit={onSubmit}>
-            <div className="book-card-head">
-              <h2>When should we meet?</h2>
-              <div className="book-day-nav">
-                <button
-                  type="button"
-                  className="book-nav-btn"
-                  aria-label="Earlier dates"
-                  disabled={dayOffset <= 0}
-                  onClick={() => setDayOffset((v) => Math.max(0, v - 1))}
-                >
-                  ←
-                </button>
-                <button
-                  type="button"
-                  className="book-nav-btn"
-                  aria-label="Later dates"
-                  disabled={dayOffset + 5 >= days.length}
-                  onClick={() => setDayOffset((v) => Math.min(days.length - 5, v + 1))}
-                >
-                  →
-                </button>
-              </div>
-            </div>
-            <div className="book-dates">
-              {visibleDays.map((d) => {
-                const key = dayKey(d);
-                const label = d.toLocaleDateString(undefined, {
-                  weekday: "short",
-                  day: "numeric",
-                  month: "short",
-                });
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`book-date ${dateKey === key ? "active" : ""}`}
-                    onClick={() => {
-                      setDateKey(key);
-                      setTimeMins(null);
-                    }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <h2 className="book-subhead">Select time of day</h2>
-            {!dateKey ? (
-              <p className="muted">Choose a date first.</p>
-            ) : (
-              <div className="book-times">
-                {availableTimes.length ? (
-                  availableTimes.map((mins) => (
-                    <button
-                      key={mins}
-                      type="button"
-                      className={`book-time ${timeMins === mins ? "active" : ""}`}
-                      onClick={() => setTimeMins(mins)}
-                    >
-                      {fmtTime12(mins)}
-                    </button>
-                  ))
-                ) : (
-                  <p className="muted">No times left for this day.</p>
-                )}
-              </div>
-            )}
-
-            <div className="book-tz">
-              <span>Timezone</span>
-              <strong>(GMT+5:30) Chennai, Kolkata, Mumbai, New Delhi</strong>
-            </div>
-
-            <div className="form-group">
-              <label>Full name</label>
-              <input name="name" defaultValue={user?.full_name || ""} required />
-            </div>
-            <div className="form-group">
-              <label>{duration === 5 ? "Email" : "Email (Zoom after approval)"}</label>
-              <input name="email" type="email" defaultValue={user?.email || ""} required />
-            </div>
-            <div className="form-group">
-              <label>Mobile</label>
-              <input name="mobile" defaultValue={user?.mobile || ""} required />
-            </div>
-            <label className="consent-check" htmlFor="book-terms">
-              <input
-                id="book-terms"
-                type="checkbox"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-              />
-              <span>
-                I agree to the <Link to="/terms">Terms</Link>, <Link to="/privacy">Privacy</Link>, and{" "}
-                <Link to="/refund">Refund</Link> policies.
-              </span>
-            </label>
-            <button
-              type="submit"
-              className="btn btn-primary btn-lg btn-block"
-              disabled={busy || !slot || !agreed}
-            >
-              {busy ? "Booking..." : `Let's connect · ₹${price}`}
-            </button>
-          </form>
-        ) : null}
+        <p className="muted" style={{ marginTop: 14, textAlign: "center" }}>
+          Tap a plan to pick date &amp; time.
+        </p>
       </div>
+
+      {sheetOpen && plan ? (
+        <div className="sheet-overlay" role="presentation" onClick={closeSheet}>
+          <div
+            className="sheet-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Book slot"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sheet-grab" />
+            <div className="sheet-head">
+              <div>
+                <p className="eyebrow" style={{ marginBottom: 4 }}>
+                  {plan.mins}
+                </p>
+                <h2 className="sheet-title">{plan.name}</h2>
+              </div>
+              <button type="button" className="sheet-close" aria-label="Close" onClick={closeSheet}>
+                {"\u2715"}
+              </button>
+            </div>
+
+            <div className="plan-info sheet-info">
+              <p className="plan-info-blurb">{plan.blurb}</p>
+              <p className="plan-info-lead">{plan.lead}</p>
+              <ul className="plan-info-list">
+                {plan.points.map((pt) => (
+                  <li key={pt}>→ {pt}</li>
+                ))}
+              </ul>
+              <p className="plan-info-how">
+                <strong>How it works:</strong> {plan.how}
+              </p>
+            </div>
+
+            {error ? <div className="flash error">{error}</div> : null}
+
+            <form className="book-card" onSubmit={onSubmit}>
+              <div className="book-card-head">
+                <h3>When should we meet?</h3>
+                <div className="book-day-nav">
+                  <button
+                    type="button"
+                    className="book-nav-btn"
+                    aria-label="Earlier dates"
+                    disabled={dayOffset <= 0}
+                    onClick={() => setDayOffset((v) => Math.max(0, v - 1))}
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    className="book-nav-btn"
+                    aria-label="Later dates"
+                    disabled={dayOffset + 5 >= days.length}
+                    onClick={() => setDayOffset((v) => Math.min(days.length - 5, v + 1))}
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+              <div className="book-dates">
+                {visibleDays.map((d) => {
+                  const key = dayKey(d);
+                  const label = d.toLocaleDateString(undefined, {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short",
+                  });
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`book-date ${dateKey === key ? "active" : ""}`}
+                      onClick={() => {
+                        setDateKey(key);
+                        setTimeMins(null);
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <h3 className="book-subhead">Select time of day</h3>
+              {!dateKey ? (
+                <p className="muted">Choose a date first.</p>
+              ) : (
+                <div className="book-times">
+                  {availableTimes.length ? (
+                    availableTimes.map((mins) => (
+                      <button
+                        key={mins}
+                        type="button"
+                        className={`book-time ${timeMins === mins ? "active" : ""}`}
+                        onClick={() => setTimeMins(mins)}
+                      >
+                        {fmtTime12(mins)}
+                      </button>
+                    ))
+                  ) : (
+                    <p className="muted">No times left for this day.</p>
+                  )}
+                </div>
+              )}
+
+              <div className="book-tz">
+                <span>Timezone</span>
+                <strong>(GMT+5:30) Chennai, Kolkata, Mumbai, New Delhi</strong>
+              </div>
+
+              <div className="form-group">
+                <label>Full name</label>
+                <input name="name" defaultValue={user?.full_name || ""} required />
+              </div>
+              <div className="form-group">
+                <label>{duration === 5 ? "Email" : "Email (Zoom after approval)"}</label>
+                <input name="email" type="email" defaultValue={user?.email || ""} required />
+              </div>
+              <div className="form-group">
+                <label>Mobile</label>
+                <input name="mobile" defaultValue={user?.mobile || ""} required />
+              </div>
+              <label className="consent-check" htmlFor="book-terms">
+                <input
+                  id="book-terms"
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                />
+                <span>
+                  I agree to the <Link to="/terms">Terms</Link>, <Link to="/privacy">Privacy</Link>, and{" "}
+                  <Link to="/refund">Refund</Link> policies.
+                </span>
+              </label>
+              <button
+                type="submit"
+                className="btn btn-primary btn-lg btn-block"
+                disabled={busy || !slot || !agreed}
+              >
+                {busy ? "Booking..." : `Let's connect · ₹${price}`}
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {payOverlay}
     </div>
   );
 }
