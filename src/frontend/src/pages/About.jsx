@@ -7,23 +7,16 @@ const CERTS = [
   { icon: "🤖", label: "Anthropic AI Builder" },
 ];
 
-const FLOW = [
-  { label: "TCS" },
-  { label: "Infinite" },
-  { label: "HCLTech Lead Engineer" },
-  { label: "Bayer Platform Engineer & AI Builder", current: true },
-];
-
 export default function About() {
   return (
     <div className="page">
       <div className="container">
-        <div className="about-bento panel reveal">
-          <div className="about-bento-grid">
-            <aside className="about-side">
-              <div className="about-avatar" aria-hidden="true">
-                BR
-              </div>
+        <div className="about-modern reveal">
+          <div className="about-hero-block">
+            <div className="about-avatar" aria-hidden="true">
+              BR
+            </div>
+            <div className="about-hero-copy">
               <span className="about-status">
                 <span className="dot" />
                 Freelance &amp; Mentorship Open
@@ -33,16 +26,15 @@ export default function About() {
               </h1>
               <p className="about-role">DevOps Engineer @ Bayer</p>
               <p className="about-tag">Freelance &amp; Platform Engineer · 5+ Yrs Exp</p>
-
-              <div className="about-flow" aria-label="Career journey">
-                {FLOW.map((item, i) => (
-                  <span key={item.label} className="about-flow-item">
-                    <span className={`about-flow-chip ${item.current ? "current" : ""}`}>{item.label}</span>
-                    {i < FLOW.length - 1 ? <span className="about-flow-arrow" aria-hidden="true">→</span> : null}
-                  </span>
-                ))}
-              </div>
-
+              <p className="about-flow-line">
+                <span>TCS</span>
+                <em>→</em>
+                <span>Infinite</span>
+                <em>→</em>
+                <b>HCLTech Lead Engineer</b>
+                <em>→</em>
+                <strong>Current Bayer Platform Engineer &amp; AI Builder</strong>
+              </p>
               <div className="about-links">
                 <a
                   href="https://github.com/devopsmate7"
@@ -61,47 +53,50 @@ export default function About() {
                   LinkedIn ↗
                 </a>
               </div>
-              <div className="about-certs">
-                <p className="about-label">Verified Certifications</p>
-                <div className="chip-row">
-                  {CERTS.map((c) => (
-                    <span key={c.label} className="chip about-cert-chip">
-                      {c.icon} {c.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </aside>
-
-            <div className="about-main">
-              <p className="about-label">My Approach</p>
-              <div className="about-approach">
-                <article className="about-card">
-                  <h2>🛠️ Hands-On Production &amp; Freelance Delivery</h2>
-                  <p>
-                    I believe the only way to master DevOps is by shipping real production infrastructure.
-                    Through my enterprise roles and freelance consulting, I design, automate, and
-                    troubleshoot live cloud environments—bringing real-world execution into every
-                    DevOpsMate lab, mentoring session, and interview drill.
-                  </p>
-                </article>
-                <article className="about-card about-card-ai">
-                  <h2>🤖 AI-First DevOps Engineering</h2>
-                  <p>
-                    Modern cloud engineering goes beyond manual scripts. I pair battle-tested AWS,
-                    Terraform, and Kubernetes architectures with AI-first development workflows using
-                    Anthropic Claude Code and Cursor to build, debug, and ship faster.
-                  </p>
-                </article>
-              </div>
-
-              <div className="about-cta">
-                <p>When you are ready to begin, explore programs or chat directly.</p>
-                <Link to="/courses" className="btn btn-primary">
-                  View Programs →
-                </Link>
-              </div>
             </div>
+          </div>
+
+          <div className="about-certs">
+            <p className="about-label">Verified Certifications</p>
+            <div className="chip-row">
+              {CERTS.map((c) => (
+                <span key={c.label} className="chip about-cert-chip">
+                  {c.icon} {c.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="about-approach-modern">
+            <article>
+              <h2>
+                <span>🛠️</span> Hands-On Production &amp; Freelance Delivery
+              </h2>
+              <p>
+                I believe the only way to master DevOps is by shipping real production infrastructure.
+                Through my enterprise roles and freelance consulting, I design, automate, and troubleshoot
+                live cloud environments—bringing real-world execution into every DevOpsMate lab, mentoring
+                session, and interview drill.
+              </p>
+            </article>
+            <article>
+              <h2>
+                <span>🤖</span> AI-First DevOps Engineering
+              </h2>
+              <p>
+                Modern cloud engineering goes beyond manual scripts. I pair battle-tested{" "}
+                <strong>AWS, Terraform, and Kubernetes</strong> architectures with AI-first workflows using{" "}
+                <strong>Anthropic Claude Code</strong> and <strong>Cursor</strong> to build, debug, and ship
+                faster.
+              </p>
+            </article>
+          </div>
+
+          <div className="about-cta">
+            <p>When you are ready to begin, explore programs or chat directly.</p>
+            <Link to="/courses" className="btn btn-primary">
+              View Programs →
+            </Link>
           </div>
         </div>
       </div>

@@ -467,41 +467,44 @@ export default function BookConnect() {
           {PLANS.map((p) => {
             const amt = info?.prices?.[String(p.id)] ?? (p.id === 5 ? 19 : p.id === 15 ? 99 : 199);
             const theme = p.id === 5 ? "theme-advice" : p.id === 15 ? "theme-live" : "theme-mentor";
+            const kind =
+              p.id === 5 ? "Priority DM · 1 day reply" : p.id === 15 ? "Video meeting · 15 mins" : "Video meeting · 40 mins";
+            const desc =
+              p.id === 5
+                ? "Ask anything on AWS DevOps, resume & interviews"
+                : p.id === 15
+                  ? "15 min Live Video Call · Career, Life & Growth Guidance"
+                  : "40 min Live Mentorship · Deep AWS DevOps Guidance";
             return (
               <button
                 key={p.id}
                 type="button"
-                className={`mentor-card ${theme} ${duration === p.id ? "active" : ""}`}
+                className={`tm-card ${theme} ${duration === p.id ? "active" : ""}`}
                 onClick={() => pickPlan(p.id)}
               >
-                <div className="mentor-card-top">
+                <div className="tm-card-head">
                   {p.words.map((w) => (
                     <span key={w}>{w}</span>
                   ))}
                 </div>
-                <div className="mentor-card-frame">
-                  <p className="mentor-card-side">
-                    {p.side.split("\n").map((line) => (
-                      <span key={line}>
-                        {line}
-                        <br />
-                      </span>
-                    ))}
-                  </p>
-                  <div className="mentor-card-main">
-                    <p className="mentor-card-mins">{p.mins}</p>
-                    <p className="mentor-card-title">{p.title}</p>
-                    <p className="mentor-card-sub">
-                      {p.subLead} <em>{p.subEm}</em>
-                      {p.subTail}
-                    </p>
+                <div className="tm-card-body">
+                  <div className="tm-card-meta">
+                    <span>{kind}</span>
+                    <span className="tm-rating">★ 4.9</span>
                   </div>
+                  <h3 className="tm-card-title">{p.name}</h3>
+                  <p className="tm-card-desc">{desc}</p>
                 </div>
-                <div className="mentor-card-meta">
-                  <span className="mentor-pill">{p.pill}</span>
-                  <span className="mentor-price">₹{amt}</span>
+                <div className="tm-card-foot">
+                  <div className="tm-price-row">
+                    <strong>₹{amt}</strong>
+                    {p.id === 5 ? <s>₹99</s> : null}
+                    <span className="tm-pill">{p.pill}</span>
+                  </div>
+                  <span className="tm-go" aria-hidden="true">
+                    →
+                  </span>
                 </div>
-                <p className="mentor-card-name">{p.name}</p>
               </button>
             );
           })}

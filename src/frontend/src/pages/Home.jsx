@@ -154,14 +154,14 @@ export default function Home() {
               <h2 className="section-title">How DevOpsMate works</h2>
               <p className="section-sub">Projects first. A clear path. Proof you can show.</p>
             </div>
-            <div className="features home-approach-features">
+            <div className="home-goals home-approach-list">
               {FEATURES.map((f) => (
-                <div key={f.title} className="feature">
-                  <div className="feature-icon">
-                    <Icon name={f.icon} size={22} />
-                  </div>
-                  <h3>{f.title}</h3>
-                  <p>{f.text}</p>
+                <div key={f.title} className="home-goal panel home-goal-static">
+                  <span className="home-goal-emoji home-goal-icon">
+                    <Icon name={f.icon} size={18} />
+                  </span>
+                  <span className="home-goal-title">{f.title}</span>
+                  <span className="home-goal-copy">{f.text}</span>
                 </div>
               ))}
             </div>
