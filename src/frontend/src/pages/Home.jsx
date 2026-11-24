@@ -121,48 +121,48 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section home-programs">
-        <div className="container">
-          <div className="section-head">
-            <p className="eyebrow">Start here</p>
-            <h2 className="section-title">What do you need right now?</h2>
-            <p className="section-sub">Pick one path. We&apos;ll take you to the right service.</p>
+      <section className="section home-split">
+        <div className="container home-split-grid">
+          <div className="home-split-col home-programs">
+            <div className="section-head">
+              <p className="eyebrow">Start here</p>
+              <h2 className="section-title">What do you need right now?</h2>
+              <p className="section-sub">Pick one path. We&apos;ll take you to the right service.</p>
+            </div>
+            <div className="home-goals">
+              {GOALS.map((g) => (
+                <Link key={g.title} to="/courses" className="home-goal panel">
+                  <span className="home-goal-emoji" aria-hidden="true">
+                    {g.emoji}
+                  </span>
+                  <span className="home-goal-title">{g.title}</span>
+                  <span className="home-goal-copy">{g.copy}</span>
+                  <span className="home-goal-cta">
+                    {g.cta}
+                    <Icon name="arrowRight" size={16} />
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="home-goals">
-            {GOALS.map((g) => (
-              <Link key={g.title} to="/courses" className="home-goal panel">
-                <span className="home-goal-emoji" aria-hidden="true">
-                  {g.emoji}
-                </span>
-                <span className="home-goal-title">{g.title}</span>
-                <span className="home-goal-copy">{g.copy}</span>
-                <span className="home-goal-cta">
-                  {g.cta}
-                  <Icon name="arrowRight" size={16} />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section className="section home-approach">
-        <div className="container">
-          <div className="section-head">
-            <p className="eyebrow">The approach</p>
-            <h2 className="section-title">How DevOpsMate works</h2>
-            <p className="section-sub">Projects first. A clear path. Proof you can show.</p>
-          </div>
-          <div className="features">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="feature">
-                <div className="feature-icon">
-                  <Icon name={f.icon} size={22} />
+          <div className="home-split-col home-approach">
+            <div className="section-head">
+              <p className="eyebrow">The approach</p>
+              <h2 className="section-title">How DevOpsMate works</h2>
+              <p className="section-sub">Projects first. A clear path. Proof you can show.</p>
+            </div>
+            <div className="features home-approach-features">
+              {FEATURES.map((f) => (
+                <div key={f.title} className="feature">
+                  <div className="feature-icon">
+                    <Icon name={f.icon} size={22} />
+                  </div>
+                  <h3>{f.title}</h3>
+                  <p>{f.text}</p>
                 </div>
-                <h3>{f.title}</h3>
-                <p>{f.text}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>

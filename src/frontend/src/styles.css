@@ -633,35 +633,68 @@ ul, ol { list-style: none; }
 .term-dim { color: #9ca3af; }
 .term-accent { color: #fde68a; font-weight: 600; }
 
+.home-split { padding: 12px 0 36px; }
+.home-split-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 28px 32px;
+  align-items: start;
+}
+.home-split-col .section-head { margin-bottom: 16px; max-width: none; }
+.home-split-col .section-title { font-size: clamp(22px, 2.4vw, 28px); }
+.home-split-col .section-sub { font-size: 14px; }
+
 .home-goals {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 8px;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 0;
 }
 .home-goal {
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 20px 18px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto;
+  column-gap: 12px;
+  row-gap: 4px;
+  padding: 14px 14px;
   text-align: left;
-  border-radius: 18px;
+  border-radius: 16px;
   transition: border-color 0.25s var(--ease), background 0.25s var(--ease), transform 0.25s var(--ease);
 }
 .home-goal:hover {
   border-color: var(--line-strong); background: var(--surface-hover); transform: translateY(-2px);
   text-decoration: none; opacity: 1;
 }
-.home-goal-emoji { font-size: 22px; line-height: 1; }
+.home-goal-emoji { grid-row: 1 / span 3; align-self: start; font-size: 22px; line-height: 1; padding-top: 2px; }
 .home-goal-title {
-  font-family: var(--display); font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.02em;
+  font-family: var(--display); font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.02em;
 }
-.home-goal-copy { font-size: 14px; line-height: 1.45; color: var(--text-2); flex: 1; }
+.home-goal-copy { font-size: 13.5px; line-height: 1.4; color: var(--text-2); }
 .home-goal-cta {
   display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 6px; font-size: 13.5px; font-weight: 700; color: var(--gold-solid);
+  margin-top: 2px; font-size: 13px; font-weight: 700; color: var(--gold-solid);
 }
 
-.home-approach { padding: 28px 0 40px; }
-.home-approach .section-head { margin-bottom: 28px; }
+.home-approach { padding: 0; }
+.home-approach .section-head { margin-bottom: 16px; }
+.home-approach-features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.home-approach-features .feature {
+  padding: 12px 10px;
+  text-align: center;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: transparent;
+}
+.home-approach-features .feature + .feature { border-left: 1px solid var(--line); }
+.home-approach-features .feature-icon {
+  width: 40px; height: 40px; margin-bottom: 10px; border-radius: 12px;
+}
+.home-approach-features h3 { font-size: 15px; margin-bottom: 4px; }
+.home-approach-features p { font-size: 12.5px; line-height: 1.45; }
 .features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .feature { padding: 8px 28px; text-align: center; }
 .feature + .feature { border-left: 1px solid var(--line); }
@@ -1148,7 +1181,9 @@ ul, ol { list-style: none; }
   .service-icon { width: 42px; height: 42px; border-radius: 12px; }
   .service-icon svg { width: 19px; height: 19px; }
   .service-actions .btn { height: 38px; font-size: 13px; }
-  .home-goals { grid-template-columns: 1fr; gap: 12px; }
+  .home-split-grid { grid-template-columns: 1fr; gap: 22px; }
+  .home-approach-features { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .home-goals { gap: 10px; }
   .home-paths { gap: 10px; }
   .home-path { padding: 14px 12px; }
   .home-path-title { font-size: 15px; }
@@ -1303,11 +1338,9 @@ ul, ol { list-style: none; }
   .home-approach { padding: 12px 0 16px; }
   .home-programs { padding: 4px 0 20px; }
   .home-platforms { padding-top: 6px; }
-  .home-goals { grid-template-columns: 1fr; gap: 10px; }
-  .home-goal { padding: 14px 14px; }
-  .home-goal-title { font-size: 15px; }
-  .home-goal-copy { font-size: 13px; }
-  .live-terminal { margin-top: 20px; }
+  .home-goals { gap: 8px; }
+  .live-terminal { margin-top: 20px; width: 100%; }
+  .hero-actions .btn { min-height: 44px; }
   .hero-cred { font-size: 12.5px; padding: 0 4px; }
   .home-paths { grid-template-columns: 1fr 1fr; gap: 8px; }
   .home-path { padding: 12px 10px; border-radius: 14px; gap: 4px; }
