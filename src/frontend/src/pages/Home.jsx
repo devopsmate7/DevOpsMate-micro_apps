@@ -24,39 +24,39 @@ const TOOLS = [
 const FEATURES = [
   {
     icon: "code",
-    title: "Real-time with more projects",
-    text: "Learn live, build often, and ship production-style work instead of toy demos.",
+    title: "Real projects",
+    text: "Learn live and ship work that looks like production.",
   },
   {
     icon: "user",
-    title: "Clear career path roadmap",
-    text: "A step-by-step path from fundamentals to job-ready skills for cloud and DevOps roles.",
+    title: "Clear roadmap",
+    text: "Step-by-step from basics to job-ready cloud & DevOps.",
   },
   {
     icon: "award",
-    title: "Certificate of completion",
-    text: "A formal record of the program you complete, ready to present with your profile.",
+    title: "Certificate",
+    text: "Finish with a completion certificate for your profile.",
   },
 ];
 
 const GOALS = [
   {
     emoji: "\uD83C\uDFAF",
-    title: "I want to learn from scratch",
-    copy: "Build cloud, CI/CD & AI skills with live labs.",
-    cta: "See Training",
+    title: "Learn from scratch",
+    copy: "Live labs for AWS, CI/CD, and AI.",
+    cta: "See training",
   },
   {
     emoji: "\uD83D\uDEE0\uFE0F",
-    title: "I'm stuck on a work task",
-    copy: "Get 1:1 help with tickets, pipelines & infra.",
-    cta: "Get Job Support",
+    title: "Unblock work tasks",
+    copy: "1:1 help on tickets, pipelines, infra.",
+    cta: "Get job support",
   },
   {
     emoji: "\uD83D\uDE80",
-    title: "I'm preparing for interviews",
-    copy: "Practice with 45-day drills or offline Q&A packs.",
-    cta: "Start Prep",
+    title: "Prep for interviews",
+    copy: "45-day drills or offline Q&A pack.",
+    cta: "Start interview prep",
   },
 ];
 
@@ -124,9 +124,9 @@ export default function Home() {
       <section className="section home-programs">
         <div className="container">
           <div className="section-head">
-            <p className="eyebrow">Choose your goal</p>
-            <h2 className="section-title">Where should we start?</h2>
-            <p className="section-sub">Three paths — tap one and continue on Services.</p>
+            <p className="eyebrow">Start here</p>
+            <h2 className="section-title">What do you need right now?</h2>
+            <p className="section-sub">Pick one path. We&apos;ll take you to the right service.</p>
           </div>
           <div className="home-goals">
             {GOALS.map((g) => (
@@ -150,7 +150,8 @@ export default function Home() {
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">The approach</p>
-            <h2 className="section-title">Real projects. Clear path. Job-ready skills.</h2>
+            <h2 className="section-title">How DevOpsMate works</h2>
+            <p className="section-sub">Projects first. A clear path. Proof you can show.</p>
           </div>
           <div className="features">
             {FEATURES.map((f) => (

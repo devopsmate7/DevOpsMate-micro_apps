@@ -30,7 +30,7 @@ NOTICES: List[Notice] = [
         id="batch-2026-11",
         message="Enrollment open: AWS + DevOps + AI, Job Support, Interview Support, Offline Q&A pack, and 1:1 Connect.",
         link_text="Reserve a seat",
-        link_href="https://wa.me/918088929670",
+        link_href=None,
         active=True,
     ),
 ]

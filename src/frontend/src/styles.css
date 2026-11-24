@@ -255,6 +255,12 @@ ul, ol { list-style: none; }
   text-decoration: underline; text-underline-offset: 2px; white-space: nowrap;
 }
 .notice-link:hover { opacity: 1; color: #fff; }
+.notice-link-disabled {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.55;
+  text-decoration: none;
+}
 .notice-close {
   flex: none; z-index: 2; width: 28px; height: 28px; border-radius: 50%;
   display: grid; place-items: center; background: rgba(0, 0, 0, 0.2); border: 0;
