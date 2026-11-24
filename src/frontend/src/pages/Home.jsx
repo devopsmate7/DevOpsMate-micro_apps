@@ -25,17 +25,17 @@ const FEATURES = [
   {
     icon: "code",
     title: "Real projects",
-    text: "Learn live and ship work that looks like production.",
+    text: "Ship work that looks like production.",
   },
   {
     icon: "user",
     title: "Clear roadmap",
-    text: "Step-by-step from basics to job-ready cloud & DevOps.",
+    text: "Basics to job-ready cloud & DevOps.",
   },
   {
     icon: "award",
     title: "Certificate",
-    text: "Finish with a completion certificate for your profile.",
+    text: "Completion certificate for your profile.",
   },
 ];
 
@@ -162,7 +162,6 @@ export default function Home() {
                   </span>
                   <span className="home-goal-title">{f.title}</span>
                   <span className="home-goal-copy">{f.text}</span>
-                  <span className="home-goal-spacer" aria-hidden="true" />
                 </div>
               ))}
             </div>

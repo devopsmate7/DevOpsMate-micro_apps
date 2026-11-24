@@ -750,6 +750,23 @@ def admin_bookings(authorization: Optional[str] = Header(default=None)):
     return [row_to_booking(r) for r in rows]
 
 
+@app.post("/api/commerce/admin/reset-data")
+def admin_reset_data(authorization: Optional[str] = Header(default=None)):
+    """Clear bookings, orders, and carts for a fresh production release."""
+    require_admin_user(authorization)
+    with db() as conn:
+        bookings = conn.execute("SELECT COUNT(*) AS c FROM bookings").fetchone()["c"]
+        orders = conn.execute("SELECT COUNT(*) AS c FROM orders").fetchone()["c"]
+        carts = conn.execute("SELECT COUNT(*) AS c FROM carts").fetchone()["c"]
+        conn.execute("DELETE FROM bookings")
+        conn.execute("DELETE FROM orders")
+        conn.execute("DELETE FROM carts")
+    return {
+        "ok": True,
+        "deleted": {"bookings": bookings, "orders": orders, "carts": carts},
+    }
+
+
 @app.post("/api/commerce/admin/bookings/{booking_id}/approve", response_model=BookingOut)
 def admin_approve_booking(booking_id: str, authorization: Optional[str] = Header(default=None)):
     require_admin_user(authorization)
