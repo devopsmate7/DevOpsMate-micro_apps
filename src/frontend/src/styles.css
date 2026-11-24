@@ -1125,12 +1125,84 @@ body.sheet-open .site-top {
 .detail-aside p { color: var(--text-2); font-size: 15px; line-height: 1.6; }
 
 /* ---------- About ---------- */
-.about-statement {
-  font-family: var(--display); font-weight: 600;
-  font-size: clamp(22px, 3vw, 30px); line-height: 1.4; letter-spacing: -0.02em;
-  max-width: 820px; margin: 0 auto; text-align: center; color: var(--text);
+.about-bento { padding: 22px; margin-top: 8px; }
+.about-bento-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.6fr);
+  gap: 22px 28px;
+  align-items: start;
 }
-.about-statement em { font-style: normal; color: var(--text-2); }
+.about-side {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding-right: 18px; border-right: 1px solid var(--line);
+}
+.about-avatar {
+  width: 64px; height: 64px; border-radius: 16px;
+  display: grid; place-items: center;
+  font-weight: 800; font-size: 20px; color: #fff;
+  background: linear-gradient(145deg, #6366f1, #06b6d4);
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.35);
+}
+.about-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 4px; padding: 4px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 600;
+  color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+}
+.about-status .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #34d399;
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+  animation: pulseDot 1.6s ease-out infinite;
+}
+.about-name { margin: 4px 0 0; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
+.about-name span { font-size: 12px; font-weight: 500; color: var(--text-3); }
+.about-role { margin: 0; color: #a5b4fc; font-weight: 650; font-size: 14px; }
+.about-tag { margin: 0; color: var(--text-3); font-size: 12.5px; }
+.about-links { display: flex; gap: 8px; width: 100%; margin-top: 6px; }
+.about-links .btn { flex: 1; justify-content: center; }
+.about-certs { width: 100%; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+.about-label {
+  margin: 0 0 8px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3);
+}
+.about-main { display: flex; flex-direction: column; min-width: 0; }
+.about-approach { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.about-card {
+  padding: 12px 13px; border-radius: 14px;
+  border: 1px solid var(--line); background: rgba(255,255,255,0.03);
+}
+.about-card h2 { margin: 0 0 6px; font-size: 13px; font-weight: 750; line-height: 1.35; }
+.about-card p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-2); }
+.about-journey { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.about-step {
+  padding: 8px 9px; border-radius: 12px;
+  border: 1px solid var(--line); background: rgba(255,255,255,0.03);
+}
+.about-step.current {
+  border-color: rgba(129, 140, 248, 0.45);
+  background: rgba(99, 102, 241, 0.12);
+}
+.about-step-num { display: block; font-size: 10px; color: var(--text-3); margin-bottom: 2px; }
+.about-step strong { display: block; font-size: 13px; }
+.about-step span { display: block; font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.about-journey-line { margin: 10px 0 0; font-size: 12.5px; line-height: 1.45; }
+.about-cta {
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.about-cta p { margin: 0; font-size: 13px; color: var(--text-2); }
+@media (max-width: 900px) {
+  .about-bento-grid { grid-template-columns: 1fr; gap: 16px; }
+  .about-side {
+    border-right: 0; border-bottom: 1px solid var(--line);
+    padding-right: 0; padding-bottom: 14px; align-items: center; text-align: center;
+  }
+  .about-links, .about-certs .chip-row { justify-content: center; }
+  .about-approach { grid-template-columns: 1fr; }
+  .about-journey { grid-template-columns: 1fr 1fr; }
+  .about-cta { justify-content: center; text-align: center; }
+}
 .pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 64px; }
 .pillar { padding: 0 32px; }
 .pillar:first-child { padding-left: 0; }
