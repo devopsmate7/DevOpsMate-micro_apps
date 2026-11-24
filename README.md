@@ -1,62 +1,76 @@
 # DevOpsMate
 
-Website: https://devopsmate.in
+Website: **https://devopsmate.in**  
+Repo (private): `devopsmate7/DevOpsMate-micro_apps`
 
-Students sign up, log in, pick a course, and get a welcome email from devopsmate7@gmail.com.
-Users are stored in DynamoDB. Orders are stored on the server.
+Students sign up, log in, pick a course, and get a welcome email from `devopsmate7@gmail.com`.  
+Users → DynamoDB. Orders / 1:1 bookings → SQLite on the server.
 
-## 1. Create the server (you do this)
+---
 
-In the new AWS account, region **Mumbai**:
+## Migrate to a new EC2 (short)
 
-1. Launch **Ubuntu**, size **t3.medium**. Allow ports **22**, **80**, and **443**. Turn on termination protection.
-2. Attach an **Elastic IP**.
-3. In DuckDNS, set `devopsmate7` to that IP.
-4. Create a role named `DevOpsMateEC2DynamoDB` (trusted service: EC2) with this policy. Replace `ACCOUNT_ID`.
+### A) AWS (Mumbai `ap-south-1`)
 
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": ["dynamodb:DescribeTable", "dynamodb:CreateTable", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Query"],
-    "Resource": [
-      "arn:aws:dynamodb:ap-south-1:ACCOUNT_ID:table/devopsmate_users",
-      "arn:aws:dynamodb:ap-south-1:ACCOUNT_ID:table/devopsmate_users/index/*"
-    ]
-  }]
-}
-```
+1. Launch **Ubuntu** `t3.medium` · enable **termination protection**
+2. Security group: **22, 80, 443**
+3. Attach an **Elastic IP** — copy that IP
+4. IAM role `DevOpsMateEC2DynamoDB` on the instance (DynamoDB access to `devopsmate_users`) — prefer role, not access keys
+5. Instance → Metadata → **hop limit = 2**
 
-5. Attach that role to the instance.
-6. Instance settings, Metadata options: set the **hop limit to 2**.
+### B) Hostinger DNS
 
-## 2. Start the site (one script)
+1. Domain `devopsmate.in` → DNS
+2. **A** `@` → **new Elastic IP** · TTL `300`
+3. Keep **CNAME** `www` → `devopsmate.in`
 
-SSH in as `ubuntu` and run:
+### C) Server setup (one script)
 
 ```bash
+ssh -i your.pem ubuntu@NEW_ELASTIC_IP
+
+# Option 1 — upload start.sh alone, then:
 bash start.sh
-```
+# It asks for GitHub PAT (private repo) → clones → asks Gmail app password → builds
 
-Upload `scripts/start.sh` first, or, if you already cloned the repo:
-
-```bash
-cd DevOpsMate-micro_apps
+# Option 2 — if repo already cloned:
+cd ~/DevOpsMate-micro_apps
 bash scripts/start.sh
 ```
 
-It asks for the GitHub token and the Gmail app password, installs Docker, starts every container, and sends a test mail to devopsmate7@gmail.com. Then open https://devopsmate.in
+When prompted:
 
-The users table is created on first signup and starts empty.
+| Prompt | What to enter |
+|--------|----------------|
+| GitHub token | PAT with **repo** read on private `DevOpsMate-micro_apps` |
+| Gmail app password | 16-letter app password for `devopsmate7@gmail.com` |
 
-## Update later
+Open **https://devopsmate.in** when it finishes. Zoom / UPI defaults are already in compose + `.env.example`.
+
+### D) Later updates
 
 ```bash
 cd ~/DevOpsMate-micro_apps
-git pull
+git pull origin main
 sudo docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --build
 ```
+
+---
+
+## Secrets (do not commit)
+
+Keep these **only** in server `.env` (gitignored) or a password manager — never push to GitHub.
+
+| Item | Used for |
+|------|----------|
+| GitHub PAT | Clone private repo on new EC2 |
+| Gmail app password | SMTP welcome / booking mails |
+| Zoom Account ID / Client ID / Secret | 1:1 Zoom meetings |
+| AWS keys | Only if no EC2 IAM role (prefer role) |
+
+On the laptop, a local file `SECRETS.local.md` can hold your copies (gitignored).
+
+---
 
 ## Laptop
 
@@ -64,4 +78,4 @@ sudo docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --bu
 docker compose up --build
 ```
 
-Site: http://localhost:3000. Test mail stays on the laptop: http://localhost:8025
+Site: http://localhost:3000 · MailHog: http://localhost:8025

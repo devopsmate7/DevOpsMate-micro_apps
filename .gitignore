@@ -3,6 +3,8 @@
 
 # Env and secrets
 .env
+SECRETS.local.md
+*.pem
 *.pem
 
 # Python

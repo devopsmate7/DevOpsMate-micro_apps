@@ -2,7 +2,8 @@
 # The only command to run on a new EC2, as the ubuntu user (not root).
 #
 # The instance must already exist, with the DynamoDB role attached and the
-# metadata hop limit set to 2. DuckDNS must already point at this server.
+# metadata hop limit set to 2. Hostinger A record for devopsmate.in must
+# already point at this server's Elastic IP.
 #
 #   bash scripts/start.sh
 #
