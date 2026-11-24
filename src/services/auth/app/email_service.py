@@ -1,4 +1,5 @@
 import logging
+import os
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -11,7 +12,7 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-SITE_URL = "https://devopsmate7.duckdns.org"
+SITE_URL = os.getenv("SITE_URL", "https://devopsmate.in")
 WHATSAPP = "+91 80889 29670"
 SERVICES = [
     "AWS + DevOps + AI",

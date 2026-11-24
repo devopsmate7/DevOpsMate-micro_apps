@@ -1,5 +1,5 @@
 # Used on the EC2 host only. Caddy owns ports 80 and 443 and gets a free
-# Let's Encrypt certificate for devopsmate7.duckdns.org.
+# Let's Encrypt certificate for devopsmate.in (+ www).
 # The frontend container is not published on port 80 when this file is included
 # together with a compose command that does not also map that port.
 services:
@@ -13,6 +13,8 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: "${SMTP_FROM:-DevOpsMate <devopsmate7@gmail.com>}"
       SMTP_TLS: ${SMTP_TLS:-true}
+      SITE_URL: ${SITE_URL:-https://devopsmate.in}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://devopsmate.in,https://www.devopsmate.in,https://devopsmate7.duckdns.org}
 
   caddy:
     image: caddy:2

@@ -1,6 +1,6 @@
 # DevOpsMate
 
-Website: https://devopsmate7.duckdns.org
+Website: https://devopsmate.in
 
 Students sign up, log in, pick a course, and get a welcome email from devopsmate7@gmail.com.
 Users are stored in DynamoDB. Orders are stored on the server.
@@ -46,7 +46,7 @@ cd DevOpsMate-micro_apps
 bash scripts/start.sh
 ```
 
-It asks for the GitHub token and the Gmail app password, installs Docker, starts every container, and sends a test mail to devopsmate7@gmail.com. Then open https://devopsmate7.duckdns.org
+It asks for the GitHub token and the Gmail app password, installs Docker, starts every container, and sends a test mail to devopsmate7@gmail.com. Then open https://devopsmate.in
 
 The users table is created on first signup and starts empty.
 

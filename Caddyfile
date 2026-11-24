@@ -2,6 +2,10 @@
 	email devopsmate7@gmail.com
 }
 
-devopsmate7.duckdns.org {
+devopsmate.in, www.devopsmate.in {
 	reverse_proxy frontend:80
+}
+
+devopsmate7.duckdns.org {
+	redir https://devopsmate.in{uri} permanent
 }

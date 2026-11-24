@@ -99,9 +99,9 @@ echo "== Building and starting (several minutes) =="
 echo "== Waiting for the site =="
 ok=0
 for _ in $(seq 1 36); do
-  health=$(curl -fsS --resolve devopsmate7.duckdns.org:443:127.0.0.1 https://devopsmate7.duckdns.org/api/auth/health || true)
+  health=$(curl -fsS --resolve devopsmate.in:443:127.0.0.1 https://devopsmate.in/api/auth/health || true)
   if echo "$health" | grep -q '"mail":"gmail"' \
-    && curl -fsS --resolve devopsmate7.duckdns.org:443:127.0.0.1 https://devopsmate7.duckdns.org/api/catalog/courses >/dev/null; then
+    && curl -fsS --resolve devopsmate.in:443:127.0.0.1 https://devopsmate.in/api/catalog/courses >/dev/null; then
     ok=1
     break
   fi
@@ -126,5 +126,5 @@ print("Test mail sent to", settings.smtp_user)
 PY
 
 echo
-echo "Site is up: https://devopsmate7.duckdns.org"
+echo "Site is up: https://devopsmate.in"
 echo "Check the inbox and Spam of ${GMAIL}."
