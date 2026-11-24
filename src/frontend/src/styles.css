@@ -1335,10 +1335,34 @@ ul, ol { list-style: none; }
   .hero-lead { margin-top: 10px; font-size: 14px; max-width: 100%; padding: 0; line-height: 1.55; }
   .hero-actions { margin-top: 16px; gap: 8px; flex-wrap: wrap; }
   .hero-actions .btn { width: auto; min-width: 0; flex: 1 1 calc(50% - 4px); height: 40px; font-size: 14px; }
-  .home-approach { padding: 12px 0 16px; }
-  .home-programs { padding: 4px 0 20px; }
+  .home-split { padding: 8px 0 20px; }
+  .home-split-grid { grid-template-columns: 1fr; gap: 18px; }
+  .home-split-col .section-title { font-size: clamp(20px, 5.5vw, 24px); }
+  .home-split-col .section-sub { font-size: 13px; }
+  .home-approach, .home-programs { padding: 0; }
   .home-platforms { padding-top: 6px; }
+  .home-approach-features { grid-template-columns: 1fr; gap: 8px; }
+  .home-approach-features .feature {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 12px;
+    row-gap: 2px;
+    text-align: left;
+    padding: 12px;
+  }
+  .home-approach-features .feature-icon {
+    grid-row: 1 / span 2;
+    margin: 0;
+    width: 36px;
+    height: 36px;
+  }
+  .home-approach-features h3 { font-size: 14.5px; }
+  .home-approach-features p { font-size: 12.5px; }
   .home-goals { gap: 8px; }
+  .home-goal { padding: 12px; touch-action: manipulation; }
+  .home-goal-title { font-size: 15px; }
+  .home-goal-copy { font-size: 12.5px; }
   .live-terminal { margin-top: 20px; width: 100%; }
   .hero-actions .btn { min-height: 44px; }
   .hero-cred { font-size: 12.5px; padding: 0 4px; }
