@@ -42,9 +42,7 @@ export default function Courses() {
         <div className="page-head center reveal">
           <p className="eyebrow">Services</p>
           <h1 className="page-title">Pick your starting point</h1>
-          <p className="page-sub">
-            All 5 services use the same enroll flow: terms → UPI QR → WhatsApp → admin confirm.
-          </p>
+          <p className="page-sub">Pick the track that matches your goal.</p>
         </div>
 
         {loaded && !courses.length ? (
