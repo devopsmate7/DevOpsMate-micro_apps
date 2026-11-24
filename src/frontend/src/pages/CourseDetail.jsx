@@ -2,21 +2,13 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api";
 import { useAuth } from "../auth";
-import { useCart } from "../cart";
-import EnrollConsentModal from "../components/EnrollConsentModal";
-import Icon, { SERVICE_ICON, WhatsAppIcon } from "../components/Icon";
-import { enrollmentMessage, openWhatsApp } from "../whatsapp";
+import Icon, { SERVICE_ICON } from "../components/Icon";
 
 export default function CourseDetail() {
   const { slug } = useParams();
   const [course, setCourse] = useState(null);
   const [error, setError] = useState("");
-  const [msg, setMsg] = useState("");
-  const [pendingEnroll, setPendingEnroll] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const [enrollError, setEnrollError] = useState("");
-  const { token, user } = useAuth();
-  const { add, checkout } = useCart();
+  const { token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,44 +18,23 @@ export default function CourseDetail() {
   }, [slug]);
 
   function onEnrollClick() {
-    setMsg("");
-    setEnrollError("");
     if (!token) {
       navigate("/login");
-      return;
-    }
-    if (course?.slug === "interview-qa-offline") {
-      navigate("/pay/interview-qa-offline");
       return;
     }
     if (course?.slug === "1on1-connect") {
       navigate("/book/1on1");
       return;
     }
-    setPendingEnroll(true);
+    navigate(`/enroll/${course.slug}`);
   }
 
   function priceLabel() {
     if (!course) return "";
     if (course.price_display) return course.price_display;
     if (course.price_inr > 0) return `₹${Number(course.price_inr).toLocaleString("en-IN")}`;
+    if (course.slug === "interview-support") return "₹9,999";
     return "Contact for fee";
-  }
-
-  async function confirmEnroll() {
-    setConfirming(true);
-    try {
-      await add(course.id);
-      openWhatsApp(enrollmentMessage({ user, items: [{ title: course.title, qty: 1 }] }));
-      await checkout({ accept_terms: true, accept_refund: true });
-      setMsg("Your enrollment is confirmed. Continue in WhatsApp for next steps.");
-      setPendingEnroll(false);
-    } catch (e) {
-      setEnrollError(e.message);
-      setPendingEnroll(false);
-    } finally {
-      setConfirming(false);
-    }
   }
 
   if (error) {
@@ -217,24 +188,11 @@ export default function CourseDetail() {
             ) : null}
             <p>
               {course.slug === "1on1-connect"
-                ? "Pick a slot, pay via UPI, and get your Zoom link by email right away."
-                : course.slug === "interview-qa-offline"
-                  ? "Pay via UPI, share the screenshot on WhatsApp, then we email the ZIP after approval."
-                  : "WhatsApp opens with your details and this program, ready to send to the team."}
+                ? "Pick a slot, pay via UPI QR, WhatsApp the screenshot — Zoom after admin accept."
+                : "Agree to terms, pay the UPI QR, WhatsApp the screenshot — we confirm in admin."}
             </p>
-            {msg ? <div className="flash ok">{msg}</div> : null}
-            {enrollError ? <div className="flash error">{enrollError}</div> : null}
-            <button type="button" className="btn btn-wa btn-lg btn-block" onClick={onEnrollClick}>
-              {course.slug === "interview-qa-offline" ? (
-                "Pay via UPI"
-              ) : course.slug === "1on1-connect" ? (
-                "Book now"
-              ) : (
-                <>
-                  <WhatsAppIcon />
-                  Enroll now
-                </>
-              )}
+            <button type="button" className="btn btn-primary btn-lg btn-block" onClick={onEnrollClick}>
+              {course.slug === "1on1-connect" ? "Book now" : "Enroll now"}
             </button>
             {token ? (
               <Link to="/orders" className="btn btn-secondary btn-block">
@@ -248,14 +206,6 @@ export default function CourseDetail() {
           </aside>
         </div>
       </div>
-
-      <EnrollConsentModal
-        open={pendingEnroll}
-        title={`Enroll in ${course.title}`}
-        loading={confirming}
-        onCancel={() => setPendingEnroll(false)}
-        onConfirm={confirmEnroll}
-      />
     </div>
   );
 }

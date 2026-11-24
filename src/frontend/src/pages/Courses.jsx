@@ -2,26 +2,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api";
 import { useAuth } from "../auth";
-import { useCart } from "../cart";
-import EnrollConsentModal from "../components/EnrollConsentModal";
-import Icon, { SERVICE_ICON, WhatsAppIcon } from "../components/Icon";
-import { enrollmentMessage, openWhatsApp } from "../whatsapp";
+import Icon, { SERVICE_ICON } from "../components/Icon";
 
 const STEPS = [
-  { title: "Open the service you want", text: "Pick the track that matches your goal — training, support, or interview prep." },
-  { title: "Confirm on WhatsApp or UPI", text: "Most programs continue on WhatsApp. Offline Q&A uses UPI, then admin approval." },
-  { title: "Start learning", text: "We confirm your place, share next steps, and deliver pack files by email when approved." },
+  { title: "Open the service you want", text: "Pick training, support, interview prep, pack, or 1:1." },
+  { title: "Agree → pay UPI QR", text: "Accept terms, scan the per-order QR, then WhatsApp the screenshot." },
+  { title: "We confirm in admin", text: "After verification we confirm and deliver next steps / ZIP / Zoom." },
 ];
 
 export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const [msg, setMsg] = useState("");
-  const [error, setError] = useState("");
-  const [pendingCourse, setPendingCourse] = useState(null);
-  const [confirming, setConfirming] = useState(false);
-  const { token, user } = useAuth();
-  const { add, checkout } = useCart();
+  const { token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,39 +24,15 @@ export default function Courses() {
   }, []);
 
   function onEnrollClick(course) {
-    setMsg("");
-    setError("");
     if (!token) {
       navigate("/login");
-      return;
-    }
-    if (course.slug === "interview-qa-offline") {
-      navigate("/pay/interview-qa-offline");
       return;
     }
     if (course.slug === "1on1-connect") {
       navigate("/book/1on1");
       return;
     }
-    setPendingCourse(course);
-  }
-
-  async function confirmEnroll() {
-    const course = pendingCourse;
-    if (!course) return;
-    setConfirming(true);
-    try {
-      await add(course.id);
-      openWhatsApp(enrollmentMessage({ user, items: [{ title: course.title, qty: 1 }] }));
-      await checkout({ accept_terms: true, accept_refund: true });
-      setMsg(`Your enrollment for ${course.title} is confirmed. Continue in WhatsApp for next steps.`);
-      setPendingCourse(null);
-    } catch (e) {
-      setError(e.message);
-      setPendingCourse(null);
-    } finally {
-      setConfirming(false);
-    }
+    navigate(`/enroll/${course.slug}`);
   }
 
   return (
@@ -74,12 +42,10 @@ export default function Courses() {
           <p className="eyebrow">Services</p>
           <h1 className="page-title">Pick your starting point</h1>
           <p className="page-sub">
-            Training, support, interview prep, offline Q&A, and 1:1 Connect. Most enroll on WhatsApp; packs and 1:1 use UPI.
+            All 5 services use the same enroll flow: terms → UPI QR → WhatsApp → admin confirm.
           </p>
         </div>
 
-        {msg ? <div className="flash ok">{msg}</div> : null}
-        {error ? <div className="flash error">{error}</div> : null}
         {loaded && !courses.length ? (
           <div className="panel empty">Programs are temporarily unavailable. Please try again shortly.</div>
         ) : null}
@@ -115,17 +81,8 @@ export default function Courses() {
                 <Link to={`/courses/${c.slug}`} className="btn btn-secondary">
                   Details
                 </Link>
-                <button type="button" className="btn btn-wa" onClick={() => onEnrollClick(c)}>
-                  {c.slug === "interview-qa-offline" ? (
-                    "Pay UPI"
-                  ) : c.slug === "1on1-connect" ? (
-                    "Book"
-                  ) : (
-                    <>
-                      <WhatsAppIcon size={16} />
-                      Enroll
-                    </>
-                  )}
+                <button type="button" className="btn btn-primary" onClick={() => onEnrollClick(c)}>
+                  {c.slug === "1on1-connect" ? "Book" : "Enroll"}
                 </button>
               </div>
             </article>
@@ -142,14 +99,6 @@ export default function Courses() {
           ))}
         </div>
       </div>
-
-      <EnrollConsentModal
-        open={!!pendingCourse}
-        title={pendingCourse ? `Enroll in ${pendingCourse.title}` : "Enroll"}
-        loading={confirming}
-        onCancel={() => setPendingCourse(null)}
-        onConfirm={confirmEnroll}
-      />
     </div>
   );
 }

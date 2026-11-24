@@ -58,7 +58,11 @@ export default function AdminPack() {
         method: "POST",
         body: {},
       });
-      setMsg(`Approved ${orderId}. ZIP emailed to ${data.email}.`);
+      setMsg(
+        data.course_id === "c-interview-qa-offline"
+          ? `Approved ${orderId}. ZIP emailed to ${data.email}.`
+          : `Confirmed ${orderId} for ${data.email}.`
+      );
       await load();
     } catch (e) {
       setError(e.message);
@@ -89,9 +93,9 @@ export default function AdminPack() {
   return (
     <div className="page">
       <div className="container" style={{ maxWidth: 900 }}>
-        <h1 className="page-title">Admin · Pack & 1:1 bookings</h1>
+        <h1 className="page-title">Admin · Enrollments & 1:1</h1>
         <p className="page-sub">
-          Approve offline pack ZIPs, and review 1:1 Connect bookings (Zoom already emailed to the user).
+          Confirm UPI enrollments (pack ZIP emailed; other services marked confirmed). Accept 1:1 for Zoom email.
         </p>
         <p>
           <Link to="/" className="text-link">
@@ -137,42 +141,55 @@ export default function AdminPack() {
             {msg ? <div className="flash ok">{msg}</div> : null}
             {error ? <div className="flash error">{error}</div> : null}
             <h2 className="panel-title" style={{ marginTop: 20 }}>
-              Offline pack orders
+              Service enrollments
             </h2>
             <div className="panel">
-              {!orders.length ? <p className="muted">No pack orders yet.</p> : null}
-              {orders.map((o) => (
-                <div
-                  key={o.id}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    flexWrap: "wrap",
-                    borderBottom: "1px solid var(--line, #ddd)",
-                    padding: "12px 0",
-                  }}
-                >
-                  <div>
-                    <strong>{o.id}</strong>
-                    <div className="muted" style={{ fontSize: 14 }}>
-                      {o.buyer_name} · {o.email} · ₹{o.total_inr} · {o.status}
-                    </div>
-                    <div className="muted" style={{ fontSize: 12 }}>
-                      {o.created_at}
-                      {o.delivered_at ? ` · delivered ${o.delivered_at}` : ""}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    disabled={o.status === "delivered" || busy === o.id}
-                    onClick={() => approve(o.id)}
+              {!orders.length ? <p className="muted">No enrollments yet.</p> : null}
+              {orders.map((o) => {
+                const title = o.items?.[0]?.title || o.course_id || "Enrollment";
+                const isPack = o.course_id === "c-interview-qa-offline";
+                const done = o.status === "delivered" || o.status === "confirmed";
+                return (
+                  <div
+                    key={o.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      flexWrap: "wrap",
+                      borderBottom: "1px solid var(--line, #ddd)",
+                      padding: "12px 0",
+                    }}
                   >
-                    {o.status === "delivered" ? "Delivered" : busy === o.id ? "Sending..." : "Approve & email ZIP"}
-                  </button>
-                </div>
-              ))}
+                    <div>
+                      <strong>{o.id}</strong>
+                      <div className="muted" style={{ fontSize: 14 }}>
+                        {title} · {o.buyer_name} · {o.email} · ₹{o.total_inr} · {o.status}
+                      </div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        {o.created_at}
+                        {o.delivered_at ? ` · done ${o.delivered_at}` : ""}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      disabled={done || busy === o.id}
+                      onClick={() => approve(o.id)}
+                    >
+                      {done
+                        ? isPack
+                          ? "Delivered"
+                          : "Confirmed"
+                        : busy === o.id
+                          ? "Working..."
+                          : isPack
+                            ? "Approve & email ZIP"
+                            : "Confirm payment"}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             <h2 className="panel-title" style={{ marginTop: 28 }}>

@@ -26,11 +26,21 @@ export function enrollmentMessage({ user, items }) {
 }
 
 export function packPaymentMessage({ user, orderId, amount, upiId }) {
+  return enrollPaymentMessage({
+    user,
+    orderId,
+    amount,
+    title: "Offline Interview Q&A pack",
+    upiId,
+  });
+}
+
+export function enrollPaymentMessage({ user, orderId, amount, title, upiId }) {
   const name = user?.full_name || "Student";
   const email = user?.email || "-";
   const mobile = user?.mobile || "-";
   return [
-    "Hi DevOpsMate, I paid for the Offline Interview Q&A pack.",
+    `Hi DevOpsMate, I paid for ${title || "enrollment"}.`,
     "",
     `Order: ${orderId}`,
     `Name: ${name}`,
@@ -41,7 +51,7 @@ export function packPaymentMessage({ user, orderId, amount, upiId }) {
     "UTR/ref: <fill after payment>",
     "",
     "Attaching payment screenshot / receipt.",
-    "Please verify and approve so I receive the ZIP on email.",
+    "Please verify and confirm in admin.",
   ].join("\n");
 }
 

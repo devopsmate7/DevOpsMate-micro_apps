@@ -22,7 +22,11 @@ DB_PATH = Path(os.getenv("COMMERCE_DB_PATH", str(Path(__file__).resolve().parent
 CATALOG: Dict[str, Dict[str, Any]] = {
     "c-aws-devops-ai": {"title": "AWS + DevOps + AI", "price_inr": 20000, "slug": "aws-devops-ai"},
     "c-job-support": {"title": "Job Support", "price_inr": 20000, "slug": "job-support"},
-    "c-interview-support": {"title": "Interview Support", "price_inr": 0, "slug": "interview-support"},
+    "c-interview-support": {
+        "title": "Interview Support",
+        "price_inr": int(os.getenv("INTERVIEW_SUPPORT_PRICE_INR", "9999")),
+        "slug": "interview-support",
+    },
     "c-interview-qa-offline": {
         "title": "Real DevOps & Cloud Interview Questions",
         "price_inr": int(os.getenv("PACK_PRICE_INR", "1999")),
@@ -430,6 +434,92 @@ def pack_checkout(payload: PackCheckoutIn, authorization: Optional[str] = Header
     )
 
 
+def catalog_by_slug(slug: str) -> Dict[str, Any]:
+    for course_id, meta in CATALOG.items():
+        if meta["slug"] == slug or course_id == slug:
+            return {"course_id": course_id, **meta}
+    raise HTTPException(status_code=404, detail="Service not found")
+
+
+class EnrollCheckoutIn(BaseModel):
+    slug: str
+    accept_terms: bool = False
+    accept_refund: bool = False
+    email: str = ""
+    buyer_name: str = ""
+
+
+@app.get("/api/commerce/enroll/pay-info/{slug}", response_model=PackPayInfo)
+def enroll_pay_info(slug: str):
+    if slug in ("1on1-connect", CONNECT_COURSE_ID):
+        raise HTTPException(status_code=400, detail="Use /book/1on1 for 1:1 Connect")
+    meta = catalog_by_slug(slug)
+    return PackPayInfo(
+        course_id=meta["course_id"],
+        title=meta["title"],
+        price_inr=int(meta["price_inr"] or 0),
+        upi_id=UPI_ID,
+        upi_id_alt=UPI_ID_ALT,
+    )
+
+
+@app.post("/api/commerce/enroll/checkout", response_model=OrderOut)
+def enroll_checkout(payload: EnrollCheckoutIn, authorization: Optional[str] = Header(default=None)):
+    user_id = require_user(authorization)
+    if not payload.accept_terms or not payload.accept_refund:
+        raise HTTPException(status_code=400, detail="Accept Terms and Refund Policy to continue")
+    slug = (payload.slug or "").strip()
+    if slug in ("1on1-connect", CONNECT_COURSE_ID):
+        raise HTTPException(status_code=400, detail="Use /book/1on1 for 1:1 Connect")
+    meta = catalog_by_slug(slug)
+    email = (payload.email or "").strip().lower()
+    if "@" not in email:
+        raise HTTPException(status_code=400, detail="Valid email required")
+    price = int(meta["price_inr"] or 0)
+    if price <= 0:
+        raise HTTPException(status_code=400, detail="This service has no fixed price yet")
+    item = CartItemOut(
+        course_id=meta["course_id"],
+        title=meta["title"],
+        slug=meta["slug"],
+        price_inr=price,
+        qty=1,
+        line_total_inr=price,
+    )
+    order_id = f"DM-{uuid.uuid4().hex[:10].upper()}"
+    created = datetime.utcnow().isoformat()
+    with db() as conn:
+        conn.execute(
+            """
+            INSERT INTO orders
+              (id, user_id, items_json, total_inr, status, created_at, email, buyer_name, course_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                order_id,
+                user_id,
+                json.dumps([item.model_dump()]),
+                price,
+                "awaiting_approval",
+                created,
+                email,
+                (payload.buyer_name or "").strip() or "Student",
+                meta["course_id"],
+            ),
+        )
+    return OrderOut(
+        id=order_id,
+        items=[item],
+        total_inr=price,
+        status="awaiting_approval",
+        created_at=created,
+        email=email,
+        buyer_name=(payload.buyer_name or "").strip() or "Student",
+        course_id=meta["course_id"],
+        delivered_at=None,
+    )
+
+
 @app.get("/api/commerce/admin/pack-orders", response_model=List[OrderOut])
 def admin_pack_orders(authorization: Optional[str] = Header(default=None)):
     require_admin_user(authorization)
@@ -437,11 +527,9 @@ def admin_pack_orders(authorization: Optional[str] = Header(default=None)):
         rows = conn.execute(
             """
             SELECT * FROM orders
-            WHERE course_id = ? OR items_json LIKE ?
             ORDER BY created_at DESC
-            LIMIT 100
-            """,
-            (PACK_COURSE_ID, f"%{PACK_COURSE_ID}%"),
+            LIMIT 150
+            """
         ).fetchall()
     return [row_to_order(r) for r in rows]
 
@@ -454,16 +542,20 @@ def admin_approve_pack(order_id: str, authorization: Optional[str] = Header(defa
         if not row:
             raise HTTPException(status_code=404, detail="Order not found")
         order = row_to_order(row)
-        if order.status == "delivered":
+        if order.status in ("delivered", "confirmed"):
             return order
         email = order.email
         if not email:
             raise HTTPException(status_code=400, detail="Order has no email")
-        trigger_pack_email(order.id, email, order.buyer_name or "Student")
         delivered = datetime.utcnow().isoformat()
+        if order.course_id == PACK_COURSE_ID:
+            trigger_pack_email(order.id, email, order.buyer_name or "Student")
+            status = "delivered"
+        else:
+            status = "confirmed"
         conn.execute(
             "UPDATE orders SET status = ?, delivered_at = ? WHERE id = ?",
-            ("delivered", delivered, order_id),
+            (status, delivered, order_id),
         )
         row = conn.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
     return row_to_order(row)

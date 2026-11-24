@@ -75,7 +75,11 @@ export default function Orders() {
                     </small>
                   </div>
                   <span className={`badge ${o.status === "delivered" || o.status === "confirmed" ? "green" : ""}`}>
-                    {o.status === "awaiting_approval" ? "awaiting approval" : o.status}
+                    {o.status === "awaiting_approval"
+                      ? "awaiting approval"
+                      : o.status === "confirmed"
+                        ? "confirmed"
+                        : o.status}
                   </span>
                 </div>
               ))}

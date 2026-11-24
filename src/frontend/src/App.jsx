@@ -11,7 +11,7 @@ import Home from "./pages/Home";
 import { Privacy, Refund, Terms } from "./pages/Legal";
 import Login from "./pages/Login";
 import Orders from "./pages/Orders";
-import PayPack from "./pages/PayPack";
+import Enroll from "./pages/Enroll";
 import Profile from "./pages/Profile";
 import Signup from "./pages/Signup";
 import Welcome from "./pages/Welcome";
@@ -26,7 +26,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:slug" element={<CourseDetail />} />
-        <Route path="/pay/interview-qa-offline" element={<PayPack />} />
+        <Route path="/enroll/:slug" element={<Enroll />} />
+        <Route path="/pay/interview-qa-offline" element={<Navigate to="/enroll/interview-qa-offline" replace />} />
         <Route path="/book/1on1" element={<BookConnect />} />
         <Route path="/about" element={<About />} />
         <Route path="/register" element={<Navigate to="/signup" replace />} />

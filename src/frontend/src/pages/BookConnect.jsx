@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api";
 import { useAuth } from "../auth";
 import { WhatsAppIcon } from "../components/Icon";
+import { buildUpiUri, qrImageUrl } from "../upi";
 import { connectPaymentMessage, openWhatsApp } from "../whatsapp";
 
 /** Half-hour slots 09:00–21:00 */
@@ -55,6 +56,8 @@ export default function BookConnect() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(null);
+  const [agreed, setAgreed] = useState(false);
+  const [paid, setPaid] = useState(false);
   const days = useMemo(() => nextDays(14), []);
 
   useEffect(() => {
@@ -117,20 +120,7 @@ export default function BookConnect() {
         },
       });
       setDone(data);
-      openWhatsApp(
-        connectPaymentMessage({
-          user: {
-            full_name: data.buyer_name,
-            email: data.email,
-            mobile: data.mobile,
-          },
-          bookingId: data.id,
-          amount: data.price_inr,
-          slot: data.slot_start.replace("T", " "),
-          plan: `${data.duration_min} min${data.priority ? " priority" : ""}`,
-          upiId: info?.upi_id,
-        })
-      );
+      setPaid(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -139,51 +129,66 @@ export default function BookConnect() {
   }
 
   if (done) {
+    const upiUri = buildUpiUri({
+      pa: info?.upi_id,
+      am: done.price_inr,
+      tr: done.id,
+      tn: `1:1 ${done.id}`,
+    });
+    const waPayload = {
+      user: {
+        full_name: done.buyer_name,
+        email: done.email,
+        mobile: done.mobile,
+      },
+      bookingId: done.id,
+      amount: done.price_inr,
+      slot: done.slot_start.replace("T", " "),
+      plan: `${done.duration_min} min${done.priority ? " priority" : ""}`,
+      upiId: info?.upi_id,
+    };
     return (
       <div className="page">
-        <div className="container" style={{ maxWidth: 640 }}>
-          <h1 className="page-title">Request received</h1>
-          <div className="flash warn" style={{ marginTop: 16 }}>
-            <strong>Important:</strong> Pay via UPI, then <strong>WhatsApp your payment screenshot / receipt</strong>{" "}
-            with booking <strong>{done.id}</strong>. We verify on WhatsApp, then approve in admin — only then you get
-            the Zoom link by email.
-          </div>
-          <div className="panel" style={{ marginTop: 16 }}>
-            <p>
-              <strong>{done.id}</strong> · {done.duration_min} min
-              {done.priority ? " priority" : ""} · ₹{done.price_inr}
-            </p>
-            <p className="muted">When: {done.slot_start.replace("T", " ")}</p>
-            <p>
-              Status: <strong>awaiting approval</strong>
-            </p>
-            <button
-              type="button"
-              className="btn btn-wa btn-lg btn-block"
-              onClick={() =>
-                openWhatsApp(
-                  connectPaymentMessage({
-                    user: {
-                      full_name: done.buyer_name,
-                      email: done.email,
-                      mobile: done.mobile,
-                    },
-                    bookingId: done.id,
-                    amount: done.price_inr,
-                    slot: done.slot_start.replace("T", " "),
-                    plan: `${done.duration_min} min${done.priority ? " priority" : ""}`,
-                    upiId: info?.upi_id,
-                  })
-                )
-              }
-            >
-              <WhatsAppIcon />
-              Send payment screenshot on WhatsApp
-            </button>
-            <Link to="/orders" className="btn btn-secondary btn-block" style={{ marginTop: 10 }}>
-              My orders
-            </Link>
-          </div>
+        <div className="container enroll-wrap">
+          <h1 className="page-title">Pay for 1:1 Connect</h1>
+          <p className="enroll-order-id">
+            <strong>{done.id}</strong> · {done.duration_min} min
+            {done.priority ? " priority" : ""} · ₹{done.price_inr}
+          </p>
+          <p className="muted">When: {done.slot_start.replace("T", " ")}</p>
+          {!paid ? (
+            <div className="panel enroll-panel">
+              <div className="enroll-qr">
+                <img src={qrImageUrl(upiUri, 220)} alt="UPI payment QR" width={220} height={220} />
+              </div>
+              <p className="upi-highlight enroll-upi">
+                UPI: {info?.upi_id}
+                {info?.upi_id_alt ? ` / ${info.upi_id_alt}` : ""}
+              </p>
+              <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => setPaid(true)}>
+                I&apos;ve paid
+              </button>
+            </div>
+          ) : (
+            <div className="panel enroll-panel">
+              <div className="flash ok">Payment noted. Share the screenshot on WhatsApp.</div>
+              <p className="upi-highlight enroll-upi">
+                UPI: {info?.upi_id}
+                {info?.upi_id_alt ? ` / ${info.upi_id_alt}` : ""}
+              </p>
+              <button
+                type="button"
+                className="btn btn-wa btn-lg btn-block"
+                onClick={() => openWhatsApp(connectPaymentMessage(waPayload))}
+              >
+                <WhatsAppIcon />
+                Share on WhatsApp
+              </button>
+              <Link to="/orders" className="btn btn-secondary btn-block" style={{ marginTop: 10 }}>
+                My enrollments
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -225,12 +230,6 @@ export default function BookConnect() {
             </button>
           </div>
           <p style={{ fontSize: 22, fontWeight: 700 }}>₹{price}</p>
-          {info ? (
-            <p className="upi-highlight">
-              UPI: {info.upi_id}
-              {info.upi_id_alt ? ` / ${info.upi_id_alt}` : ""}
-            </p>
-          ) : null}
 
           <div className="form-group">
             <label>Date</label>
@@ -293,8 +292,20 @@ export default function BookConnect() {
             <label>Mobile</label>
             <input name="mobile" defaultValue={user?.mobile || ""} required />
           </div>
-          <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy || !slot}>
-            {busy ? "Booking..." : `Confirm booking · ₹${price}`}
+          <label className="consent-check" htmlFor="book-terms">
+            <input
+              id="book-terms"
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+            />
+            <span>
+              I agree to the <Link to="/terms">Terms</Link>, <Link to="/privacy">Privacy</Link>, and{" "}
+              <Link to="/refund">Refund</Link> policies.
+            </span>
+          </label>
+          <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy || !slot || !agreed}>
+            {busy ? "Booking..." : `Agree & Continue · ₹${price}`}
           </button>
         </form>
       </div>

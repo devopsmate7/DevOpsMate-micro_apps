@@ -1008,6 +1008,20 @@ ul, ol { list-style: none; }
   letter-spacing: 0.01em;
   text-shadow: 0 0 18px rgba(253, 230, 138, 0.25);
 }
+.enroll-wrap { max-width: 560px; }
+.enroll-panel { margin-top: 16px; display: grid; gap: 14px; }
+.enroll-qr {
+  display: grid;
+  place-items: center;
+  margin: 4px auto;
+  padding: 12px;
+  border-radius: 16px;
+  background: #fff;
+  width: fit-content;
+}
+.enroll-qr img { display: block; border-radius: 8px; }
+.enroll-upi { text-align: center; word-break: break-word; }
+.enroll-order-id { text-align: center; font-size: 15px; }
 .footer-heart {
   grid-column: 3;
   justify-self: end;
