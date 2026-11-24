@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "../auth";
-import Icon from "../components/Icon";
+import Icon, { WhatsAppIcon } from "../components/Icon";
+import { openWhatsApp } from "../whatsapp";
 
 const TOOLS = [
   { name: "AWS", file: "aws.svg" },
@@ -39,79 +39,109 @@ const FEATURES = [
   },
 ];
 
-const PATHS = [
+const GOALS = [
   {
-    label: "Train",
-    title: "AWS + DevOps + AI",
-    copy: "Production-shaped training across cloud, delivery, and AI practice.",
+    emoji: "\uD83C\uDFAF",
+    title: "I want to learn from scratch",
+    copy: "Build cloud, CI/CD & AI skills with live labs.",
+    cta: "See Training",
   },
   {
-    label: "Support",
-    title: "Job Support",
-    copy: "Hands-on help for real work tasks and delivery blockers.",
+    emoji: "\uD83D\uDEE0\uFE0F",
+    title: "I'm stuck on a work task",
+    copy: "Get 1:1 help with tickets, pipelines & infra.",
+    cta: "Get Job Support",
   },
   {
-    label: "Interview",
-    title: "45-days interview plan",
-    copy: "A hard drill to prepare answers, systems, and confidence.",
-  },
-  {
-    label: "Pack",
-    title: "Offline Interview Q&A",
-    copy: "Downloadable Q&A pack delivered by email after UPI approval.",
-  },
-  {
-    label: "1:1",
-    title: "1:1 Connect",
-    copy: "Book 15 or 40 min on Zoom — normal or priority pricing.",
+    emoji: "\uD83D\uDE80",
+    title: "I'm preparing for interviews",
+    copy: "Practice with 45-day drills or offline Q&A packs.",
+    cta: "Start Prep",
   },
 ];
 
-export default function Home() {
-  const { token } = useAuth();
+const TERM_LINES = [
+  { prompt: true, text: "devopsmate@live:~$ pipeline run --prod" },
+  { dim: true, text: "✓ git push origin main" },
+  { dim: true, text: "✓ terraform apply  ·  infra ready" },
+  { dim: true, text: "✓ kubectl rollout  ·  pods healthy" },
+  { accent: true, text: "→ AI review: no blockers · ship it" },
+];
 
+export default function Home() {
   return (
     <>
       <section className="hero">
-        <div className="container">
+        <div className="container hero-home">
           <span className="hero-eyebrow reveal">
             <span className="dot" aria-hidden="true" />
             Enrollment is open
           </span>
-          <p className="hero-welcome reveal d1">Welcome to</p>
-          <h1 className="hero-title reveal d1">DevOpsMate</h1>
+          <h1 className="hero-title reveal d1">Welcome to DevOpsMate</h1>
+          <p className="hero-lead reveal d1">Production-Ready AWS, DevOps &amp; AI Mentorship.</p>
+          <p className="hero-cred reveal d2">
+            Live training, 1:1 job support, and 45-day interview drills led by me (DevOps Engineer @ Bayer,
+            Ex-HCLTech Lead · 3x AWS Certified · Terraform &amp; GitHub Certified · AI-First DevOps)
+          </p>
+          <div className="hero-actions reveal d2">
+            <Link to="/courses" className="btn btn-primary btn-lg">
+              Explore Services
+              <Icon name="arrowRight" size={18} />
+            </Link>
+            <button
+              type="button"
+              className="btn btn-wa btn-lg"
+              onClick={() => openWhatsApp("Hi DevOpsMate, I came from the homepage.")}
+            >
+              <WhatsAppIcon />
+              Chat on WhatsApp
+            </button>
+          </div>
+
+          <div className="live-terminal reveal d3" aria-label="Live DevOps Terminal">
+            <div className="live-terminal-bar">
+              <span className="live-terminal-dot red" />
+              <span className="live-terminal-dot yellow" />
+              <span className="live-terminal-dot green" />
+              <span className="live-terminal-title">Live DevOps Terminal</span>
+            </div>
+            <div className="live-terminal-body">
+              {TERM_LINES.map((line) => (
+                <p
+                  key={line.text}
+                  className={
+                    line.prompt ? "term-prompt" : line.accent ? "term-accent" : line.dim ? "term-dim" : ""
+                  }
+                >
+                  {line.text}
+                </p>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
       <section className="section home-programs">
         <div className="container">
           <div className="section-head">
-            <p className="eyebrow">Programs</p>
-            <h2 className="section-title">Pick your starting point</h2>
-            <p className="section-sub">
-              Train, get job support, prep interviews, or grab the offline Q&A pack — full details on
-              Services.
-            </p>
+            <p className="eyebrow">Choose your goal</p>
+            <h2 className="section-title">Where should we start?</h2>
+            <p className="section-sub">Three paths — tap one and continue on Services.</p>
           </div>
-          <div className="home-paths">
-            {PATHS.map((p) => (
-              <Link key={p.title} to="/courses" className="home-path panel">
-                <span className="home-path-label">{p.label}</span>
-                <span className="home-path-title">{p.title}</span>
-                <span className="home-path-copy">{p.copy}</span>
+          <div className="home-goals">
+            {GOALS.map((g) => (
+              <Link key={g.title} to="/courses" className="home-goal panel">
+                <span className="home-goal-emoji" aria-hidden="true">
+                  {g.emoji}
+                </span>
+                <span className="home-goal-title">{g.title}</span>
+                <span className="home-goal-copy">{g.copy}</span>
+                <span className="home-goal-cta">
+                  {g.cta}
+                  <Icon name="arrowRight" size={16} />
+                </span>
               </Link>
             ))}
-          </div>
-          <div className="hero-actions reveal" style={{ marginTop: 28, justifyContent: "center" }}>
-            <Link to="/courses" className="btn btn-primary btn-lg">
-              Browse services
-              <Icon name="arrowRight" size={18} />
-            </Link>
-            {token ? null : (
-              <Link to="/signup" className="btn btn-secondary btn-lg">
-                Create an account
-              </Link>
-            )}
           </div>
         </div>
       </section>

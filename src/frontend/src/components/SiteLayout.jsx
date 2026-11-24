@@ -189,18 +189,13 @@ export default function SiteLayout() {
 
           <div className="footer-bottom">
             <p className="footer-copy">{"\u00A9"} 2026 DevOpsMate. All rights reserved.</p>
-            <div className="footer-meta">
+            <p className="footer-heart">
+              Built for DevOps enthusiasts <span aria-hidden="true">{"\u2665"}</span>
               {visitors != null ? (
                 <span className="footer-visitors" aria-label="Site visitors">
-                  Visitors · {Number(visitors).toLocaleString("en-IN")}
+                  {"\u00A0"}· Visitors · {Number(visitors).toLocaleString("en-IN")}
                 </span>
               ) : null}
-              <span className="upi-highlight" title="Pay via UPI">
-                UPI: devopamate@ybl / balureddy123457@ybl
-              </span>
-            </div>
-            <p className="footer-heart">
-              Built for learners who ship <span aria-hidden="true">{"\u2665"}</span>
             </p>
           </div>
         </div>

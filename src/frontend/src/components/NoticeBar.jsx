@@ -23,29 +23,20 @@ export default function NoticeBar() {
     setDismissed(true);
   }
 
-  const item = (
-    <span className="notice-item">
-      <span className="notice-dot" aria-hidden="true" />
-      <span className="notice-text">
-        {notice.message}
-        {notice.link_href ? (
-          <a href={notice.link_href} target="_blank" rel="noreferrer" className="notice-link">
-            {notice.link_text || "Learn more"}
-          </a>
-        ) : null}
-      </span>
-    </span>
-  );
-
   return (
-    <div className="notice-bar" role="status">
-      <div className="notice-marquee" aria-label={notice.message}>
-        <div className="notice-track">
-          {item}
-          {item}
-          {item}
-          {item}
-        </div>
+    <div className="notice-bar notice-bar-static" role="status">
+      <div className="notice-static" aria-label={notice.message}>
+        <span className="notice-item">
+          <span className="notice-dot" aria-hidden="true" />
+          <span className="notice-text">
+            {notice.message}
+            {notice.link_href ? (
+              <a href={notice.link_href} target="_blank" rel="noreferrer" className="notice-link">
+                {notice.link_text || "Learn more"}
+              </a>
+            ) : null}
+          </span>
+        </span>
       </div>
       <button type="button" className="notice-close" aria-label="Dismiss notice" onClick={onDismiss}>
         {"\u2715"}
