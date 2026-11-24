@@ -44,6 +44,7 @@ const GOALS = [
     emoji: "\uD83C\uDFAF",
     title: "Learn from scratch",
     copy: "Live labs for AWS, CI/CD, and AI.",
+    note: "AWS + DevOps + AI · Coming soon",
     cta: "See training",
   },
   {
@@ -137,6 +138,7 @@ export default function Home() {
                   </span>
                   <span className="home-goal-title">{g.title}</span>
                   <span className="home-goal-copy">{g.copy}</span>
+                  {g.note ? <span className="home-goal-note">{g.note}</span> : null}
                   <span className="home-goal-cta">
                     {g.cta}
                     <Icon name="arrowRight" size={16} />

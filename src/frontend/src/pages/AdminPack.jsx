@@ -215,10 +215,16 @@ export default function AdminPack() {
                       {b.buyer_name} · {b.mobile} · {b.email} · {b.status}
                     </div>
                     <div className="muted" style={{ fontSize: 14 }}>
-                      {b.duration_min} min{b.priority ? " priority" : ""} · ₹{b.price_inr} ·{" "}
-                      {String(b.slot_start).replace("T", " ")}
+                      {b.duration_min === 5
+                        ? "Personal Advice (DM)"
+                        : `${b.duration_min} min${b.priority ? " priority" : ""}`}{" "}
+                      · ₹{b.price_inr} · {String(b.slot_start).replace("T", " ")}
                     </div>
-                    {b.meeting_link ? (
+                    {b.duration_min === 5 ? (
+                      <span className="muted" style={{ fontSize: 13 }}>
+                        {b.status === "confirmed" ? "Reply on WhatsApp / DM" : "Confirm after payment proof"}
+                      </span>
+                    ) : b.meeting_link && b.meeting_link !== "dm-advice" ? (
                       <a href={b.meeting_link} target="_blank" rel="noreferrer" className="text-link">
                         Zoom link
                       </a>
@@ -237,8 +243,10 @@ export default function AdminPack() {
                     {b.status === "confirmed"
                       ? "Accepted"
                       : busy === b.id
-                        ? "Creating Zoom..."
-                        : "Accept & email Zoom"}
+                        ? "Working..."
+                        : b.duration_min === 5
+                          ? "Confirm advice"
+                          : "Accept & email Zoom"}
                   </button>
                 </div>
               ))}

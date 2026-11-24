@@ -31,10 +31,16 @@ export default function Orders() {
       ...bookings.map((b) => ({
         key: `b-${b.id}`,
         sort: b.created_at || b.slot_start || "",
-        title: `1:1 Connect · ${b.duration_min} min${b.priority ? " priority" : ""}`,
+        title:
+          b.duration_min === 5
+            ? "Personal Advice (DM)"
+            : `1:1 Connect · ${b.duration_min} min${b.priority ? " priority" : ""}`,
         meta: `${b.id} · ${String(b.slot_start || "").replace("T", " ")} · ₹${b.price_inr}`,
         status: b.status,
-        link: b.status === "confirmed" ? b.meeting_link : null,
+        link:
+          b.status === "confirmed" && b.meeting_link && b.meeting_link !== "dm-advice"
+            ? b.meeting_link
+            : null,
         when: b.created_at || b.slot_start,
       })),
       ...orders.map((o) => ({

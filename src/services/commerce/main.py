@@ -44,6 +44,7 @@ UPI_ID_ALT = os.getenv("UPI_ID_ALT", "balureddy123457@ybl")
 AUTH_INTERNAL_URL = os.getenv("AUTH_INTERNAL_URL", "http://auth:8000").rstrip("/")
 
 CONNECT_PRICES = {
+    (5, False): 19,  # Personal advice DM
     (15, False): 99,
     (15, True): 199,
     (40, False): 199,
@@ -652,6 +653,7 @@ def connect_pay_info():
         upi_id=UPI_ID,
         upi_id_alt=UPI_ID_ALT,
         prices={
+            "5": CONNECT_PRICES[(5, False)],
             "15": CONNECT_PRICES[(15, False)],
             "15p": CONNECT_PRICES[(15, True)],
             "40": CONNECT_PRICES[(40, False)],
@@ -668,9 +670,10 @@ def connect_book(payload: ConnectBookIn, authorization: Optional[str] = Header(d
     email = (payload.email or "").strip().lower()
     if "@" not in email:
         raise HTTPException(status_code=400, detail="Valid email required")
-    if payload.duration_min not in (15, 40):
-        raise HTTPException(status_code=400, detail="Duration must be 15 or 40 minutes")
-    price = CONNECT_PRICES.get((payload.duration_min, bool(payload.priority)))
+    if payload.duration_min not in (5, 15, 40):
+        raise HTTPException(status_code=400, detail="Pick ₹19 advice, 15 min, or 40 min")
+    priority = False if payload.duration_min == 5 else bool(payload.priority)
+    price = CONNECT_PRICES.get((payload.duration_min, priority))
     if price is None:
         raise HTTPException(status_code=400, detail="Invalid plan")
     slot = (payload.slot_start or "").strip()
@@ -685,7 +688,7 @@ def connect_book(payload: ConnectBookIn, authorization: Optional[str] = Header(d
         email=email,
         mobile=(payload.mobile or user_id or "").strip(),
         duration_min=payload.duration_min,
-        priority=bool(payload.priority),
+        priority=priority,
         slot_start=slot,
         price_inr=price,
         meeting_link="",
@@ -693,12 +696,13 @@ def connect_book(payload: ConnectBookIn, authorization: Optional[str] = Header(d
         created_at=created,
     )
     with db() as conn:
-        clash = conn.execute(
-            "SELECT id FROM bookings WHERE slot_start = ? AND status != 'cancelled'",
-            (slot,),
-        ).fetchone()
-        if clash:
-            raise HTTPException(status_code=409, detail="That slot is already booked. Pick another time.")
+        if payload.duration_min != 5:
+            clash = conn.execute(
+                "SELECT id FROM bookings WHERE slot_start = ? AND status != 'cancelled' AND duration_min != 5",
+                (slot,),
+            ).fetchone()
+            if clash:
+                raise HTTPException(status_code=409, detail="That slot is already booked. Pick another time.")
         conn.execute(
             """
             INSERT INTO bookings
@@ -756,7 +760,15 @@ def admin_approve_booking(booking_id: str, authorization: Optional[str] = Header
         if not row:
             raise HTTPException(status_code=404, detail="Booking not found")
         booking = row_to_booking(row)
-        if booking.status == "confirmed" and booking.meeting_link:
+        if booking.status == "confirmed" and (booking.meeting_link or booking.duration_min == 5):
+            return booking
+        if booking.duration_min == 5:
+            conn.execute(
+                "UPDATE bookings SET meeting_link = ?, status = ? WHERE id = ?",
+                ("dm-advice", "confirmed", booking_id),
+            )
+            row = conn.execute("SELECT * FROM bookings WHERE id = ?", (booking_id,)).fetchone()
+            booking = row_to_booking(row)
             return booking
         try:
             meeting = create_meeting(
