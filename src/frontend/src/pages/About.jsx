@@ -13,14 +13,13 @@ export default function About() {
       <div className="container">
         <div className="about-modern reveal">
           <div className="about-hero-block">
-            <div className="about-avatar" aria-hidden="true">
-              BR
+            <div className="about-left">
+              <div className="about-avatar">
+                <img src="/balu-profile.png" alt="Balu Reddy" />
+              </div>
+              <p className="about-under">Freelance &amp; Mentorship for Aws DevOps</p>
             </div>
             <div className="about-hero-copy">
-              <span className="about-status">
-                <span className="dot" />
-                Freelance &amp; Mentorship Open
-              </span>
               <h1 className="about-name">
                 Balu Reddy <span>(He/Him)</span>
               </h1>
