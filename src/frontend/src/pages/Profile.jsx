@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { apiFetch } from "../api";
 import { useAuth } from "../auth";
@@ -22,6 +22,7 @@ export default function Profile() {
   const [form, setForm] = useState({ full_name: "", mobile: "", city: "" });
   const [orders, setOrders] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [sortDir, setSortDir] = useState("desc");
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,26 +60,41 @@ export default function Profile() {
     }
   }
 
-  const recent = [
-    ...bookings.map((b) => ({
-      key: b.id,
-      title: `1:1 Connect · ${b.duration_min} min${b.priority ? " priority" : ""}`,
-      date: String(b.slot_start || "").replace("T", " ").slice(0, 16),
-      status: b.status,
-      link: b.status === "confirmed" ? b.meeting_link : null,
-      sort: b.created_at || b.slot_start || "",
-    })),
-    ...orders.map((o) => ({
-      key: o.id,
-      title: o.items.map((i) => i.title).join(", "),
-      date: new Date(o.created_at).toLocaleDateString(),
-      status: o.status,
-      link: null,
-      sort: o.created_at || "",
-    })),
-  ]
-    .sort((a, b) => String(b.sort).localeCompare(String(a.sort)))
-    .slice(0, 6);
+  const recent = useMemo(() => {
+    const rows = [
+      ...bookings.map((b) => ({
+        key: b.id,
+        title:
+          b.duration_min === 5
+            ? "Personal Advice (DM)"
+            : `1:1 Connect · ${b.duration_min} min${b.priority ? " priority" : ""}`,
+        date: String(b.slot_start || "").replace("T", " ").slice(0, 16),
+        status: b.status,
+        link:
+          b.status === "confirmed" && b.meeting_link && b.meeting_link !== "dm-advice"
+            ? b.meeting_link
+            : null,
+        sort: b.created_at || b.slot_start || "",
+        when: b.created_at || b.slot_start,
+      })),
+      ...orders.map((o) => ({
+        key: o.id,
+        title: o.items.map((i) => i.title).join(", "),
+        date: new Date(o.created_at).toLocaleDateString(),
+        status: o.status,
+        link: null,
+        sort: o.created_at || "",
+        when: o.created_at,
+      })),
+    ];
+    return rows
+      .sort((a, b) =>
+        sortDir === "desc"
+          ? String(b.sort).localeCompare(String(a.sort))
+          : String(a.sort).localeCompare(String(b.sort))
+      )
+      .slice(0, 8);
+  }, [bookings, orders, sortDir]);
 
   return (
     <div className="page">
@@ -144,7 +160,29 @@ export default function Profile() {
           </form>
 
           <aside className="panel reveal d2">
-            <h2 className="panel-title">Recent enrollments</h2>
+            <div className="panel-title-row">
+              <h2 className="panel-title" style={{ marginBottom: 0 }}>
+                Recent enrollments
+              </h2>
+              <div className="sort-row compact">
+                <button
+                  type="button"
+                  className={`sort-btn ${sortDir === "desc" ? "active" : ""}`}
+                  onClick={() => setSortDir("desc")}
+                  title="Newest first"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  className={`sort-btn ${sortDir === "asc" ? "active" : ""}`}
+                  onClick={() => setSortDir("asc")}
+                  title="Oldest first"
+                >
+                  ↑
+                </button>
+              </div>
+            </div>
             {!recent.length ? (
               <p className="muted">
                 You have no enrollments yet. <Link to="/courses">View programs</Link>
@@ -156,6 +194,9 @@ export default function Profile() {
                     <div>
                       <strong>{item.title}</strong>
                       <small>{item.date}</small>
+                      {item.when ? (
+                        <small className="muted">Booked {new Date(item.when).toLocaleString()}</small>
+                      ) : null}
                       {item.link ? (
                         <small>
                           <a href={item.link} target="_blank" rel="noreferrer">

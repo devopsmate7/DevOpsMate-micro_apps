@@ -12,6 +12,7 @@ export default function Orders() {
   const { token } = useAuth();
   const [orders, setOrders] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [sortDir, setSortDir] = useState("desc");
   const [params] = useSearchParams();
   const placed = params.get("placed");
 
@@ -53,8 +54,12 @@ export default function Orders() {
         when: o.created_at,
       })),
     ];
-    return rows.sort((a, b) => String(b.sort).localeCompare(String(a.sort)));
-  }, [orders, bookings]);
+    return rows.sort((a, b) =>
+      sortDir === "desc"
+        ? String(b.sort).localeCompare(String(a.sort))
+        : String(a.sort).localeCompare(String(b.sort))
+    );
+  }, [orders, bookings, sortDir]);
 
   if (!token) return <Navigate to="/login" replace />;
 
@@ -64,7 +69,25 @@ export default function Orders() {
         <div className="page-head reveal">
           <p className="eyebrow">Account</p>
           <h1 className="page-title">My enrollments</h1>
-          <p className="page-sub">Sorted by latest booking first.</p>
+          <div className="sort-row">
+            <span className="muted">Sort by date</span>
+            <button
+              type="button"
+              className={`sort-btn ${sortDir === "desc" ? "active" : ""}`}
+              onClick={() => setSortDir("desc")}
+              title="Newest first"
+            >
+              ↓ Newest
+            </button>
+            <button
+              type="button"
+              className={`sort-btn ${sortDir === "asc" ? "active" : ""}`}
+              onClick={() => setSortDir("asc")}
+              title="Oldest first"
+            >
+              ↑ Oldest
+            </button>
+          </div>
         </div>
         {placed ? <div className="flash ok">Your enrollment has been confirmed.</div> : null}
 

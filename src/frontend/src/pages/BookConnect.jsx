@@ -264,23 +264,65 @@ export default function BookConnect() {
         {error ? <div className="flash error">{error}</div> : null}
 
         <div className="plan-picker">
-          {PLANS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className={`plan-chip ${duration === p.id ? "active" : ""}`}
-              onClick={() => {
-                setDuration(p.id);
-                setError("");
-              }}
-            >
-              <span className="plan-chip-label">{p.label}</span>
-              <span className="plan-chip-tag">{p.tag}</span>
-              <span className="plan-chip-price">
-                ₹{info?.prices?.[String(p.id)] ?? (p.id === 5 ? 19 : p.id === 15 ? 99 : 199)}
-              </span>
-            </button>
-          ))}
+          {PLANS.map((p) => {
+            const amt = info?.prices?.[String(p.id)] ?? (p.id === 5 ? 19 : p.id === 15 ? 99 : 199);
+            const mins = p.id === 5 ? "₹19" : p.id === 15 ? "15 min" : "40 min";
+            const title = p.id === 5 ? "Priority DM." : "Live Video Call.";
+            const sub =
+              p.id === 5
+                ? "AWS DevOps Personal Advice"
+                : p.id === 15
+                  ? "AWS DevOps Career, Life & Growth Guidance"
+                  : "AWS DevOps Mentorship / Guidance - 1:1";
+            return (
+              <button
+                key={p.id}
+                type="button"
+                className={`mentor-card ${duration === p.id ? "active" : ""}`}
+                onClick={() => {
+                  setDuration(p.id);
+                  setError("");
+                }}
+              >
+                <div className="mentor-card-top">
+                  <span>STRATEGY</span>
+                  <span>CREATIVITY</span>
+                  <span>IDENTITY</span>
+                </div>
+                <div className="mentor-card-frame">
+                  <p className="mentor-card-side">
+                    Clarity today.
+                    <br />
+                    Better tomorrow.
+                  </p>
+                  <div className="mentor-card-main">
+                    <p className="mentor-card-mins">{mins}</p>
+                    <p className="mentor-card-title">{title}</p>
+                    <p className="mentor-card-sub">
+                      {p.id === 5 ? (
+                        <>
+                          AWS DevOps <em>Personal Advice</em>
+                        </>
+                      ) : p.id === 15 ? (
+                        <>
+                          AWS DevOps Career, <em>Life &amp; Growth</em> Guidance
+                        </>
+                      ) : (
+                        <>
+                          AWS DevOps <em>Mentorship</em> / Guidance - 1:1
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="mentor-card-meta">
+                  <span className="mentor-pill">{p.id === 5 ? "Advice" : "Popular"}</span>
+                  <span className="mentor-price">₹{amt}</span>
+                </div>
+                <p className="mentor-card-name">{sub}</p>
+              </button>
+            );
+          })}
         </div>
 
         {plan ? (
