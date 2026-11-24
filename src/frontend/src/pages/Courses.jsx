@@ -24,6 +24,7 @@ export default function Courses() {
   }, []);
 
   function onEnrollClick(course) {
+    if (course.slug === "aws-devops-ai") return;
     if (!token) {
       navigate("/login");
       return;
@@ -77,12 +78,20 @@ export default function Courses() {
                   </li>
                 ))}
               </ul>
+              {c.slug === "aws-devops-ai" ? (
+                <p className="coming-soon-note">Coming soon</p>
+              ) : null}
               <div className="service-actions">
                 <Link to={`/courses/${c.slug}`} className="btn btn-secondary">
                   Details
                 </Link>
-                <button type="button" className="btn btn-primary" onClick={() => onEnrollClick(c)}>
-                  {c.slug === "1on1-connect" ? "Book" : "Enroll"}
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => onEnrollClick(c)}
+                  disabled={c.slug === "aws-devops-ai"}
+                >
+                  {c.slug === "aws-devops-ai" ? "Coming soon" : c.slug === "1on1-connect" ? "Book" : "Enroll"}
                 </button>
               </div>
             </article>

@@ -266,60 +266,65 @@ export default function BookConnect() {
         <div className="plan-picker">
           {PLANS.map((p) => {
             const amt = info?.prices?.[String(p.id)] ?? (p.id === 5 ? 19 : p.id === 15 ? 99 : 199);
-            const mins = p.id === 5 ? "₹19" : p.id === 15 ? "15 min" : "40 min";
-            const title = p.id === 5 ? "Priority DM." : "Live Video Call.";
-            const sub =
-              p.id === 5
-                ? "AWS DevOps Personal Advice"
-                : p.id === 15
-                  ? "AWS DevOps Career, Life & Growth Guidance"
-                  : "AWS DevOps Mentorship / Guidance - 1:1";
+            const theme = p.id === 5 ? "theme-advice" : p.id === 15 ? "theme-live" : "theme-mentor";
             return (
               <button
                 key={p.id}
                 type="button"
-                className={`mentor-card ${duration === p.id ? "active" : ""}`}
+                className={`mentor-card ${theme} ${duration === p.id ? "active" : ""}`}
                 onClick={() => {
                   setDuration(p.id);
                   setError("");
                 }}
               >
-                <div className="mentor-card-top">
-                  <span>STRATEGY</span>
-                  <span>CREATIVITY</span>
-                  <span>IDENTITY</span>
-                </div>
-                <div className="mentor-card-frame">
-                  <p className="mentor-card-side">
-                    Clarity today.
-                    <br />
-                    Better tomorrow.
-                  </p>
-                  <div className="mentor-card-main">
-                    <p className="mentor-card-mins">{mins}</p>
-                    <p className="mentor-card-title">{title}</p>
+                {p.id === 5 ? (
+                  <>
+                    <div className="mentor-viz mentor-viz-dm" aria-hidden="true">
+                      <span className="viz-bubble">?</span>
+                      <span className="viz-bubble reply">✓</span>
+                    </div>
+                    <p className="mentor-kicker">Priority DM</p>
+                    <p className="mentor-card-mins">₹{amt}</p>
+                    <p className="mentor-card-title">Personal Advice</p>
+                    <p className="mentor-card-sub">Chocolate-price answers on AWS DevOps, resume &amp; interviews.</p>
+                    <span className="mentor-pill">Almost free</span>
+                  </>
+                ) : p.id === 15 ? (
+                  <>
+                    <div className="mentor-viz mentor-viz-call" aria-hidden="true">
+                      <span className="viz-cam" />
+                      <span className="viz-pulse" />
+                    </div>
+                    <p className="mentor-kicker">Live video · Zoom</p>
+                    <p className="mentor-card-mins">15 min</p>
+                    <p className="mentor-card-title">Quick Connect</p>
                     <p className="mentor-card-sub">
-                      {p.id === 5 ? (
-                        <>
-                          AWS DevOps <em>Personal Advice</em>
-                        </>
-                      ) : p.id === 15 ? (
-                        <>
-                          AWS DevOps Career, <em>Life &amp; Growth</em> Guidance
-                        </>
-                      ) : (
-                        <>
-                          AWS DevOps <em>Mentorship</em> / Guidance - 1:1
-                        </>
-                      )}
+                      Focused AWS DevOps career &amp; <em>growth</em> guidance.
                     </p>
-                  </div>
-                </div>
-                <div className="mentor-card-meta">
-                  <span className="mentor-pill">{p.id === 5 ? "Advice" : "Popular"}</span>
-                  <span className="mentor-price">₹{amt}</span>
-                </div>
-                <p className="mentor-card-name">{sub}</p>
+                    <div className="mentor-card-meta">
+                      <span className="mentor-pill">Popular</span>
+                      <span className="mentor-price">₹{amt}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mentor-viz mentor-viz-deep" aria-hidden="true">
+                      <span className="viz-node" />
+                      <span className="viz-node" />
+                      <span className="viz-node" />
+                    </div>
+                    <p className="mentor-kicker">1:1 mentorship</p>
+                    <p className="mentor-card-mins">40 min</p>
+                    <p className="mentor-card-title">Deep Guidance</p>
+                    <p className="mentor-card-sub">
+                      Roadmap, pipelines, K8s doubts &amp; <em>career switch</em> plan.
+                    </p>
+                    <div className="mentor-card-meta">
+                      <span className="mentor-pill">Best value</span>
+                      <span className="mentor-price">₹{amt}</span>
+                    </div>
+                  </>
+                )}
               </button>
             );
           })}

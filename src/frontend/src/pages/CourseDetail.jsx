@@ -18,6 +18,7 @@ export default function CourseDetail() {
   }, [slug]);
 
   function onEnrollClick() {
+    if (course?.slug === "aws-devops-ai") return;
     if (!token) {
       navigate("/login");
       return;
@@ -187,12 +188,26 @@ export default function CourseDetail() {
               </ul>
             ) : null}
             <p>
-              {course.slug === "1on1-connect"
-                ? "Pick a slot, pay via UPI QR, WhatsApp the screenshot — Zoom after admin accept."
-                : "Agree to terms, pay the UPI QR, WhatsApp the screenshot — we confirm in admin."}
+              {course.slug === "aws-devops-ai"
+                ? "Core program details are ready to explore. Enrollment opens soon."
+                : course.slug === "1on1-connect"
+                  ? "Pick a slot, pay via UPI QR, WhatsApp the screenshot — Zoom after admin accept."
+                  : "Agree to terms, pay the UPI QR, WhatsApp the screenshot — we confirm in admin."}
             </p>
-            <button type="button" className="btn btn-primary btn-lg btn-block" onClick={onEnrollClick}>
-              {course.slug === "1on1-connect" ? "Book now" : "Enroll now"}
+            {course.slug === "aws-devops-ai" ? (
+              <p className="coming-soon-note">Coming soon</p>
+            ) : null}
+            <button
+              type="button"
+              className="btn btn-primary btn-lg btn-block"
+              onClick={onEnrollClick}
+              disabled={course.slug === "aws-devops-ai"}
+            >
+              {course.slug === "aws-devops-ai"
+                ? "Coming soon"
+                : course.slug === "1on1-connect"
+                  ? "Book now"
+                  : "Enroll now"}
             </button>
             {token ? (
               <Link to="/orders" className="btn btn-secondary btn-block">
