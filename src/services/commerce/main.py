@@ -36,6 +36,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
 }
 
 PACK_COURSE_ID = "c-interview-qa-offline"
+INTERVIEW_SUPPORT_COURSE_ID = "c-interview-support"
 CONNECT_COURSE_ID = "c-1on1-connect"
 ADMIN_KEY = os.getenv("ADMIN_KEY", "dm-admin-change-me")
 ADMIN_MOBILE = os.getenv("ADMIN_MOBILE", "7013274348")
@@ -211,13 +212,39 @@ def row_to_order(r: sqlite3.Row) -> OrderOut:
 
 
 def trigger_pack_email(order_id: str, email: str, name: str) -> None:
+    trigger_email_delivery(
+        "/api/auth/internal/deliver-pack",
+        "Pack",
+        order_id,
+        email,
+        name,
+    )
+
+
+def trigger_interview_support_email(order_id: str, email: str, name: str) -> None:
+    trigger_email_delivery(
+        "/api/auth/internal/deliver-interview-support",
+        "Interview Support",
+        order_id,
+        email,
+        name,
+    )
+
+
+def trigger_email_delivery(
+    endpoint: str,
+    delivery_name: str,
+    order_id: str,
+    email: str,
+    name: str,
+) -> None:
     import json as _json
     import urllib.error
     import urllib.request
 
     body = _json.dumps({"order_id": order_id, "email": email, "name": name or "Student"}).encode()
     req = urllib.request.Request(
-        f"{AUTH_INTERNAL_URL}/api/auth/internal/deliver-pack",
+        f"{AUTH_INTERNAL_URL}{endpoint}",
         data=body,
         headers={"Content-Type": "application/json", "X-Admin-Key": ADMIN_KEY},
         method="POST",
@@ -225,12 +252,12 @@ def trigger_pack_email(order_id: str, email: str, name: str) -> None:
     try:
         with urllib.request.urlopen(req, timeout=420) as resp:
             if resp.status >= 400:
-                raise HTTPException(status_code=502, detail="Pack email failed")
+                raise HTTPException(status_code=502, detail=f"{delivery_name} email failed")
     except urllib.error.HTTPError as e:
         detail = e.read().decode(errors="ignore")[:300]
-        raise HTTPException(status_code=502, detail=f"Pack email failed: {detail}")
+        raise HTTPException(status_code=502, detail=f"{delivery_name} email failed: {detail}")
     except urllib.error.URLError as e:
-        raise HTTPException(status_code=502, detail=f"Auth unreachable for pack email: {e.reason}")
+        raise HTTPException(status_code=502, detail=f"Auth unreachable for {delivery_name} email: {e.reason}")
 
 
 def load_cart_items(user_id: str) -> List[Dict[str, Any]]:
@@ -543,7 +570,9 @@ def admin_approve_pack(order_id: str, authorization: Optional[str] = Header(defa
         if not row:
             raise HTTPException(status_code=404, detail="Order not found")
         order = row_to_order(row)
-        if order.status in ("delivered", "confirmed"):
+        if order.status == "delivered" or (
+            order.status == "confirmed" and order.course_id != INTERVIEW_SUPPORT_COURSE_ID
+        ):
             return order
         email = order.email
         if not email:
@@ -551,6 +580,9 @@ def admin_approve_pack(order_id: str, authorization: Optional[str] = Header(defa
         delivered = datetime.utcnow().isoformat()
         if order.course_id == PACK_COURSE_ID:
             trigger_pack_email(order.id, email, order.buyer_name or "Student")
+            status = "delivered"
+        elif order.course_id == INTERVIEW_SUPPORT_COURSE_ID:
+            trigger_interview_support_email(order.id, email, order.buyer_name or "Student")
             status = "delivered"
         else:
             status = "confirmed"

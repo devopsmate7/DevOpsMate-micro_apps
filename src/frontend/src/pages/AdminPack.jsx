@@ -16,10 +16,17 @@ const TABS = [
     match: (o) => o.course_id === "c-interview-qa-offline",
   },
   {
+    id: "interview-support",
+    label: "Interview Support",
+    kind: "order",
+    match: (o) => o.course_id === "c-interview-support",
+  },
+  {
     id: "other",
     label: "Other enroll",
     kind: "order",
-    match: (o) => o.course_id !== "c-interview-qa-offline",
+    match: (o) =>
+      o.course_id !== "c-interview-qa-offline" && o.course_id !== "c-interview-support",
   },
 ];
 
@@ -99,8 +106,8 @@ export default function AdminPack() {
         body: {},
       });
       setMsg(
-        data.course_id === "c-interview-qa-offline"
-          ? `ZIP emailed to ${data.email}`
+        data.course_id === "c-interview-qa-offline" || data.course_id === "c-interview-support"
+          ? `ZIPs emailed to ${data.email}`
           : `Payment confirmed for ${data.email}`
       );
       await load();
@@ -236,7 +243,9 @@ export default function AdminPack() {
                 {tab === "g15" && "Accept 15‑min call → Zoom link emailed to student."}
                 {tab === "m40" && "Accept 40‑min mentorship → Zoom link emailed to student."}
                 {tab === "pack" && "Approve Q&A pack → ZIP emailed to student."}
-                {tab === "other" && "Confirm payment for AWS / Job / Interview enrollments."}
+                {tab === "interview-support" &&
+                  "Approve Interview Support → two ZIPs with the 45-Day plan and all 15 Q&A modules emailed to the student."}
+                {tab === "other" && "Confirm payment for AWS / Job enrollments."}
               </p>
 
               {!list.length ? <p className="muted">Nothing in this tab yet.</p> : null}
@@ -286,7 +295,11 @@ export default function AdminPack() {
                 : list.map((o) => {
                     const title = o.items?.[0]?.title || o.course_id || "Enrollment";
                     const isPack = o.course_id === "c-interview-qa-offline";
-                    const done = o.status === "delivered" || o.status === "confirmed";
+                    const isInterviewSupport = o.course_id === "c-interview-support";
+                    const sendsZip = isPack || isInterviewSupport;
+                    const done =
+                      o.status === "delivered" ||
+                      (o.status === "confirmed" && !isInterviewSupport);
                     return (
                       <Row
                         key={o.id}
@@ -298,13 +311,13 @@ export default function AdminPack() {
                             onClick={() => approve(o.id)}
                           >
                             {done
-                              ? isPack
-                                ? "ZIP sent"
+                              ? sendsZip
+                                ? "ZIPs sent"
                                 : "Confirmed"
                               : busy === o.id
                                 ? "..."
-                                : isPack
-                                  ? "Email ZIP"
+                                : sendsZip
+                                  ? "Email ZIPs"
                                   : "Confirm pay"}
                           </button>
                         }

@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 from html import escape
 from io import BytesIO
 from pathlib import Path
-from zipfile import ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import aiosmtplib
 
@@ -86,12 +86,20 @@ def welcome_email_html(name: str) -> str:
 </body></html>"""
 
 
-def pack_email_text(name: str, order_id: str, part_number: int) -> str:
+def split_archive_email_text(
+    name: str,
+    order_id: str,
+    part_number: int,
+    service_title: str,
+    delivery_details: str,
+) -> str:
     return f"""Dear {name},
 
-Payment successful for your Offline Interview Q&A pack (Order {order_id}).
+Payment confirmed for {service_title} (Order {order_id}).
 
-Thank you for purchasing Real DevOps & Cloud Interview Questions. This is part {part_number} of 2; the ZIP is attached. You will receive the other part in a separate email. Extract each ZIP independently and open the HTML files in your browser.
+{delivery_details}
+
+This is part {part_number} of 2; the ZIP is attached. You will receive the other part in a separate email. Extract each ZIP independently and open the HTML files in your browser.
 
 Fees are non-refundable after the order is confirmed. We store your name, email, and mobile only to run your account, and we do not sell your data.
 
@@ -107,9 +115,17 @@ WhatsApp: {WHATSAPP}
 """
 
 
-def pack_email_html(name: str, order_id: str, part_number: int) -> str:
+def split_archive_email_html(
+    name: str,
+    order_id: str,
+    part_number: int,
+    service_title: str,
+    delivery_details: str,
+) -> str:
     name = escape(name)
     order_id = escape(order_id)
+    service_title = escape(service_title)
+    delivery_details = escape(delivery_details)
     link = "color:#0b3d91;"
     return f"""<!DOCTYPE html>
 <html><body style="font-family:Arial,sans-serif;color:#1d1d1f;line-height:1.6;max-width:560px;margin:auto;padding:0;">
@@ -119,9 +135,9 @@ def pack_email_html(name: str, order_id: str, part_number: int) -> str:
   </div>
   <div style="padding:28px;background:#f7fafc;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;">
     <p>Dear <strong>{name}</strong>,</p>
-    <p><strong>Payment successful</strong> for your Offline Interview Q&amp;A pack
+    <p><strong>Payment confirmed</strong> for <strong>{service_title}</strong>
     (Order <strong>{order_id}</strong>).</p>
-    <p>Thank you for purchasing <strong>Real DevOps &amp; Cloud Interview Questions</strong>.
+    <p>{delivery_details}
     This is <strong>part {part_number} of 2</strong>; the ZIP is attached. You will receive the other part
     in a separate email. Extract each ZIP independently and open the HTML files in your browser.</p>
     <p style="font-size:13px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:16px;">
@@ -137,15 +153,19 @@ def pack_email_html(name: str, order_id: str, part_number: int) -> str:
 </body></html>"""
 
 
-async def send_pack_email(name: str, email: str, order_id: str) -> None:
-    zip_path = Path(settings.interview_qa_pack_path)
-    if not zip_path.is_file():
-        raise RuntimeError(f"Pack ZIP missing at {zip_path}")
-
-    with ZipFile(zip_path) as source:
+async def send_split_archive_email(
+    name: str,
+    email: str,
+    order_id: str,
+    archive_name: str,
+    archive_data: bytes,
+    service_title: str,
+    delivery_details: str,
+) -> None:
+    with ZipFile(BytesIO(archive_data)) as source:
         members = source.infolist()
         if len(members) < 2:
-            raise RuntimeError("Pack ZIP must contain at least two files to split")
+            raise RuntimeError("Delivery ZIP must contain at least two files to split")
 
         buckets = [[], []]
         bucket_sizes = [0, 0]
@@ -177,15 +197,31 @@ async def send_pack_email(name: str, email: str, order_id: str) -> None:
     )
     async with smtp:
         for part_number, content in enumerate(parts, start=1):
-            filename = f"{zip_path.stem}-part-{part_number}-of-2.zip"
+            filename = f"{archive_name}-part-{part_number}-of-2.zip"
             msg = MIMEMultipart("mixed")
-            msg["Subject"] = f"Payment successful — Interview Q&A pack (Part {part_number} of 2) | DevOpsMate"
+            msg["Subject"] = f"{service_title} — Part {part_number} of 2 | DevOpsMate"
             msg["From"] = settings.smtp_from
             msg["To"] = email
 
             alt = MIMEMultipart("alternative")
-            alt.attach(MIMEText(pack_email_text(name, order_id, part_number), "plain", "utf-8"))
-            alt.attach(MIMEText(pack_email_html(name, order_id, part_number), "html", "utf-8"))
+            alt.attach(
+                MIMEText(
+                    split_archive_email_text(
+                        name, order_id, part_number, service_title, delivery_details
+                    ),
+                    "plain",
+                    "utf-8",
+                )
+            )
+            alt.attach(
+                MIMEText(
+                    split_archive_email_html(
+                        name, order_id, part_number, service_title, delivery_details
+                    ),
+                    "html",
+                    "utf-8",
+                )
+            )
             msg.attach(alt)
 
             attachment = MIMEApplication(content, Name=filename)
@@ -193,7 +229,54 @@ async def send_pack_email(name: str, email: str, order_id: str) -> None:
             msg.attach(attachment)
 
             await smtp.send_message(msg, timeout=PACK_EMAIL_SMTP_TIMEOUT_SECONDS)
-            logger.info("Pack email part %s/2 sent to %s for order %s", part_number, email, order_id)
+            logger.info(
+                "%s email part %s/2 sent to %s for order %s",
+                service_title,
+                part_number,
+                email,
+                order_id,
+            )
+
+
+async def send_pack_email(name: str, email: str, order_id: str) -> None:
+    zip_path = Path(settings.interview_qa_pack_path)
+    if not zip_path.is_file():
+        raise RuntimeError(f"Pack ZIP missing at {zip_path}")
+
+    await send_split_archive_email(
+        name=name,
+        email=email,
+        order_id=order_id,
+        archive_name=zip_path.stem,
+        archive_data=zip_path.read_bytes(),
+        service_title="Real DevOps & Cloud Interview Questions",
+        delivery_details="Thank you for purchasing the Offline Interview Q&A pack.",
+    )
+
+
+async def send_interview_support_email(name: str, email: str, order_id: str) -> None:
+    assets_dir = Path(settings.interview_qa_pack_path).parent
+    html_files = sorted(assets_dir.glob("*.html"))
+    if not html_files:
+        raise RuntimeError(f"Interview Support HTML files missing from {assets_dir}")
+
+    buffer = BytesIO()
+    with ZipFile(buffer, "w", compression=ZIP_DEFLATED) as archive:
+        for html_file in html_files:
+            archive.write(html_file, arcname=html_file.name)
+
+    await send_split_archive_email(
+        name=name,
+        email=email,
+        order_id=order_id,
+        archive_name="DevOpsMate-Interview-Support",
+        archive_data=buffer.getvalue(),
+        service_title="Interview Support",
+        delivery_details=(
+            "The materials include the 45-Day Interview Support Hard Drill Plan "
+            "and all 15 interview Q&A module HTML files."
+        ),
+    )
 
 
 async def send_connect_emails(

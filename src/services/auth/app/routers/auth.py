@@ -10,7 +10,12 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app import dynamo, user_repo
 from app.config import settings
-from app.email_service import send_connect_emails, send_pack_email, send_welcome_email
+from app.email_service import (
+    send_connect_emails,
+    send_interview_support_email,
+    send_pack_email,
+    send_welcome_email,
+)
 from app import stats_repo
 from app.schemas import (
     DeliverPackRequest,
@@ -189,6 +194,21 @@ async def deliver_pack(
         await send_pack_email(payload.name, payload.email, payload.order_id)
     except Exception as e:
         logger.exception("Pack email failed for %s", payload.email)
+        raise HTTPException(status_code=502, detail=str(e))
+    return MessageResponse(message="sent")
+
+
+@router.post("/internal/deliver-interview-support", response_model=MessageResponse)
+async def deliver_interview_support(
+    payload: DeliverPackRequest,
+    x_admin_key: Optional[str] = Header(default=None, alias="X-Admin-Key"),
+):
+    if not x_admin_key or x_admin_key != settings.admin_key:
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+    try:
+        await send_interview_support_email(payload.name, payload.email, payload.order_id)
+    except Exception as e:
+        logger.exception("Interview Support email failed for %s", payload.email)
         raise HTTPException(status_code=502, detail=str(e))
     return MessageResponse(message="sent")
 
