@@ -167,32 +167,33 @@ async def send_pack_email(name: str, email: str, order_id: str) -> None:
     if settings.smtp_host == "smtp.gmail.com" and not settings.smtp_password:
         raise RuntimeError("SMTP_PASSWORD is empty. Set it in the server .env file.")
 
-    for part_number, content in enumerate(parts, start=1):
-        filename = f"{zip_path.stem}-part-{part_number}-of-2.zip"
-        msg = MIMEMultipart("mixed")
-        msg["Subject"] = f"Payment successful — Interview Q&A pack (Part {part_number} of 2) | DevOpsMate"
-        msg["From"] = settings.smtp_from
-        msg["To"] = email
+    smtp = aiosmtplib.SMTP(
+        hostname=settings.smtp_host,
+        port=settings.smtp_port,
+        username=settings.smtp_user or None,
+        password=settings.smtp_password or None,
+        start_tls=settings.smtp_tls,
+        timeout=PACK_EMAIL_SMTP_TIMEOUT_SECONDS,
+    )
+    async with smtp:
+        for part_number, content in enumerate(parts, start=1):
+            filename = f"{zip_path.stem}-part-{part_number}-of-2.zip"
+            msg = MIMEMultipart("mixed")
+            msg["Subject"] = f"Payment successful — Interview Q&A pack (Part {part_number} of 2) | DevOpsMate"
+            msg["From"] = settings.smtp_from
+            msg["To"] = email
 
-        alt = MIMEMultipart("alternative")
-        alt.attach(MIMEText(pack_email_text(name, order_id, part_number), "plain", "utf-8"))
-        alt.attach(MIMEText(pack_email_html(name, order_id, part_number), "html", "utf-8"))
-        msg.attach(alt)
+            alt = MIMEMultipart("alternative")
+            alt.attach(MIMEText(pack_email_text(name, order_id, part_number), "plain", "utf-8"))
+            alt.attach(MIMEText(pack_email_html(name, order_id, part_number), "html", "utf-8"))
+            msg.attach(alt)
 
-        attachment = MIMEApplication(content, Name=filename)
-        attachment["Content-Disposition"] = f'attachment; filename="{filename}"'
-        msg.attach(attachment)
+            attachment = MIMEApplication(content, Name=filename)
+            attachment["Content-Disposition"] = f'attachment; filename="{filename}"'
+            msg.attach(attachment)
 
-        await aiosmtplib.send(
-            msg,
-            hostname=settings.smtp_host,
-            port=settings.smtp_port,
-            username=settings.smtp_user or None,
-            password=settings.smtp_password or None,
-            start_tls=settings.smtp_tls,
-            timeout=PACK_EMAIL_SMTP_TIMEOUT_SECONDS,
-        )
-        logger.info("Pack email part %s/2 sent to %s for order %s", part_number, email, order_id)
+            await smtp.send_message(msg, timeout=PACK_EMAIL_SMTP_TIMEOUT_SECONDS)
+            logger.info("Pack email part %s/2 sent to %s for order %s", part_number, email, order_id)
 
 
 async def send_connect_emails(

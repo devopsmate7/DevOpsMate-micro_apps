@@ -18,19 +18,32 @@ def test_send_pack_email_sends_two_complete_zip_parts(tmp_path, monkeypatch):
             archive.writestr(filename, content)
 
     sent_messages = []
+    smtp_instances = []
 
-    async def capture_send(message, **kwargs):
-        assert kwargs["timeout"] == email_service.PACK_EMAIL_SMTP_TIMEOUT_SECONDS
-        sent_messages.append(message)
+    class FakeSMTP:
+        def __init__(self, **kwargs):
+            assert kwargs["timeout"] == email_service.PACK_EMAIL_SMTP_TIMEOUT_SECONDS
+            smtp_instances.append(self)
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, traceback):
+            return None
+
+        async def send_message(self, message, *, timeout):
+            assert timeout == email_service.PACK_EMAIL_SMTP_TIMEOUT_SECONDS
+            sent_messages.append(message)
 
     monkeypatch.setattr(email_service.settings, "interview_qa_pack_path", str(source_path))
     monkeypatch.setattr(email_service.settings, "smtp_host", "localhost")
     monkeypatch.setattr(email_service.settings, "smtp_from", "DevOpsMate <test@example.com>")
-    monkeypatch.setattr(email_service.aiosmtplib, "send", capture_send)
+    monkeypatch.setattr(email_service.aiosmtplib, "SMTP", FakeSMTP)
 
     asyncio.run(email_service.send_pack_email("Student", "student@example.com", "DM-TEST"))
 
     assert len(sent_messages) == 2
+    assert len(smtp_instances) == 1
     found_files = []
     for part_number, message in enumerate(sent_messages, start=1):
         assert message["To"] == "student@example.com"
