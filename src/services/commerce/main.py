@@ -677,7 +677,10 @@ def connect_book(payload: ConnectBookIn, authorization: Optional[str] = Header(d
     if price is None:
         raise HTTPException(status_code=400, detail="Invalid plan")
     slot = (payload.slot_start or "").strip()
-    if len(slot) < 10:
+    if payload.duration_min == 5:
+        # Priority DM — no calendar / Zoom; WhatsApp reply only
+        slot = slot if len(slot) >= 4 else "dm-whatsapp"
+    elif len(slot) < 10:
         raise HTTPException(status_code=400, detail="Pick a date and time")
     booking_id = f"C1-{uuid.uuid4().hex[:10].upper()}"
     created = datetime.utcnow().isoformat()

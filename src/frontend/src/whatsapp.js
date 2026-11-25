@@ -55,10 +55,28 @@ export function enrollPaymentMessage({ user, orderId, amount, title, upiId }) {
   ].join("\n");
 }
 
-export function connectPaymentMessage({ user, bookingId, amount, slot, plan, upiId }) {
+export function connectPaymentMessage({ user, bookingId, amount, slot, plan, upiId, advice }) {
   const name = user?.full_name || "Student";
   const email = user?.email || "-";
   const mobile = user?.mobile || "-";
+  if (advice) {
+    return [
+      "Hi DevOpsMate, I paid ₹19 for Personal Advice (Priority DM).",
+      "",
+      `Booking: ${bookingId}`,
+      `Name: ${name}`,
+      `Email: ${email}`,
+      `Mobile: ${mobile}`,
+      `Amount: ₹${amount}`,
+      `UPI: ${upiId || "devopamate@ybl"}`,
+      "UTR/ref: <fill after payment>",
+      "",
+      "Attaching payment screenshot.",
+      "",
+      "My question:",
+      "<type your question here — resume / LinkedIn / interview / career / AWS DevOps>",
+    ].join("\n");
+  }
   return [
     "Hi DevOpsMate, I booked 1:1 Connect and paid via UPI.",
     "",

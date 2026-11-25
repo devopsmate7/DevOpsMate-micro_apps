@@ -36,7 +36,7 @@ const PLANS = [
       "CI/CD, Terraform, K8s guidance",
       "Career switch into DevOps",
     ],
-    how: "Send your question → I’ll reply within 1 day · almost free · limited slots",
+    how: "Details → pay ₹19 → WhatsApp your question · I reply in chat (no Zoom)",
   },
   {
     id: 15,
@@ -213,7 +213,8 @@ export default function BookConnect() {
       setError("Pick a plan first");
       return;
     }
-    if (!slot) {
+    const isAdvice = duration === 5;
+    if (!isAdvice && !slot) {
       setError("Pick a date and time");
       return;
     }
@@ -232,7 +233,7 @@ export default function BookConnect() {
           mobile: String(form.get("mobile") || user?.mobile || "").trim(),
           duration_min: duration,
           priority: false,
-          slot_start: slot,
+          slot_start: isAdvice ? "dm-whatsapp" : slot,
         },
       });
       setSheetOpen(false);
@@ -264,88 +265,103 @@ export default function BookConnect() {
   }
 
   function renderBookForm(formId) {
+    const isAdvice = duration === 5;
     return (
       <form id={formId} className="book-card panel" onSubmit={onSubmit}>
-        <div className="book-card-head">
-          <h3>When should we meet?</h3>
-          <div className="book-day-nav">
-            <button
-              type="button"
-              className="book-nav-btn"
-              aria-label="Earlier dates"
-              disabled={dayOffset <= 0}
-              onClick={() => setDayOffset((v) => Math.max(0, v - 1))}
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              className="book-nav-btn"
-              aria-label="Later dates"
-              disabled={dayOffset + 5 >= days.length}
-              onClick={() => setDayOffset((v) => Math.min(days.length - 5, v + 1))}
-            >
-              →
-            </button>
-          </div>
-        </div>
-        <div className="book-dates">
-          {visibleDays.map((d) => {
-            const key = dayKey(d);
-            const label = d.toLocaleDateString(undefined, {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-            });
-            return (
-              <button
-                key={key}
-                type="button"
-                className={`book-date ${dateKey === key ? "active" : ""}`}
-                onClick={() => {
-                  setDateKey(key);
-                  setTimeMins(null);
-                }}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-
-        <h3 className="book-subhead">Select time of day</h3>
-        {!dateKey ? (
-          <p className="muted">Choose a date first.</p>
+        {isAdvice ? (
+          <>
+            <h3 className="book-subhead" style={{ marginTop: 0 }}>
+              Priority DM · no Zoom
+            </h3>
+            <p className="muted" style={{ marginBottom: 12 }}>
+              Share details, pay ₹19, then WhatsApp your question (resume, LinkedIn, interview, career, AWS
+              DevOps). I reply in chat within ~1 day.
+            </p>
+          </>
         ) : (
-          <div className="book-times">
-            {availableTimes.length ? (
-              availableTimes.map((mins) => (
+          <>
+            <div className="book-card-head">
+              <h3>When should we meet?</h3>
+              <div className="book-day-nav">
                 <button
-                  key={mins}
                   type="button"
-                  className={`book-time ${timeMins === mins ? "active" : ""}`}
-                  onClick={() => setTimeMins(mins)}
+                  className="book-nav-btn"
+                  aria-label="Earlier dates"
+                  disabled={dayOffset <= 0}
+                  onClick={() => setDayOffset((v) => Math.max(0, v - 1))}
                 >
-                  {fmtTime12(mins)}
+                  ←
                 </button>
-              ))
-            ) : (
-              <p className="muted">No times left for this day.</p>
-            )}
-          </div>
-        )}
+                <button
+                  type="button"
+                  className="book-nav-btn"
+                  aria-label="Later dates"
+                  disabled={dayOffset + 5 >= days.length}
+                  onClick={() => setDayOffset((v) => Math.min(days.length - 5, v + 1))}
+                >
+                  →
+                </button>
+              </div>
+            </div>
+            <div className="book-dates">
+              {visibleDays.map((d) => {
+                const key = dayKey(d);
+                const label = d.toLocaleDateString(undefined, {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                });
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`book-date ${dateKey === key ? "active" : ""}`}
+                    onClick={() => {
+                      setDateKey(key);
+                      setTimeMins(null);
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
 
-        <div className="book-tz">
-          <span>Timezone</span>
-          <strong>(GMT+5:30) Chennai, Kolkata, Mumbai, New Delhi</strong>
-        </div>
+            <h3 className="book-subhead">Select time of day</h3>
+            {!dateKey ? (
+              <p className="muted">Choose a date first.</p>
+            ) : (
+              <div className="book-times">
+                {availableTimes.length ? (
+                  availableTimes.map((mins) => (
+                    <button
+                      key={mins}
+                      type="button"
+                      className={`book-time ${timeMins === mins ? "active" : ""}`}
+                      onClick={() => setTimeMins(mins)}
+                    >
+                      {fmtTime12(mins)}
+                    </button>
+                  ))
+                ) : (
+                  <p className="muted">No times left for this day.</p>
+                )}
+              </div>
+            )}
+
+            <div className="book-tz">
+              <span>Timezone</span>
+              <strong>(GMT+5:30) Chennai, Kolkata, Mumbai, New Delhi</strong>
+            </div>
+          </>
+        )}
 
         <div className="form-group">
           <label>Full name</label>
           <input name="name" defaultValue={user?.full_name || ""} required />
         </div>
         <div className="form-group">
-          <label>{duration === 5 ? "Email" : "Email (Zoom after approval)"}</label>
+          <label>{isAdvice ? "Email" : "Email (Zoom after approval)"}</label>
           <input name="email" type="email" defaultValue={user?.email || ""} required />
         </div>
         <div className="form-group">
@@ -368,9 +384,9 @@ export default function BookConnect() {
           <button
             type="submit"
             className="btn btn-primary btn-lg btn-block"
-            disabled={busy || !slot || !agreed}
+            disabled={busy || (!isAdvice && !slot) || !agreed}
           >
-            {busy ? "Booking..." : `Let's connect · ₹${price}`}
+            {busy ? "Booking..." : isAdvice ? `Continue to pay · ₹${price}` : `Let's connect · ₹${price}`}
           </button>
         ) : null}
       </form>
@@ -393,9 +409,15 @@ export default function BookConnect() {
         <p className="enroll-order-id">
           <strong>{done.id}</strong> · ₹{done.price_inr}
         </p>
-        <p className="muted" style={{ textAlign: "center" }}>
-          When: {done.slot_start.replace("T", " ")}
-        </p>
+        {done.duration_min === 5 ? (
+          <p className="muted" style={{ textAlign: "center" }}>
+            WhatsApp DM · no Zoom meeting
+          </p>
+        ) : (
+          <p className="muted" style={{ textAlign: "center" }}>
+            When: {done.slot_start.replace("T", " ")}
+          </p>
+        )}
         {!paid ? (
           <>
             <div className="enroll-qr">
@@ -411,7 +433,11 @@ export default function BookConnect() {
           </>
         ) : (
           <>
-            <div className="flash ok">Payment noted. Share the screenshot on WhatsApp.</div>
+            <div className="flash ok">
+              {done.duration_min === 5
+                ? "Payment noted. Open WhatsApp, send the screenshot, and type your question."
+                : "Payment noted. Share the screenshot on WhatsApp."}
+            </div>
             <button
               type="button"
               className="btn btn-wa btn-lg btn-block"
@@ -428,6 +454,7 @@ export default function BookConnect() {
                     slot: done.slot_start.replace("T", " "),
                     plan: planTitle(done.duration_min),
                     upiId: info?.upi_id,
+                    advice: done.duration_min === 5,
                   })
                 )
               }
@@ -574,9 +601,13 @@ export default function BookConnect() {
                 type="submit"
                 form="book-mobile"
                 className="btn btn-primary btn-lg btn-block"
-                disabled={busy || !slot || !agreed}
+                disabled={busy || (duration !== 5 && !slot) || !agreed}
               >
-                {busy ? "Booking..." : `Let's connect · ₹${price}`}
+                {busy
+                  ? "Booking..."
+                  : duration === 5
+                    ? `Continue to pay · ₹${price}`
+                    : `Let's connect · ₹${price}`}
               </button>
             </div>
           </div>
