@@ -20,6 +20,7 @@ def test_send_pack_email_sends_two_complete_zip_parts(tmp_path, monkeypatch):
     sent_messages = []
 
     async def capture_send(message, **kwargs):
+        assert kwargs["timeout"] == email_service.PACK_EMAIL_SMTP_TIMEOUT_SECONDS
         sent_messages.append(message)
 
     monkeypatch.setattr(email_service.settings, "interview_qa_pack_path", str(source_path))

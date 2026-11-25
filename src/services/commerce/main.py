@@ -223,7 +223,7 @@ def trigger_pack_email(order_id: str, email: str, name: str) -> None:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=420) as resp:
             if resp.status >= 400:
                 raise HTTPException(status_code=502, detail="Pack email failed")
     except urllib.error.HTTPError as e:

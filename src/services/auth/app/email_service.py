@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 SITE_URL = os.getenv("SITE_URL", "https://devopsmate.in")
 WHATSAPP = "+91 80889 29670"
+PACK_EMAIL_SMTP_TIMEOUT_SECONDS = 180
 SERVICES = [
     "AWS + DevOps + AI",
     "Job Support — 1:1",
@@ -189,6 +190,7 @@ async def send_pack_email(name: str, email: str, order_id: str) -> None:
             username=settings.smtp_user or None,
             password=settings.smtp_password or None,
             start_tls=settings.smtp_tls,
+            timeout=PACK_EMAIL_SMTP_TIMEOUT_SECONDS,
         )
         logger.info("Pack email part %s/2 sent to %s for order %s", part_number, email, order_id)
 
