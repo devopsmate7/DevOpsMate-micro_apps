@@ -1,19 +1,59 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../api";
 import { useAuth } from "../auth";
 
 const ADMIN_MOBILE = "7013274348";
 
+const TABS = [
+  { id: "dm", label: "1:1 Advice ₹19", kind: "booking", match: (b) => b.duration_min === 5 },
+  { id: "g15", label: "1:1 Guidance 15m", kind: "booking", match: (b) => b.duration_min === 15 },
+  { id: "m40", label: "1:1 Mentorship 40m", kind: "booking", match: (b) => b.duration_min === 40 },
+  {
+    id: "pack",
+    label: "Q&A Pack",
+    kind: "order",
+    match: (o) => o.course_id === "c-interview-qa-offline",
+  },
+  {
+    id: "other",
+    label: "Other enroll",
+    kind: "order",
+    match: (o) => o.course_id !== "c-interview-qa-offline",
+  },
+];
+
+function Row({ children, action }) {
+  return (
+    <div className="admin-row">
+      <div className="admin-row-body">{children}</div>
+      <div className="admin-row-action">{action}</div>
+    </div>
+  );
+}
+
 export default function AdminPack() {
   const { token, user, login, logout } = useAuth();
   const [orders, setOrders] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [tab, setTab] = useState("dm");
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState("");
   const [loginBusy, setLoginBusy] = useState(false);
   const isAdmin = Boolean(token && user?.mobile === ADMIN_MOBILE);
+  const active = TABS.find((t) => t.id === tab) || TABS[0];
+
+  const counts = useMemo(() => {
+    const c = {};
+    for (const t of TABS) {
+      c[t.id] =
+        t.kind === "booking"
+          ? bookings.filter(t.match).length
+          : orders.filter(t.match).length;
+    }
+    return c;
+  }, [orders, bookings]);
 
   async function load() {
     setError("");
@@ -60,8 +100,8 @@ export default function AdminPack() {
       });
       setMsg(
         data.course_id === "c-interview-qa-offline"
-          ? `Approved ${orderId}. ZIP emailed to ${data.email}.`
-          : `Confirmed ${orderId} for ${data.email}.`
+          ? `ZIP emailed to ${data.email}`
+          : `Payment confirmed for ${data.email}`
       );
       await load();
     } catch (e) {
@@ -81,7 +121,11 @@ export default function AdminPack() {
         method: "POST",
         body: {},
       });
-      setMsg(`Accepted ${bookingId}. Zoom emailed to ${data.email}.`);
+      setMsg(
+        data.duration_min === 5
+          ? `Advice confirmed — reply on WhatsApp (${data.mobile})`
+          : `Zoom emailed to ${data.email}`
+      );
       await load();
     } catch (e) {
       setError(e.message);
@@ -90,13 +134,32 @@ export default function AdminPack() {
     }
   }
 
+  async function clearAll() {
+    if (!window.confirm("Delete ALL bookings, enrollments, and carts? This cannot be undone.")) return;
+    setBusy("reset");
+    setMsg("");
+    setError("");
+    try {
+      const data = await apiFetch("/api/commerce/admin/reset-data", { token, method: "POST", body: {} });
+      setMsg(
+        `Cleared · bookings ${data.deleted?.bookings || 0} · orders ${data.deleted?.orders || 0} · carts ${data.deleted?.carts || 0}`
+      );
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy("");
+    }
+  }
+
+  const list =
+    active.kind === "booking" ? bookings.filter(active.match) : orders.filter(active.match);
+
   return (
     <div className="page">
-      <div className="container" style={{ maxWidth: 900 }}>
-        <h1 className="page-title">Admin · Enrollments & 1:1</h1>
-        <p className="page-sub">
-          Confirm UPI enrollments (pack ZIP emailed; other services marked confirmed). Accept 1:1 for Zoom email.
-        </p>
+      <div className="container" style={{ maxWidth: 920 }}>
+        <h1 className="page-title">Admin dashboard</h1>
+        <p className="page-sub">One tab = one service. Approve only what’s in that tab.</p>
         <p>
           <Link to="/" className="text-link">
             Back to site
@@ -129,127 +192,135 @@ export default function AdminPack() {
           </form>
         ) : (
           <>
-            <div className="chip-row" style={{ margin: "12px 0" }}>
+            <div className="chip-row" style={{ margin: "12px 0", flexWrap: "wrap" }}>
               <span className="chip">Admin {user.mobile}</span>
               <button type="button" className="btn btn-secondary" onClick={logout}>
                 Log out
               </button>
-              <button type="button" className="btn btn-secondary" onClick={() => load().catch((e) => setError(e.message))}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => load().catch((e) => setError(e.message))}
+              >
                 Refresh
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={busy === "reset"}
+                onClick={clearAll}
+              >
+                {busy === "reset" ? "Clearing..." : "Clear all data"}
               </button>
             </div>
             {msg ? <div className="flash ok">{msg}</div> : null}
             {error ? <div className="flash error">{error}</div> : null}
-            <h2 className="panel-title" style={{ marginTop: 20 }}>
-              Service enrollments
-            </h2>
-            <div className="panel">
-              {!orders.length ? <p className="muted">No enrollments yet.</p> : null}
-              {orders.map((o) => {
-                const title = o.items?.[0]?.title || o.course_id || "Enrollment";
-                const isPack = o.course_id === "c-interview-qa-offline";
-                const done = o.status === "delivered" || o.status === "confirmed";
-                return (
-                  <div
-                    key={o.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      flexWrap: "wrap",
-                      borderBottom: "1px solid var(--line, #ddd)",
-                      padding: "12px 0",
-                    }}
-                  >
-                    <div>
-                      <strong>{o.id}</strong>
-                      <div className="muted" style={{ fontSize: 14 }}>
-                        {title} · {o.buyer_name} · {o.email} · ₹{o.total_inr} · {o.status}
-                      </div>
-                      <div className="muted" style={{ fontSize: 12 }}>
-                        {o.created_at}
-                        {o.delivered_at ? ` · done ${o.delivered_at}` : ""}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      disabled={done || busy === o.id}
-                      onClick={() => approve(o.id)}
-                    >
-                      {done
-                        ? isPack
-                          ? "Delivered"
-                          : "Confirmed"
-                        : busy === o.id
-                          ? "Working..."
-                          : isPack
-                            ? "Approve & email ZIP"
-                            : "Confirm payment"}
-                    </button>
-                  </div>
-                );
-              })}
+
+            <div className="admin-tabs">
+              {TABS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`admin-tab ${tab === t.id ? "active" : ""}`}
+                  onClick={() => setTab(t.id)}
+                >
+                  {t.label}
+                  <span className="admin-tab-count">{counts[t.id] || 0}</span>
+                </button>
+              ))}
             </div>
 
-            <h2 className="panel-title" style={{ marginTop: 28 }}>
-              1:1 Connect bookings
-            </h2>
-            <div className="panel">
-              {!bookings.length ? <p className="muted">No 1:1 bookings yet.</p> : null}
-              {bookings.map((b) => (
-                <div
-                  key={b.id}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    flexWrap: "wrap",
-                    borderBottom: "1px solid var(--line, #ddd)",
-                    padding: "12px 0",
-                  }}
-                >
-                  <div>
-                    <strong>{b.id}</strong>
-                    <div className="muted" style={{ fontSize: 14 }}>
-                      {b.buyer_name} · {b.mobile} · {b.email} · {b.status}
-                    </div>
-                    <div className="muted" style={{ fontSize: 14 }}>
-                      {b.duration_min === 5
-                        ? "Personal Advice (DM)"
-                        : `${b.duration_min} min${b.priority ? " priority" : ""}`}{" "}
-                      · ₹{b.price_inr} · {String(b.slot_start).replace("T", " ")}
-                    </div>
-                    {b.duration_min === 5 ? (
-                      <span className="muted" style={{ fontSize: 13 }}>
-                        {b.status === "confirmed" ? "Reply on WhatsApp / DM" : "Confirm after payment proof"}
-                      </span>
-                    ) : b.meeting_link && b.meeting_link !== "dm-advice" ? (
-                      <a href={b.meeting_link} target="_blank" rel="noreferrer" className="text-link">
-                        Zoom link
-                      </a>
-                    ) : (
-                      <span className="muted" style={{ fontSize: 13 }}>
-                        Zoom after accept
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    disabled={b.status === "confirmed" || busy === b.id}
-                    onClick={() => approveBooking(b.id)}
-                  >
-                    {b.status === "confirmed"
-                      ? "Accepted"
-                      : busy === b.id
-                        ? "Working..."
-                        : b.duration_min === 5
-                          ? "Confirm advice"
-                          : "Accept & email Zoom"}
-                  </button>
-                </div>
-              ))}
+            <div className="panel admin-panel">
+              <p className="admin-panel-hint">
+                {tab === "dm" && "Approve ₹19 Priority DM after WhatsApp proof — then reply on WhatsApp."}
+                {tab === "g15" && "Accept 15‑min call → Zoom link emailed to student."}
+                {tab === "m40" && "Accept 40‑min mentorship → Zoom link emailed to student."}
+                {tab === "pack" && "Approve Q&A pack → ZIP emailed to student."}
+                {tab === "other" && "Confirm payment for AWS / Job / Interview enrollments."}
+              </p>
+
+              {!list.length ? <p className="muted">Nothing in this tab yet.</p> : null}
+
+              {active.kind === "booking"
+                ? list.map((b) => {
+                    const done = b.status === "confirmed";
+                    return (
+                      <Row
+                        key={b.id}
+                        action={
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            disabled={done || busy === b.id}
+                            onClick={() => approveBooking(b.id)}
+                          >
+                            {done
+                              ? "Done"
+                              : busy === b.id
+                                ? "..."
+                                : b.duration_min === 5
+                                  ? "Confirm DM"
+                                  : "Send Zoom"}
+                          </button>
+                        }
+                      >
+                        <strong>
+                          {b.buyer_name} · ₹{b.price_inr}
+                        </strong>
+                        <div className="muted" style={{ fontSize: 13 }}>
+                          {b.mobile} · {b.email} · {b.status}
+                        </div>
+                        <div className="muted" style={{ fontSize: 13 }}>
+                          {b.duration_min === 5
+                            ? "Priority DM · reply after confirm"
+                            : `${b.duration_min} min Zoom · ${String(b.slot_start).replace("T", " ")}`}
+                        </div>
+                        {b.meeting_link && b.meeting_link !== "dm-advice" ? (
+                          <a href={b.meeting_link} target="_blank" rel="noreferrer" className="text-link">
+                            Open Zoom
+                          </a>
+                        ) : null}
+                      </Row>
+                    );
+                  })
+                : list.map((o) => {
+                    const title = o.items?.[0]?.title || o.course_id || "Enrollment";
+                    const isPack = o.course_id === "c-interview-qa-offline";
+                    const done = o.status === "delivered" || o.status === "confirmed";
+                    return (
+                      <Row
+                        key={o.id}
+                        action={
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            disabled={done || busy === o.id}
+                            onClick={() => approve(o.id)}
+                          >
+                            {done
+                              ? isPack
+                                ? "ZIP sent"
+                                : "Confirmed"
+                              : busy === o.id
+                                ? "..."
+                                : isPack
+                                  ? "Email ZIP"
+                                  : "Confirm pay"}
+                          </button>
+                        }
+                      >
+                        <strong>
+                          {title} · ₹{o.total_inr}
+                        </strong>
+                        <div className="muted" style={{ fontSize: 13 }}>
+                          {o.buyer_name} · {o.email} · {o.status}
+                        </div>
+                        <div className="muted" style={{ fontSize: 12 }}>
+                          {o.id} · {o.created_at}
+                        </div>
+                      </Row>
+                    );
+                  })}
             </div>
           </>
         )}
