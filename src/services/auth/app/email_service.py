@@ -4,7 +4,9 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from html import escape
+from io import BytesIO
 from pathlib import Path
+from zipfile import ZipFile
 
 import aiosmtplib
 
@@ -83,12 +85,12 @@ def welcome_email_html(name: str) -> str:
 </body></html>"""
 
 
-def pack_email_text(name: str, order_id: str) -> str:
+def pack_email_text(name: str, order_id: str, part_number: int) -> str:
     return f"""Dear {name},
 
 Payment successful for your Offline Interview Q&A pack (Order {order_id}).
 
-Thank you for purchasing Real DevOps & Cloud Interview Questions. Your download pack is attached as a ZIP file. Extract it and open the HTML files in your browser (keep the logo file in the same folder).
+Thank you for purchasing Real DevOps & Cloud Interview Questions. This is part {part_number} of 2; the ZIP is attached. You will receive the other part in a separate email. Extract each ZIP independently and open the HTML files in your browser.
 
 Fees are non-refundable after the order is confirmed. We store your name, email, and mobile only to run your account, and we do not sell your data.
 
@@ -104,7 +106,7 @@ WhatsApp: {WHATSAPP}
 """
 
 
-def pack_email_html(name: str, order_id: str) -> str:
+def pack_email_html(name: str, order_id: str, part_number: int) -> str:
     name = escape(name)
     order_id = escape(order_id)
     link = "color:#0b3d91;"
@@ -119,8 +121,8 @@ def pack_email_html(name: str, order_id: str) -> str:
     <p><strong>Payment successful</strong> for your Offline Interview Q&amp;A pack
     (Order <strong>{order_id}</strong>).</p>
     <p>Thank you for purchasing <strong>Real DevOps &amp; Cloud Interview Questions</strong>.
-    Your download pack is attached as a ZIP. Extract it and open the HTML files in your browser
-    (keep the logo file in the same folder).</p>
+    This is <strong>part {part_number} of 2</strong>; the ZIP is attached. You will receive the other part
+    in a separate email. Extract each ZIP independently and open the HTML files in your browser.</p>
     <p style="font-size:13px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:16px;">
       Fees are non-refundable after the order is confirmed. We store your name, email, and mobile only to run your
       account, and we do not sell your data.<br/>
@@ -139,35 +141,56 @@ async def send_pack_email(name: str, email: str, order_id: str) -> None:
     if not zip_path.is_file():
         raise RuntimeError(f"Pack ZIP missing at {zip_path}")
 
-    msg = MIMEMultipart("mixed")
-    msg["Subject"] = "Payment successful — Interview Q&A pack | DevOpsMate"
-    msg["From"] = settings.smtp_from
-    msg["To"] = email
+    with ZipFile(zip_path) as source:
+        members = source.infolist()
+        if len(members) < 2:
+            raise RuntimeError("Pack ZIP must contain at least two files to split")
 
-    alt = MIMEMultipart("alternative")
-    alt.attach(MIMEText(pack_email_text(name, order_id), "plain", "utf-8"))
-    alt.attach(MIMEText(pack_email_html(name, order_id), "html", "utf-8"))
-    msg.attach(alt)
+        buckets = [[], []]
+        bucket_sizes = [0, 0]
+        for member in sorted(members, key=lambda item: item.compress_size, reverse=True):
+            bucket_index = min(range(2), key=lambda index: bucket_sizes[index])
+            buckets[bucket_index].append(member)
+            bucket_sizes[bucket_index] += member.compress_size
 
-    with zip_path.open("rb") as f:
-        attachment = MIMEApplication(f.read(), Name=zip_path.name)
-    attachment["Content-Disposition"] = f'attachment; filename="{zip_path.name}"'
-    msg.attach(attachment)
+        parts = []
+        for bucket in buckets:
+            buffer = BytesIO()
+            with ZipFile(buffer, "w") as part_zip:
+                for member in sorted(bucket, key=lambda item: item.header_offset):
+                    part_zip.writestr(member, source.read(member))
+            parts.append(buffer.getvalue())
 
     if settings.smtp_host in ("mailhog", "127.0.0.1", "localhost"):
         logger.warning("Pack mail for %s is going to MailHog, not to a real inbox", email)
     if settings.smtp_host == "smtp.gmail.com" and not settings.smtp_password:
         raise RuntimeError("SMTP_PASSWORD is empty. Set it in the server .env file.")
 
-    await aiosmtplib.send(
-        msg,
-        hostname=settings.smtp_host,
-        port=settings.smtp_port,
-        username=settings.smtp_user or None,
-        password=settings.smtp_password or None,
-        start_tls=settings.smtp_tls,
-    )
-    logger.info("Pack email sent to %s for order %s", email, order_id)
+    for part_number, content in enumerate(parts, start=1):
+        filename = f"{zip_path.stem}-part-{part_number}-of-2.zip"
+        msg = MIMEMultipart("mixed")
+        msg["Subject"] = f"Payment successful — Interview Q&A pack (Part {part_number} of 2) | DevOpsMate"
+        msg["From"] = settings.smtp_from
+        msg["To"] = email
+
+        alt = MIMEMultipart("alternative")
+        alt.attach(MIMEText(pack_email_text(name, order_id, part_number), "plain", "utf-8"))
+        alt.attach(MIMEText(pack_email_html(name, order_id, part_number), "html", "utf-8"))
+        msg.attach(alt)
+
+        attachment = MIMEApplication(content, Name=filename)
+        attachment["Content-Disposition"] = f'attachment; filename="{filename}"'
+        msg.attach(attachment)
+
+        await aiosmtplib.send(
+            msg,
+            hostname=settings.smtp_host,
+            port=settings.smtp_port,
+            username=settings.smtp_user or None,
+            password=settings.smtp_password or None,
+            start_tls=settings.smtp_tls,
+        )
+        logger.info("Pack email part %s/2 sent to %s for order %s", part_number, email, order_id)
 
 
 async def send_connect_emails(
