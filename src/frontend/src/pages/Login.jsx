@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
 import GoogleGlyph from "../components/GoogleGlyph";
 import Logo from "../components/Logo";
@@ -7,6 +7,9 @@ import Logo from "../components/Logo";
 export default function Login() {
   const { login, token } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = params.get("next") || "";
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "";
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,7 +17,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [entering, setEntering] = useState(false);
 
-  if (token && !entering) return <Navigate to="/courses" replace />;
+  if (token && !entering) return <Navigate to={safeNext || "/courses"} replace />;
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -40,7 +43,7 @@ export default function Login() {
     try {
       await login(body);
       setEntering(true);
-      navigate("/welcome?from=login", { replace: true });
+      navigate(safeNext || "/welcome?from=login", { replace: true });
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -103,7 +106,10 @@ export default function Login() {
         </button>
 
         <p className="auth-switch">
-          New to DevOpsMate? <Link to="/signup">Create an account</Link>
+          New to DevOpsMate?{" "}
+          <Link to={safeNext ? `/signup?next=${encodeURIComponent(safeNext)}` : "/signup"}>
+            Create an account
+          </Link>
         </p>
         <p className="auth-fine">
           Trouble logging in? <a href="mailto:devopsmate7@gmail.com">devopsmate7@gmail.com</a>

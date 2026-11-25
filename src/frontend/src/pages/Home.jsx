@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth";
 import Icon, { WhatsAppIcon } from "../components/Icon";
-import { openWhatsApp } from "../whatsapp";
 
 const TOOLS = [
   { name: "AWS", file: "aws.svg" },
@@ -70,6 +70,14 @@ const TERM_LINES = [
 ];
 
 export default function Home() {
+  const { token } = useAuth();
+  const navigate = useNavigate();
+
+  function goConnect() {
+    if (token) navigate("/book/1on1");
+    else navigate("/login?next=/book/1on1");
+  }
+
   return (
     <>
       <section className="hero">
@@ -89,11 +97,7 @@ export default function Home() {
               Explore Services
               <Icon name="arrowRight" size={18} />
             </Link>
-            <button
-              type="button"
-              className="btn btn-wa btn-lg"
-              onClick={() => openWhatsApp("Hi DevOpsMate, I came from the homepage.")}
-            >
+            <button type="button" className="btn btn-wa btn-lg" onClick={goConnect}>
               <WhatsAppIcon />
               Chat on WhatsApp
             </button>

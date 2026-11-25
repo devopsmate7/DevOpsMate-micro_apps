@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
 import GoogleGlyph from "../components/GoogleGlyph";
 import Logo from "../components/Logo";
 
 export default function Signup() {
   const { signup, token } = useAuth();
+  const [params] = useSearchParams();
+  const next = params.get("next") || "";
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "";
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,8 +18,8 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  if (done) return <Navigate to="/welcome" replace />;
-  if (token && !loading) return <Navigate to="/courses" replace />;
+  if (done) return <Navigate to={safeNext || "/welcome"} replace />;
+  if (token && !loading) return <Navigate to={safeNext || "/courses"} replace />;
 
   async function onSubmit(e) {
     e.preventDefault();
