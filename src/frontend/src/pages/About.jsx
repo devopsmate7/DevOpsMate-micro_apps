@@ -15,7 +15,7 @@ export default function About() {
           <div className="about-hero-block">
             <div className="about-left">
               <div className="about-avatar">
-                <img src="/balu-profile.png" alt="Balu Reddy" />
+                <img src="/balu-profile.jpg" alt="Balu Reddy" />
               </div>
               <p className="about-under">Freelance &amp; Mentorship for Aws DevOps</p>
             </div>

@@ -86,6 +86,32 @@ export default function CourseDetail() {
                   {course.interview_plan.intro.map((line) => (
                     <p key={line} className="plan-intro">{line}</p>
                   ))}
+                  {course.interview_plan.rows?.length ? (
+                    <div className="plan-table-wrap" style={{ overflowX: "auto", marginTop: 14 }}>
+                      <table className="plan-table">
+                        <thead>
+                          <tr>
+                            <th>Days</th>
+                            <th>Module</th>
+                            <th>Learn</th>
+                            <th>Practice</th>
+                            <th>Mock</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {course.interview_plan.rows.map((row) => (
+                            <tr key={`${row.days}-${row.topic}`}>
+                              <td>{row.days}</td>
+                              <td>{row.topic}</td>
+                              <td>{row.learn}</td>
+                              <td>{row.practice}</td>
+                              <td>{row.mock}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : null}
                   {course.interview_plan.note ? (
                     <p className="plan-note">{course.interview_plan.note}</p>
                   ) : null}
