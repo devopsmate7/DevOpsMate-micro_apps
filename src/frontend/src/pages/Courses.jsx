@@ -60,7 +60,7 @@ export default function Courses() {
               </div>
               <div>
                 <h2 className="service-title">
-                  <Link to={`/courses/${c.slug}`}>{c.title}</Link>
+                  <Link to={token ? `/courses/${c.slug}` : "/login"}>{c.title}</Link>
                 </h2>
                 <p className="service-copy">{c.subtitle}</p>
               </div>
@@ -80,7 +80,7 @@ export default function Courses() {
                 <p className="coming-soon-note">Coming soon</p>
               ) : null}
               <div className="service-actions">
-                <Link to={`/courses/${c.slug}`} className="btn btn-secondary">
+                <Link to={token ? `/courses/${c.slug}` : "/login"} className="btn btn-secondary">
                   Details
                 </Link>
                 <button
